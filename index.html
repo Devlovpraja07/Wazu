@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Shab-e-Qadr Checklist</title>
+  <title>Shab-e-Qadr Tasbih</title>
   <style>
     body {
       margin: 0;
@@ -12,7 +13,6 @@
       color: #fff;
       padding: 20px;
     }
-
     .container {
       max-width: 700px;
       margin: auto;
@@ -22,25 +22,21 @@
       padding: 25px;
       box-shadow: 0 0 30px #0ff;
     }
-
     h1 {
       text-align: center;
       color: #0ff;
       font-size: 2rem;
       text-shadow: 0 0 10px #0ff;
     }
-
     .section {
       margin-bottom: 25px;
     }
-
     .section h2 {
       color: #f0f;
       text-shadow: 0 0 10px #f0f;
       font-size: 1.4rem;
       margin-bottom: 10px;
     }
-
     .checklist li {
       margin: 10px 0;
       list-style: none;
@@ -49,27 +45,86 @@
       background: rgba(255, 255, 255, 0.05);
       transition: 0.3s;
     }
-
     .checklist li:hover {
       background: rgba(0, 255, 255, 0.1);
     }
-
+    .tasbih-section {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 20px;
+      border: 2px dashed #0ff;
+      border-radius: 10px;
+      box-shadow: 0 0 15px #0ff;
+    }
+    .tasbih-count {
+      font-size: 3rem;
+      color: #0ff;
+      margin-bottom: 15px;
+      text-shadow: 0 0 10px #0ff;
+    }
+    .tasbih-buttons button {
+      padding: 12px 25px;
+      margin: 10px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 8px;
+      background: #0ff;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 0 10px #0ff;
+      transition: 0.3s;
+    }
+    .tasbih-buttons button:hover {
+      background: #00cccc;
+    }
     .footer {
       text-align: center;
       margin-top: 30px;
       font-size: 0.9rem;
       color: #ccc;
     }
-
-    @media screen and (max-width: 600px) {
-      h1 {
-        font-size: 1.5rem;
-      }
+    .toast {
+      visibility: hidden;
+      min-width: 250px;
+      background-color: #0f0;
+      color: #000;
+      text-align: center;
+      border-radius: 8px;
+      padding: 16px;
+      position: fixed;
+      z-index: 1;
+      left: 50%;
+      bottom: 30px;
+      transform: translateX(-50%);
+      box-shadow: 0 0 15px #0f0;
+      font-weight: bold;
+    }
+    .toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 3s;
+    }
+    @keyframes fadein {
+      from { bottom: 10px; opacity: 0; }
+      to { bottom: 30px; opacity: 1; }
+    }
+    @keyframes fadeout {
+      from { bottom: 30px; opacity: 1; }
+      to { bottom: 10px; opacity: 0; }
     }
   </style>
 </head>
 <body>
   <div class="container">
+    <div class="tasbih-section">
+      <h2>Tasbih Counter</h2>
+      <div class="tasbih-count" id="count">0</div>
+      <div class="tasbih-buttons">
+        <button onclick="increment()">Count</button>
+        <button onclick="reset()">Reset</button>
+      </div>
+      <div style="margin-top: 10px;">Target: 33 - 33 - 34 - 100</div>
+    </div>
+
     <h1>Shab-e-Qadr Checklist</h1>
 
     <div class="section">
@@ -104,9 +159,7 @@
     <div class="section">
       <h2>4. Zikr & Tasbihat</h2>
       <ul class="checklist">
-        <li>100x SubhanAllah</li>
-        <li>100x Alhamdulillah</li>
-        <li>100x Allahu Akbar</li>
+        <li>100x SubhanAllah / Alhamdulillah / Allahu Akbar</li>
         <li>100x Astaghfirullah</li>
         <li>100x Darood Shareef</li>
       </ul>
@@ -140,5 +193,37 @@
       Designed with love for Shab-e-Qadr | May Allah accept your duas
     </div>
   </div>
+
+  <div id="toast" class="toast">Tasbih Complete ✅</div>
+
+  <script>
+    let count = 0;
+    const countDisplay = document.getElementById("count");
+    const toast = document.getElementById("toast");
+
+    const targets = [33, 66, 100, 134]; // SubhanAllah(33), Alhamdulillah(33), Allahu Akbar(34), All(100)
+
+    function increment() {
+      count++;
+      countDisplay.textContent = count;
+
+      if (targets.includes(count)) {
+        showToast("Tasbih Target Reached: " + count);
+      }
+    }
+
+    function reset() {
+      count = 0;
+      countDisplay.textContent = count;
+    }
+
+    function showToast(msg) {
+      toast.textContent = msg + " ✅";
+      toast.className = "toast show";
+      setTimeout(() => {
+        toast.className = toast.className.replace("show", "");
+      }, 4000);
+    }
+  </script>
 </body>
 </html>
