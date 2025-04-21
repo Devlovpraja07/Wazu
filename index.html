@@ -1,501 +1,600 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 4K Photo Enhancer</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/upscaler@1.0.0/dist/upscaler.min.js"></script>
-    <style>
-        :root {
-            --primary: #4CAF50;
-            --secondary: #2196F3;
-            --dark: #333;
-            --light: #f5f5f5;
-            --error: #f44336;
-        }
-        * {
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background: var(--light);
-            color: var(--dark);
-            line-height: 1.6;
-        }
-        h1 {
-            color: var(--primary);
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: clamp(1.8rem, 4vw, 2.5rem);
-        }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-            font-size: clamp(1rem, 2vw, 1.2rem);
-        }
-        .drop-area {
-            border: 3px dashed #aaa;
-            border-radius: 15px;
-            padding: 30px;
-            margin: 20px auto;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            max-width: 800px;
-        }
-        .drop-area.highlight {
-            border-color: var(--primary);
-            background: #f0fff0;
-            transform: scale(1.01);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        #fileInput {
-            display: none;
-        }
-        .btn {
-            background: var(--primary);
-            color: white;
-            padding: 12px 25px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1rem;
-            margin: 10px;
-            transition: all 0.3s;
-            font-weight: 600;
-            display: inline-block;
-        }
-        .btn:hover {
-            filter: brightness(1.1);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
-        }
-        .btn-secondary {
-            background: var(--secondary);
-        }
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        .preview-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-            margin: 40px 0;
-        }
-        .image-box {
-            flex: 1;
-            min-width: 300px;
-            max-width: 500px;
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .image-box h3 {
-            margin-top: 0;
-            color: var(--dark);
-            font-size: 1.3rem;
-        }
-        .image-preview {
-            width: 100%;
-            height: auto;
-            max-height: 400px;
-            object-fit: contain;
-            border-radius: 5px;
-            background: 
-                linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%),
-                linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%);
-            background-size: 20px 20px;
-            background-position: 0 0, 10px 10px;
-        }
-        .loading {
-            text-align: center;
-            margin: 30px 0;
-            display: none;
-        }
-        .spinner {
-            border: 5px solid rgba(0,0,0,0.1);
-            border-top: 5px solid var(--primary);
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .progress-bar {
-            width: 100%;
-            max-width: 400px;
-            height: 10px;
-            background: #eee;
-            border-radius: 5px;
-            margin: 20px auto;
-            overflow: hidden;
-        }
-        .progress {
-            height: 100%;
-            background: var(--primary);
-            width: 0%;
-            transition: width 0.3s;
-        }
-        .toast {
-            position: fixed;
-            top: 30px;
-            right: 30px;
-            background: var(--primary);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            z-index: 1000;
-            transform: translateY(-100px);
-            opacity: 0;
-            transition: all 0.3s;
-        }
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        .toast.error {
-            background: var(--error);
-        }
-        .model-selector {
-            margin: 20px 0;
-            text-align: center;
-        }
-        .model-btn {
-            background: white;
-            border: 2px solid var(--secondary);
-            color: var(--secondary);
-            padding: 8px 15px;
-            margin: 5px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: 600;
-        }
-        .model-btn.active {
-            background: var(--secondary);
-            color: white;
-        }
-        @media (max-width: 768px) {
-            .preview-container {
-                flex-direction: column;
-                align-items: center;
-            }
-            .image-box {
-                width: 100%;
-            }
-            .drop-area {
-                padding: 20px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Boycott Product Scanner</title>
+  <style>
+    :root {
+      --primary: #0ff;
+      --danger: #ff4d4d;
+      --success: #4dff4d;
+      --warning: #ffcc00;
+      --bg-dark: #111;
+      --bg-light: #222;
+      --text-light: #f0f0f0;
+    }
+    
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      text-align: center;
+      padding: 15px;
+      line-height: 1.6;
+    }
+    
+    h2 {
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .scanner {
+      border: 2px dashed var(--primary);
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 12px;
+      background-color: var(--bg-light);
+    }
+    
+    video {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 12px;
+      background-color: #000;
+      box-shadow: 0 4px 8px rgba(0, 255, 255, 0.2);
+    }
+    
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 1.2rem;
+      background-color: var(--bg-light);
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .safe { 
+      color: var(--success);
+      font-weight: bold;
+    }
+    
+    .boycott { 
+      color: var(--danger);
+      font-weight: bold;
+    }
+    
+    .warning {
+      color: var(--warning);
+    }
+    
+    .controls {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    .file-upload {
+      padding: 10px 20px;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .file-upload:hover {
+      background: #00cccc;
+    }
+    
+    button {
+      padding: 10px 20px;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    button:hover {
+      background: #00cccc;
+      transform: translateY(-2px);
+    }
+    
+    button:disabled {
+      background: #666;
+      cursor: not-allowed;
+      transform: none;
+    }
+    
+    .barcode-info {
+      margin-top: 15px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    
+    .info-card {
+      background-color: var(--bg-light);
+      padding: 15px;
+      border-radius: 8px;
+      text-align: left;
+    }
+    
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: var(--primary);
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @media (max-width: 600px) {
+      h2 { font-size: 1.4rem; }
+      .result { font-size: 1rem; }
+      .barcode-info {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+    }
+    
+    .modal-content {
+      background-color: var(--bg-light);
+      margin: 10% auto;
+      padding: 20px;
+      border: 1px solid var(--primary);
+      width: 80%;
+      max-width: 600px;
+      border-radius: 10px;
+      position: relative;
+    }
+    
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .close:hover {
+      color: var(--text-light);
+    }
+  </style>
 </head>
 <body>
-    <h1>🖼️ AI 4K Photo Enhancer</h1>
-    <p class="subtitle">Transform low-quality images into <strong>4K Ultra HD</strong> with AI magic</p>
+  <div class="container">
+    <h2>Ethical Product Scanner</h2>
     
-    <div id="dropArea" class="drop-area">
-        <p style="font-size: 1.2rem; margin-bottom: 10px;">📁 Drag & Drop your image here</p>
-        <p>or</p>
-        <button class="btn" onclick="document.getElementById('fileInput').click()">Select Image</button>
-        <input type="file" id="fileInput" accept="image/*">
+    <div class="scanner">
+      <video id="scanner-camera" autoplay playsinline></video>
+      <div class="controls">
+        <button id="start-btn" onclick="startScanner()">Start Camera</button>
+        <button id="stop-btn" onclick="stopScanner()" disabled>Stop Camera</button>
+        <label for="file-input" class="file-upload">Upload Image</label>
+        <input id="file-input" type="file" accept="image/*" onchange="handleImage(event)">
+      </div>
     </div>
     
-    <div class="model-selector">
-        <p>AI Model: <span id="currentModel">Auto Select (Recommended)</span></p>
-        <div>
-            <button class="model-btn active" onclick="selectModel('auto')">Auto</button>
-            <button class="model-btn" onclick="selectModel('esrgan')">ESRGAN</button>
-            <button class="model-btn" onclick="selectModel('waifu2x')">Waifu2x</button>
-            <button class="model-btn" onclick="selectModel('real-esrgan')">Real-ESRGAN</button>
+    <div class="result" id="result">
+      <div>Scan a product barcode using camera or upload an image</div>
+    </div>
+    
+    <div class="barcode-info" id="barcode-info" style="display: none;">
+      <div class="info-card">
+        <h3>Barcode</h3>
+        <div id="barcode-number">-</div>
+      </div>
+      <div class="info-card">
+        <h3>Country</h3>
+        <div id="barcode-country">-</div>
+      </div>
+      <div class="info-card">
+        <h3>Status</h3>
+        <div id="barcode-status">-</div>
+      </div>
+    </div>
+    
+    <div style="margin-top: 20px;">
+      <button onclick="showInfoModal()">ℹ️ About This Scanner</button>
+    </div>
+  </div>
+  
+  <!-- Info Modal -->
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2>About Ethical Product Scanner</h2>
+      <p>This scanner helps identify products based on their barcodes and provides information about their country of origin.</p>
+      
+      <h3>How it works:</h3>
+      <ul style="text-align: left;">
+        <li>Use your camera to scan a product barcode or upload an image</li>
+        <li>The scanner will read the barcode and identify the country of origin</li>
+        <li>You'll see whether the product is from a country you may want to support or boycott</li>
+      </ul>
+      
+      <h3>Barcode Prefix Reference:</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr style="background-color: #333;">
+          <th style="padding: 8px; text-align: left;">Prefix</th>
+          <th style="padding: 8px; text-align: left;">Country</th>
+          <th style="padding: 8px; text-align: left;">Status</th>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #444;">729</td>
+          <td style="padding: 8px; border-bottom: 1px solid #444;">Israel</td>
+          <td style="padding: 8px; border-bottom: 1px solid #444;" class="boycott">Boycott</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #444;">890</td>
+          <td style="padding: 8px; border-bottom: 1px solid #444;">India</td>
+          <td style="padding: 8px; border-bottom: 1px solid #444;" class="safe">Support</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #444;">500-599</td>
+          <td style="padding: 8px; border-bottom: 1px solid #444;">UK</td>
+          <td style="padding: 8px; border-bottom: 1px solid #444;" class="boycott">Boycott</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px;">Other</td>
+          <td style="padding: 8px;">Various</td>
+          <td style="padding: 8px;">Check individually</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/@ericblade/quagga2@1.2.9/dist/quagga.min.js"></script>
+  <script>
+    // Enhanced country database
+    const countryDatabase = {
+      // GS1 Country Codes
+      '729': { country: "Israel", status: "boycott", note: "Products from occupied territories" },
+      '890': { country: "India", status: "support", note: "Support local businesses" },
+      '500-599': { country: "United Kingdom", status: "boycott", note: "Due to political stance" },
+      '000-019': { country: "USA / Canada", status: "check", note: "Verify company ethics" },
+      '020-029': { country: "Restricted distribution", status: "warning", note: "Special cases" },
+      '030-039': { country: "USA", status: "check", note: "Verify company ethics" },
+      '040-049': { country: "Restricted distribution", status: "warning", note: "Special cases" },
+      '050-059': { country: "Coupons", status: "warning", note: "Not a product code" },
+      '060-139': { country: "USA / Canada", status: "check", note: "Verify company ethics" },
+      '300-379': { country: "France", status: "check", note: "Verify company ethics" },
+      '380': { country: "Bulgaria", status: "support", note: "Support local businesses" },
+      '383': { country: "Slovenia", status: "support", note: "Support local businesses" },
+      '385': { country: "Croatia", status: "support", note: "Support local businesses" },
+      '387': { country: "Bosnia-Herzegovina", status: "support", note: "Support local businesses" },
+      '400-440': { country: "Germany", status: "check", note: "Verify company ethics" },
+      '450-459': { country: "Japan", status: "check", note: "Verify company ethics" },
+      '460-469': { country: "Russia", status: "boycott", note: "Due to political stance" },
+      '470': { country: "Kyrgyzstan", status: "support", note: "Support local businesses" },
+      '471': { country: "Taiwan", status: "support", note: "Support local businesses" },
+      '474': { country: "Estonia", status: "support", note: "Support local businesses" },
+      '475': { country: "Latvia", status: "support", note: "Support local businesses" },
+      '476': { country: "Azerbaijan", status: "check", note: "Verify company ethics" },
+      '477': { country: "Lithuania", status: "support", note: "Support local businesses" },
+      '478': { country: "Uzbekistan", status: "support", note: "Support local businesses" },
+      '479': { country: "Sri Lanka", status: "support", note: "Support local businesses" },
+      '480': { country: "Philippines", status: "support", note: "Support local businesses" },
+      '481': { country: "Belarus", status: "check", note: "Verify company ethics" },
+      '482': { country: "Ukraine", status: "support", note: "Support local businesses" },
+      '484': { country: "Moldova", status: "support", note: "Support local businesses" },
+      '485': { country: "Armenia", status: "support", note: "Support local businesses" },
+      '486': { country: "Georgia", status: "support", note: "Support local businesses" },
+      '487': { country: "Kazakhstan", status: "support", note: "Support local businesses" },
+      '489': { country: "Hong Kong", status: "check", note: "Verify company ethics" },
+      '490-499': { country: "Japan", status: "check", note: "Verify company ethics" },
+      '600-601': { country: "South Africa", status: "support", note: "Support local businesses" },
+      '603': { country: "Ghana", status: "support", note: "Support local businesses" },
+      '604': { country: "Senegal", status: "support", note: "Support local businesses" },
+      '608': { country: "Bahrain", status: "check", note: "Verify company ethics" },
+      '609': { country: "Mauritius", status: "support", note: "Support local businesses" },
+      '611': { country: "Morocco", status: "support", note: "Support local businesses" },
+      '613': { country: "Algeria", status: "support", note: "Support local businesses" },
+      '616': { country: "Kenya", status: "support", note: "Support local businesses" },
+      '618': { country: "Ivory Coast", status: "support", note: "Support local businesses" },
+      '619': { country: "Tunisia", status: "support", note: "Support local businesses" },
+      '621': { country: "Syria", status: "check", note: "Verify company ethics" },
+      '622': { country: "Egypt", status: "support", note: "Support local businesses" },
+      '624': { country: "Libya", status: "check", note: "Verify company ethics" },
+      '625': { country: "Jordan", status: "support", note: "Support local businesses" },
+      '626': { country: "Iran", status: "check", note: "Verify company ethics" },
+      '627': { country: "Kuwait", status: "check", note: "Verify company ethics" },
+      '628': { country: "Saudi Arabia", status: "check", note: "Verify company ethics" },
+      '629': { country: "United Arab Emirates", status: "check", note: "Verify company ethics" },
+      '640-649': { country: "Finland", status: "check", note: "Verify company ethics" },
+      '690-699': { country: "China", status: "check", note: "Verify company ethics" },
+      '700-709': { country: "Norway", status: "check", note: "Verify company ethics" },
+      '729': { country: "Israel", status: "boycott", note: "Products from occupied territories" },
+      '730-739': { country: "Sweden", status: "check", note: "Verify company ethics" },
+      '740': { country: "Guatemala", status: "support", note: "Support local businesses" },
+      '741': { country: "El Salvador", status: "support", note: "Support local businesses" },
+      '742': { country: "Honduras", status: "support", note: "Support local businesses" },
+      '743': { country: "Nicaragua", status: "support", note: "Support local businesses" },
+      '744': { country: "Costa Rica", status: "support", note: "Support local businesses" },
+      '745': { country: "Panama", status: "support", note: "Support local businesses" },
+      '746': { country: "Dominican Republic", status: "support", note: "Support local businesses" },
+      '750': { country: "Mexico", status: "support", note: "Support local businesses" },
+      '754-755': { country: "Canada", status: "check", note: "Verify company ethics" },
+      '759': { country: "Venezuela", status: "support", note: "Support local businesses" },
+      '760-769': { country: "Switzerland", status: "check", note: "Verify company ethics" },
+      '770': { country: "Colombia", status: "support", note: "Support local businesses" },
+      '773': { country: "Uruguay", status: "support", note: "Support local businesses" },
+      '775': { country: "Peru", status: "support", note: "Support local businesses" },
+      '777': { country: "Bolivia", status: "support", note: "Support local businesses" },
+      '779': { country: "Argentina", status: "support", note: "Support local businesses" },
+      '780': { country: "Chile", status: "support", note: "Support local businesses" },
+      '784': { country: "Paraguay", status: "support", note: "Support local businesses" },
+      '786': { country: "Ecuador", status: "support", note: "Support local businesses" },
+      '789-790': { country: "Brazil", status: "support", note: "Support local businesses" },
+      '800-839': { country: "Italy", status: "check", note: "Verify company ethics" },
+      '840-849': { country: "Spain", status: "check", note: "Verify company ethics" },
+      '850': { country: "Cuba", status: "support", note: "Support local businesses" },
+      '858': { country: "Slovakia", status: "support", note: "Support local businesses" },
+      '859': { country: "Czech Republic", status: "support", note: "Support local businesses" },
+      '860': { country: "Serbia", status: "support", note: "Support local businesses" },
+      '865': { country: "Mongolia", status: "support", note: "Support local businesses" },
+      '867': { country: "North Korea", status: "check", note: "Verify company ethics" },
+      '868-869': { country: "Turkey", status: "check", note: "Verify company ethics" },
+      '870-879': { country: "Netherlands", status: "check", note: "Verify company ethics" },
+      '880': { country: "South Korea", status: "check", note: "Verify company ethics" },
+      '884': { country: "Cambodia", status: "support", note: "Support local businesses" },
+      '885': { country: "Thailand", status: "support", note: "Support local businesses" },
+      '888': { country: "Singapore", status: "check", note: "Verify company ethics" },
+      '890': { country: "India", status: "support", note: "Support local businesses" },
+      '893': { country: "Vietnam", status: "support", note: "Support local businesses" },
+      '896': { country: "Pakistan", status: "support", note: "Support local businesses" },
+      '899': { country: "Indonesia", status: "support", note: "Support local businesses" },
+      '900-919': { country: "Austria", status: "check", note: "Verify company ethics" },
+      '930-939': { country: "Australia", status: "check", note: "Verify company ethics" },
+      '940-949': { country: "New Zealand", status: "check", note: "Verify company ethics" },
+      '955': { country: "Malaysia", status: "support", note: "Support local businesses" },
+      '958': { country: "Macau", status: "check", note: "Verify company ethics" }
+    };
+
+    // Get country info from barcode
+    function getCountryFromBarcode(code) {
+      if (!code || code.length < 3) return { 
+        country: "Unknown", 
+        status: "warning", 
+        note: "Invalid barcode",
+        emoji: "❓"
+      };
+      
+      const prefix = code.substring(0, 3);
+      
+      // Check exact matches first
+      if (countryDatabase[prefix]) {
+        const info = countryDatabase[prefix];
+        return {
+          ...info,
+          emoji: getStatusEmoji(info.status)
+        };
+      }
+      
+      // Check range matches
+      for (const [key, info] of Object.entries(countryDatabase)) {
+        if (key.includes('-')) {
+          const [start, end] = key.split('-').map(Number);
+          const prefixNum = parseInt(prefix);
+          if (prefixNum >= start && prefixNum <= end) {
+            return {
+              ...info,
+              emoji: getStatusEmoji(info.status)
+            };
+          }
+        }
+      }
+      
+      // Default return for unknown codes
+      return { 
+        country: "Unknown", 
+        status: "warning", 
+        note: "Country not identified in database",
+        emoji: "❓"
+      };
+    }
+    
+    function getStatusEmoji(status) {
+      switch(status) {
+        case 'support': return '✅';
+        case 'boycott': return '❌';
+        case 'check': return '🔍';
+        case 'warning': return '⚠️';
+        default: return '❓';
+      }
+    }
+
+    function showResult(barcode) {
+      const info = getCountryFromBarcode(barcode);
+      
+      // Update the info cards
+      document.getElementById("barcode-number").textContent = barcode;
+      document.getElementById("barcode-country").textContent = `${info.country} ${info.emoji}`;
+      
+      const statusElement = document.getElementById("barcode-status");
+      statusElement.textContent = info.note;
+      statusElement.className = info.status;
+      
+      // Show the info section
+      document.getElementById("barcode-info").style.display = "grid";
+      
+      // Update main result display
+      const resultDiv = document.getElementById("result");
+      resultDiv.innerHTML = `
+        <div style="font-size: 1.4rem; margin-bottom: 10px;">
+          ${info.emoji} <span class="${info.status}">${info.status.toUpperCase()}</span>
         </div>
-    </div>
+        <div>Barcode: <strong>${barcode}</strong></div>
+        <div>Country: <strong>${info.country}</strong></div>
+        ${info.note ? `<div style="margin-top: 10px; font-style: italic;">${info.note}</div>` : ''}
+      `;
+    }
+
+    let scannerActive = false;
     
-    <div class="preview-container">
-        <div class="image-box">
-            <h3>Original Image</h3>
-            <img id="originalImg" class="image-preview" src="" alt="Original" style="display: none;">
-            <p id="originalRes">Resolution: -</p>
-        </div>
-        <div class="image-box">
-            <h3>4K Enhanced</h3>
-            <img id="enhancedImg" class="image-preview" src="" alt="Enhanced" style="display: none;">
-            <p id="enhancedRes">Resolution: -</p>
-        </div>
-    </div>
-    
-    <div style="text-align: center;">
-        <button id="enhanceBtn" class="btn btn-secondary" style="display: none;">Enhance to 4K</button>
-        <button id="downloadBtn" class="btn" style="display: none;">Download 4K Image</button>
-    </div>
-    
-    <div class="loading" id="loading">
-        <div class="spinner"></div>
-        <p id="loadingText">Loading AI model...</p>
-        <div class="progress-bar">
-            <div class="progress" id="progressBar"></div>
-        </div>
-    </div>
-    
-    <div id="toast" class="toast"></div>
-    
-    <script>
-        // Elements
-        const dropArea = document.getElementById('dropArea');
-        const fileInput = document.getElementById('fileInput');
-        const originalImg = document.getElementById('originalImg');
-        const enhancedImg = document.getElementById('enhancedImg');
-        const enhanceBtn = document.getElementById('enhanceBtn');
-        const downloadBtn = document.getElementById('downloadBtn');
-        const loading = document.getElementById('loading');
-        const toast = document.getElementById('toast');
-        const progressBar = document.getElementById('progressBar');
-        const loadingText = document.getElementById('loadingText');
-        const originalRes = document.getElementById('originalRes');
-        const enhancedRes = document.getElementById('enhancedRes');
-        const currentModelText = document.getElementById('currentModel');
+    function startScanner() {
+      if (scannerActive) return;
+      
+      const videoElement = document.querySelector('#scanner-camera');
+      const startBtn = document.getElementById('start-btn');
+      const stopBtn = document.getElementById('stop-btn');
+      
+      // Show loading state
+      document.getElementById("result").innerHTML = '<div class="loading"></div> Starting scanner...';
+      
+      Quagga.init({
+        inputStream: {
+          name: "Live",
+          type: "LiveStream",
+          target: videoElement,
+          constraints: {
+            facingMode: "environment",
+            focusMode: "continuous"
+          }
+        },
+        decoder: {
+          readers: ["ean_reader", "upc_reader", "code_128_reader"],
+          multiple: false
+        },
+        locate: true,
+        frequency: 10
+      }, function(err) {
+        if (err) {
+          console.error("Quagga init error:", err);
+          document.getElementById("result").innerHTML = 
+            '❌ Error starting scanner. Make sure you have granted camera permissions.';
+          return;
+        }
         
-        // Variables
-        let selectedModel = 'auto';
-        let enhancedImageUrl = null;
-        let originalImageData = null;
+        scannerActive = true;
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        Quagga.start();
         
-        // Initialize TensorFlow.js
-        async function initTF() {
-            loading.style.display = 'block';
-            loadingText.textContent = "Loading AI engine...";
-            
-            try {
-                await tf.ready();
-                console.log("TensorFlow.js loaded successfully");
-                loading.style.display = 'none';
-            } catch (error) {
-                showError("Failed to load AI engine. Please refresh.");
-                console.error("TensorFlow error:", error);
+        document.getElementById("result").innerHTML = 
+          'Scanner active. Point camera at a barcode.';
+      });
+
+      Quagga.onDetected(function(data) {
+        if (data && data.codeResult && data.codeResult.code) {
+          const code = data.codeResult.code;
+          Quagga.stop();
+          scannerActive = false;
+          document.getElementById('start-btn').disabled = false;
+          document.getElementById('stop-btn').disabled = true;
+          showResult(code);
+        }
+      });
+    }
+
+    function stopScanner() {
+      if (scannerActive) {
+        Quagga.stop();
+        scannerActive = false;
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('stop-btn').disabled = true;
+        document.getElementById("result").innerHTML = 
+          '<div class="warning">Camera stopped. Click "Start Camera" to scan again.</div>';
+      }
+    }
+
+    function handleImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // Reset file input
+      event.target.value = '';
+      
+      // Show loading state
+      document.getElementById("result").innerHTML = '<div class="loading"></div> Processing image...';
+      
+      const reader = new FileReader();
+      reader.onload = function () {
+        const img = new Image();
+        img.onload = () => {
+          Quagga.decodeSingle({
+            src: img.src,
+            numOfWorkers: 4,
+            decoder: {
+              readers: ["ean_reader", "upc_reader", "code_128_reader"]
+            },
+            locate: true,
+            patchSize: "medium"
+          }, function (result) {
+            if (result && result.codeResult && result.codeResult.code) {
+              showResult(result.codeResult.code);
+            } else {
+              document.getElementById("result").innerHTML = 
+                '<div class="warning">❌ Barcode not found. Try another image with a clearer view of the barcode.</div>';
+              document.getElementById("barcode-info").style.display = "none";
             }
-        }
-        
-        // Initialize on page load
-        initTF();
-        
-        // Model selection
-        function selectModel(model) {
-            selectedModel = model;
-            currentModelText.textContent = model === 'auto' ? 'Auto Select (Recommended)' : 
-                                          model === 'esrgan' ? 'ESRGAN (General Purpose)' :
-                                          model === 'waifu2x' ? 'Waifu2x (Anime/Art)' :
-                                          'Real-ESRGAN (Photos)';
-            
-            // Update active button
-            document.querySelectorAll('.model-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-        }
-        
-        // File handling
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false);
-            document.body.addEventListener(eventName, preventDefaults, false);
-        });
-        
-        ['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, highlight, false);
-        });
-        
-        ['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, unhighlight, false);
-        });
-        
-        dropArea.addEventListener('drop', handleDrop, false);
-        fileInput.addEventListener('change', handleFiles, false);
-        enhanceBtn.addEventListener('click', enhanceImage);
-        downloadBtn.addEventListener('click', downloadEnhancedImage);
-        
-        function preventDefaults(e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-        
-        function highlight() {
-            dropArea.classList.add('highlight');
-        }
-        
-        function unhighlight() {
-            dropArea.classList.remove('highlight');
-        }
-        
-        function handleDrop(e) {
-            const dt = e.dataTransfer;
-            const files = dt.files;
-            handleFiles({ target: { files } });
-        }
-        
-        function handleFiles(e) {
-            const files = e.target.files;
-            if (files.length && files[0].type.startsWith('image/')) {
-                const file = files[0];
-                const reader = new FileReader();
-                
-                reader.onload = function(e) {
-                    originalImg.src = e.target.result;
-                    originalImg.style.display = 'block';
-                    enhanceBtn.style.display = 'inline-block';
-                    downloadBtn.style.display = 'none';
-                    enhancedImg.style.display = 'none';
-                    
-                    // Get image dimensions
-                    const img = new Image();
-                    img.onload = function() {
-                        originalRes.textContent = `Resolution: ${img.width}×${img.height}`;
-                        originalImageData = {
-                            src: e.target.result,
-                            width: img.width,
-                            height: img.height
-                        };
-                    };
-                    img.src = e.target.result;
-                };
-                
-                reader.readAsDataURL(file);
-            }
-        }
-        
-        // Main enhancement function
-        async function enhanceImage() {
-            if (!originalImg.src) return;
-            
-            loading.style.display = 'block';
-            enhanceBtn.disabled = true;
-            progressBar.style.width = '0%';
-            
-            try {
-                // Determine best model if auto-selected
-                const modelToUse = selectedModel === 'auto' ? 
-                    (originalImageData.width < 500 ? 'real-esrgan' : 'esrgan') : 
-                    selectedModel;
-                
-                loadingText.textContent = `Enhancing with ${modelToUse.toUpperCase()}...`;
-                
-                // Simulate progress (in real app, this would be actual progress)
-                simulateProgress();
-                
-                // In a real implementation, you would:
-                // 1. Load the appropriate AI model
-                // 2. Process the image
-                // 3. Return the enhanced version
-                
-                // For this demo, we'll simulate the enhancement
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                
-                // Create a canvas with 4x resolution
-                const canvas = document.createElement('canvas');
-                canvas.width = originalImageData.width * 4;
-                canvas.height = originalImageData.height * 4;
-                const ctx = canvas.getContext('2d');
-                
-                // Draw original image (scaled up)
-                const img = new Image();
-                await new Promise((resolve) => {
-                    img.onload = resolve;
-                    img.src = originalImageData.src;
-                });
-                
-                ctx.imageSmoothingEnabled = true;
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                // Apply some simple enhancements for demo purposes
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const data = imageData.data;
-                
-                // Simple sharpening and contrast adjustment
-                for (let i = 0; i < data.length; i += 4) {
-                    // Increase contrast slightly
-                    data[i] = clamp(data[i] * 1.1);
-                    data[i+1] = clamp(data[i+1] * 1.1);
-                    data[i+2] = clamp(data[i+2] * 1.1);
-                    
-                    // Mild sharpening
-                    if (i > 0) {
-                        data[i] = clamp(data[i] * 0.8 + data[i-4] * 0.2);
-                        data[i+1] = clamp(data[i+1] * 0.8 + data[i-3] * 0.2);
-                        data[i+2] = clamp(data[i+2] * 0.8 + data[i-2] * 0.2);
-                    }
-                }
-                
-                ctx.putImageData(imageData, 0, 0);
-                
-                // Get the enhanced image
-                enhancedImageUrl = canvas.toDataURL('image/png');
-                enhancedImg.src = enhancedImageUrl;
-                enhancedImg.style.display = 'block';
-                enhancedRes.textContent = `Resolution: ${canvas.width}×${canvas.height}`;
-                downloadBtn.style.display = 'inline-block';
-                
-                showToast(`✅ Enhanced to 4K using ${modelToUse.toUpperCase()}`);
-            } catch (error) {
-                console.error("Enhancement error:", error);
-                showError("Enhancement failed. Try a different image or model.");
-            } finally {
-                loading.style.display = 'none';
-                enhanceBtn.disabled = false;
-                progressBar.style.width = '0%';
-            }
-        }
-        
-        function simulateProgress() {
-            let progress = 0;
-            const interval = setInterval(() => {
-                progress += Math.random() * 10;
-                if (progress >= 100) {
-                    progress = 100;
-                    clearInterval(interval);
-                }
-                progressBar.style.width = `${progress}%`;
-            }, 200);
-        }
-        
-        function clamp(value) {
-            return Math.min(255, Math.max(0, value));
-        }
-        
-        function downloadEnhancedImage() {
-            if (!enhancedImageUrl) return;
-            
-            const link = document.createElement('a');
-            link.href = enhancedImageUrl;
-            link.download = `4k-enhanced-${Date.now()}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-        
-        function showToast(message, isError = false) {
-            toast.textContent = message;
-            toast.className = isError ? 'toast error show' : 'toast show';
-            setTimeout(() => {
-                toast.className = toast.className.replace('show', '');
-            }, 3000);
-        }
-        
-        function showError(message) {
-            showToast(message, true);
-        }
-    </script>
+          });
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    // Modal functions
+    function showInfoModal() {
+      document.getElementById('infoModal').style.display = 'block';
+    }
+    
+    function closeModal() {
+      document.getElementById('infoModal').style.display = 'none';
+    }
+    
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+      const modal = document.getElementById('infoModal');
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+    
+    // Stop scanner when page is closed
+    window.addEventListener('beforeunload', function() {
+      if (scannerActive) {
+        Quagga.stop();
+      }
+    });
+  </script>
 </body>
 </html>
