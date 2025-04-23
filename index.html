@@ -1,447 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global Scanner & Checker</title>
-    <style>
-        /* --- Variables for consistent styling (Dark Theme) --- */
-        :root {
-            --primary-color: #007bff; /* Blue (can adjust for dark theme) */
-            --secondary-color: #bdc3c7; /* Lighter Grey for contrast */
-            --success-color: #28a745; /* Green */
-            --danger-color: #dc3545; /* Red */
-            --info-color: #ffc107; /* Yellow/Orange for info */
-            --background-color: #121212; /* Very Dark Grey */
-            --card-background: #2c2c2c; /* Dark Grey for cards */
-            --text-color: #e0e0e0; /* Light Grey text */
-            --border-color: #555; /* Darker border */
-            --border-radius: 8px;
-            --box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Darker shadow */
-            --footer-height: 60px; /* Height of the fixed footer */
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background-color); /* Dark background */
-            color: var(--text-color); /* Light text */
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-top: 20px;
-            padding-bottom: var(--footer-height); /* Add padding equal to footer height */
-            box-sizing: border-box;
-        }
-
-        h1, h2 {
-            color: var(--primary-color);
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-         #app-container { /* Container for main content */
-            width: 100%;
-            max-width: 600px;
-            padding: 20px;
-            background-color: var(--card-background); /* Dark card background */
-            border-radius: var(--border-radius);
-            box-shadow: var(--box-shadow);
-            box-sizing: border-box;
-            margin-bottom: 20px; /* Space above footer area */
-         }
-
-        /* --- Scanner Frame Styles --- */
-        #scanner-container {
-            width: 100%;
-            margin-bottom: 20px;
-            position: relative; /* Needed for positioning corners */
-            overflow: hidden;
-            background-color: #000; /* Black background behind video */
-            border-radius: var(--border-radius);
-            /* Optional: Add a subtle border or shadow to the container */
-             border: 1px solid var(--border-color);
-             /* Optional: fixed aspect ratio if video isn't controlling it */
-             /* padding-top: 75%; /* 4:3 aspect ratio */ /* remove if using video element size directly */
-        }
-        #scanner-video {
-            width: 100%;
-            display: block;
-            /* Position video absolutely if padding-top hack is used on container */
-            /* position: absolute; top: 0; left: 0; width: 100%; height: 100%; */
-        }
-
-        /* Corner markers for the frame */
-        .corner {
-            position: absolute;
-            width: 30px; /* Size of the corner L-shape */
-            height: 30px;
-            border: 4px solid #00ff00; /* Bright Green frame color */
-            z-index: 10; /* Ensure corners are on top of video */
-        }
-
-        .top-left { top: 0; left: 0; border-right: none; border-bottom: none; }
-        .top-right { top: 0; right: 0; border-left: none; border-bottom: none; }
-        .bottom-left { bottom: 0; left: 0; border-right: none; border-top: none; }
-        .bottom-right { bottom: 0; right: 0; border-left: none; border-top: none; }
-
-
-        #result {
-            margin-top: 20px;
-            padding: 15px;
-            font-size: 1.2em;
-            text-align: center;
-            min-height: 3em;
-            border: 1px dashed var(--border-color); /* Darker dashed border */
-            border-radius: var(--border-radius);
-            background-color: #3a3a3a; /* Darker background for result */
-            word-break: break-all;
-        }
-
-        #manual-check {
-            margin-top: 30px;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            background-color: #3a3a3a; /* Darker background */
-            text-align: center;
-        }
-
-        #manual-check input[type="text"] {
-            padding: 12px;
-            margin-right: 10px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            font-size: 1em;
-             /* Adjusted for better mobile stacking */
-            width: calc(100% - 140px);
-            max-width: 250px;
-            box-sizing: border-box;
-            background-color: #444; /* Even darker input background */
-            color: var(--text-color); /* Light text in input */
-        }
-
-        #manual-check button {
-            padding: 12px 20px;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s ease;
-        }
-        #manual-check button:hover {
-            background-color: #0056b3;
-        }
-
-        /* --- Result Status Styles --- */
-        .tick {
-            color: var(--success-color);
-            font-weight: bold;
-        }
-        .cross {
-            color: var(--danger-color);
-            font-weight: bold;
-        }
-         .smile { /* New style for smile icon */
-            color: var(--info-color);
-            font-weight: bold;
-         }
-         .info-text { /* Style for messages like "Invalid code" */
-             color: var(--secondary-color);
-         }
-
-
-        /* --- Footer Nav Bar Styles --- */
-        .footer-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: var(--footer-height);
-            background-color: var(--card-background); /* Dark background for footer */
-            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.2); /* Shadow on top */
-            display: flex;
-            justify-content: space-around; /* Space out nav items */
-            align-items: center;
-            padding: 0 10px;
-            box-sizing: border-box;
-            z-index: 500; /* Ensure footer is above other content */
-        }
-
-        .footer-nav a {
-            color: var(--primary-color); /* Link color */
-            text-decoration: none;
-            font-size: 1em;
-            padding: 10px;
-            transition: color 0.3s ease;
-        }
-
-        .footer-nav a:hover {
-            color: #ffffff; /* White on hover */
-        }
-
-
-        /* --- Responsive adjustments --- */
-        @media (max-width: 600px) {
-            #app-container {
-                padding: 15px;
-            }
-            #manual-check input[type="text"] {
-                 margin-right: 0;
-                 margin-bottom: 10px;
-                 display: block;
-                 width: 100%;
-                 max-width: 100%;
-            }
-             #manual-check button {
-                 width: 100%;
-             }
-             .corner {
-                 width: 20px; /* Smaller corners on small screens */
-                 height: 20px;
-                 border-width: 3px; /* Slightly thinner border */
-             }
-        }
-
-    </style>
+  <meta charset="UTF-8">
+  <title>Post Grid with Like & Share</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 15px;
+    }
+    .post {
+      background: #222;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 0 10px #000;
+      transition: transform 0.2s;
+      position: relative;
+    }
+    .post:hover {
+      transform: scale(1.02);
+    }
+    .thumbnail {
+      width: 100%;
+      height: 120px;
+      background-size: cover;
+      background-position: center;
+    }
+    .actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+    }
+    .btn {
+      background: #333;
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: #555;
+    }
+    .liked {
+      color: red;
+    }
+    .like-count {
+      font-size: 13px;
+      margin-left: 5px;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+  </style>
 </head>
 <body>
 
-    <div id="app-container"> <h1>Global Barcode Scanner</h1>
+<div class="grid" id="postGrid"></div>
 
-        <div id="scanner-container">
-            <video id="scanner-video"></video>
-            <div class="corner top-left"></div>
-            <div class="corner top-right"></div>
-            <div class="corner bottom-left"></div>
-            <div class="corner bottom-right"></div>
-        </div>
+<script>
+  const posts = [
+    { id: 1, url: 'https://example.com/post1', img: 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiDWbMuO0oYV5LCNWXXF3UOiqMImcRuOKtR24XpaKPHo4yaCf6qEHRzHFkQaPlBfkx2_mu1zydtKpXIYGgIZP7k-eT2o25gdtPejevO_-6ftc1SAIQlsbFZZOm9C5f4a2swdiFCwu4zPM4BmKf_mj0KvPhy-75hDVjT7Ty5-6kvGHYyUeuF4xA_Upa7OdI/s678/1000244121.jpg' },
+    { id: 2, url: 'https://example.com/post2', img: 'https://via.placeholder.com/300x150?text=Post+2' },
+    { id: 3, url: 'https://example.com/post3', img: 'https://via.placeholder.com/300x150?text=Post+3' },
+    { id: 4, url: 'https://example.com/post4', img: 'https://via.placeholder.com/300x150?text=Post+4' },
+    { id: 5, url: 'https://example.com/post5', img: 'https://via.placeholder.com/300x150?text=Post+5' },
+    { id: 6, url: 'https://example.com/post6', img: 'https://via.placeholder.com/300x150?text=Post+6' },
+    { id: 7, url: 'https://example.com/post7', img: 'https://via.placeholder.com/300x150?text=Post+7' },
+    { id: 8, url: 'https://example.com/post8', img: 'https://via.placeholder.com/300x150?text=Post+8' },
+    { id: 9, url: 'https://example.com/post9', img: 'https://via.placeholder.com/300x150?text=Post+9' },
+    { id: 10, url: 'https://example.com/post10', img: 'https://via.placeholder.com/300x150?text=Post+10' },
+  ];
 
-        <div id="result">Awaiting camera permission...</div> <div id="manual-check">
-            <h2>Manually Check Barcode</h2>
-            <input type="text" id="manualBarcode" placeholder="Enter Barcode Number">
-            <button id="checkManual">Check</button>
-        </div>
-    </div>
+  const postGrid = document.getElementById('postGrid');
 
-    <footer class="footer-nav">
-        <a href="#">Scanner</a>
-        <a href="#">History</a> <a href="#">Settings</a> </footer>
+  posts.forEach(post => {
+    const liked = localStorage.getItem(`liked_${post.id}`) === 'true';
+    const count = parseInt(localStorage.getItem(`likes_${post.id}`)) || 0;
 
+    const postEl = document.createElement('div');
+    postEl.className = 'post';
 
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    postEl.innerHTML = `
+      <a href="${post.url}">
+        <div class="thumbnail" style="background-image: url('${post.img}');"></div>
+      </a>
+      <div class="actions">
+        <button class="btn like-btn ${liked ? 'liked' : ''}" data-id="${post.id}">
+          ${liked ? 'Liked' : 'Like'} <span class="like-count">${count}</span>
+        </button>
+        <button class="btn share-btn" data-url="${post.url}">Share</button>
+      </div>
+    `;
 
-    <script>
-        const videoElement = document.getElementById('scanner-video');
-        const resultElement = document.getElementById('result');
-        const manualBarcodeInput = document.getElementById('manualBarcode');
-        const checkManualButton = document.getElementById('checkManual');
+    postGrid.appendChild(postEl);
+  });
 
-        let codeReader = null; // ZXing code reader instance
+  document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const countSpan = btn.querySelector('.like-count');
+      let count = parseInt(countSpan.textContent);
 
-        // --- Barcode Prefix to Country Mapping ---
-        // This is a partial list based on GS1 EAN/UPC prefixes.
-        // A comprehensive and always up-to-date list requires external data sources.
-        const countryPrefixes = {
-            // USA & Canada (often UPC, compatible with EAN 0xx)
-            '000': 'USA & Canada', '001': 'USA & Canada', '002': 'USA & Canada', '003': 'USA & Canada',
-            '004': 'USA & Canada', '005': 'USA & Canada', '006': 'USA & Canada', '007': 'USA & Canada',
-            '008': 'USA & Canada', '009': 'USA & Canada', '010': 'USA & Canada', '011': 'USA & Canada',
-            '012': 'USA & Canada', '013': 'USA & Canada', '014': 'USA & Canada', // ... up to 139
-            '050': 'USA & Canada (Coupons)', // Example special uses
-            // ... Add more 0xx as needed up to 139
+      const liked = btn.classList.toggle('liked');
+      if (liked) {
+        btn.textContent = 'Liked ';
+        count++;
+      } else {
+        btn.textContent = 'Like ';
+        count--;
+      }
 
-            // European Countries (examples)
-            '300': 'France', '301': 'France', '302': 'France', '303': 'France', '304': 'France', '305': 'France', '306': 'France', '307': 'France', '308': 'France', '309': 'France', // ... up to 379
-            '380': 'Bulgaria',
-            '383': 'Slovenia',
-            '400': 'Germany', '401': 'Germany', '402': 'Germany', '403': 'Germany', '404': 'Germany', '405': 'Germany', '406': 'Germany', '407': 'Germany', '408': 'Germany', '409': 'Germany', // ... up to 440
-            '450': 'Japan', // ... up to 459, 490-499
-            '460': 'Russia', '461': 'Russia', '462': 'Russia', '463': 'Russia', '464': 'Russia', '465': 'Russia', '466': 'Russia', '467': 'Russia', '468': 'Russia', '469': 'Russia',
-            '500': 'UK', '501': 'UK', '502': 'UK', '503': 'UK', '504': 'UK', '505': 'UK', '506': 'UK', '507': 'UK', '508': 'UK', '509': 'UK',
-            '540': 'Belgium & Luxembourg', '541': 'Belgium & Luxembourg', '542': 'Belgium & Luxembourg', '543': 'Belgium & Luxembourg', '544': 'Belgium & Luxembourg', '545': 'Belgium & Luxembourg', '546': 'Belgium & Luxembourg', '547': 'Belgium & Luxembourg', '548': 'Belgium & Luxembourg', '549': 'Belgium & Luxembourg',
-            '570': 'Denmark', '571': 'Denmark', '572': 'Denmark', '573': 'Denmark', '574': 'Denmark', '575': 'Denmark', '576': 'Denmark', '577': 'Denmark', '578': 'Denmark', '579': 'Denmark',
-            '590': 'Poland',
-            '640': 'Finland', // ... up to 649
+      localStorage.setItem(`liked_${id}`, liked);
+      localStorage.setItem(`likes_${id}`, count);
+      btn.innerHTML = `${liked ? 'Liked' : 'Like'} <span class="like-count">${count}</span>`;
+    });
+  });
 
-            // Asia, Africa, Middle East, etc. (examples)
-            '600': 'South Africa', '601': 'South Africa',
-            '690': 'China', '691': 'China', '692': 'China', '693': 'China', '694': 'China', '695': 'China', // ... up to 695
-            '729': 'Israel', // Specific requirement
-            '750': 'Mexico',
-            '800': 'Italy', '801': 'Italy', '802': 'Italy', '803': 'Italy', '804': 'Italy', '805': 'Italy', '806': 'Italy', '807': 'Italy', '808': 'Italy', '809': 'Italy', // ... up to 839
-            '840': 'Spain', '841': 'Spain', '842': 'Spain', '843': 'Spain', '844': 'Spain', '845': 'Spain', '846': 'Spain', '847': 'Spain', '848': 'Spain', '849': 'Spain',
-            '868': 'Turkey', '869': 'Turkey',
-            '880': 'South Korea',
-            '890': 'India', // Specific requirement
-            '893': 'Vietnam',
-            '900': 'Austria', '901': 'Austria', '902': 'Austria', '903': 'Austria', '904': 'Austria', '905': 'Austria', '906': 'Austria', '907': 'Austria', '908': 'Austria', '909': 'Austria', // ... up to 919
-            '930': 'Australia', '931': 'Australia', '932': 'Australia', '933': 'Australia', '934': 'Australia', '935': 'Australia', '936': 'Australia', '937': 'Australia', '938': 'Australia', '939': 'Australia',
-            '940': 'New Zealand', '941': 'New Zealand', '942': 'New Zealand', '943': 'New Zealand', '944': 'New Zealand', // ... up to 949
-            '955': 'Malaysia',
-
-             // Other special uses (examples)
-            '977': 'Serial publications (ISSN)',
-            '978': 'Bookland (ISBN)', '979': 'Bookland (ISBN)',
-            '980': 'Refund Coupons',
-
-             // Note: This list is not exhaustive and includes only a subset of common prefixes.
-             // Some ranges are reserved or not assigned.
-        };
-
-
-        // Start scanning when the page loads
-        window.onload = () => {
-            // Initialize codeReader only once
-             if (!codeReader) {
-                 codeReader = new ZXing.BrowserMultiFormatReader();
-             }
-
-            // Try to list devices first to handle permission prompt
-            codeReader.listVideoInputDevices()
-                .then((videoInputDevices) => {
-                    if (videoInputDevices.length > 0) {
-                        resultElement.innerHTML = 'Camera found. Point to a barcode or QR code.';
-
-                        // Use the first available camera or try to find rear camera
-                        const firstDeviceId = videoInputDevices[0].deviceId;
-                         // Optional: Find rear camera on mobile if available
-                         const rearCamera = videoInputDevices.find(device =>
-                             device.label.toLowerCase().includes('back') || device.label.toLowerCase().includes('rear')
-                         );
-                         const deviceIdToUse = rearCamera ? rearCamera.deviceId : firstDeviceId;
-
-
-                        codeReader.decodeFromVideoDevice(deviceIdToUse, videoElement, (result, err) => {
-                            if (result) {
-                                console.log('Scan result:', result.text);
-                                // --- Perform client-side check immediately ---
-                                checkBarcode(result.text); // Directly call checkBarcode
-                                // Optional: Stop scanning after a successful scan
-                                // codeReader.reset();
-                            }
-                            // Ignore NotFoundException which is common when no code is in view
-                            if (err && !(err instanceof ZXing.NotFoundException)) {
-                                console.error('Scan error:', err);
-                                resultElement.innerHTML = `<span class="cross">Scan Error: ${err.message || err}</span>`;
-                            }
-                        });
-                    } else {
-                        resultElement.innerHTML = `<span class="cross">No camera found. Cannot scan.</span>`;
-                        console.error('No camera found on this device');
-                    }
-                })
-                .catch((err) => {
-                     // This catch block handles errors like permission denied
-                    console.error('Error accessing devices:', err);
-                    let errorMessage = 'Error accessing camera.';
-                    if (err.name === 'NotAllowedError') {
-                         errorMessage = 'Camera permission denied. Please allow camera access in your browser settings.';
-                    } else if (err.name === 'NotFoundError') {
-                         errorMessage = 'No camera found on this device.';
-                    } else if (err.name === 'NotReadableError') {
-                         errorMessage = 'Camera is already in use or not available.';
-                    }
-                    resultElement.innerHTML = `<span class="cross">${errorMessage}</span>`;
-                });
-        };
-
-        // --- Perform the barcode check purely in JavaScript ---
-        function checkBarcode(barcodeNumber) {
-             // Remove any non-digit characters just in case
-            const cleanedBarcode = barcodeNumber.replace(/\D/g, '');
-
-            // Check if the cleaned barcode is a valid length for EAN-13 (13 digits)
-            // Or EAN-8 (8 digits), although prefix check is primarily for EAN-13
-            // We'll focus on EAN-13 prefix for country check
-            if (cleanedBarcode.length < 3) {
-                 resultElement.innerHTML = `<span class="info-text">Code too short: ${cleanedBarcode}</span>`;
-                 console.log(`Code too short: ${cleanedBarcode}`);
-                 return;
-            }
-
-
-            resultElement.innerHTML = `Checking code: ${cleanedBarcode}...`; // Show checking state
-
-
-            const prefix = cleanedBarcode.substring(0, 3); // Get the first 3 digits
-            const country = countryPrefixes[prefix]; // Look up the prefix
-
-
-            let statusHtml = '';
-            let icon = '';
-            let countryName = 'Unknown';
-
-            if (country) {
-                countryName = country;
-                if (prefix === '890') {
-                    icon = '✅'; // Indian Product
-                    statusHtml = `<span class="tick">${icon} Indian Product (${countryName})</span>`;
-                } else if (prefix === '729') {
-                    icon = '❌'; // Israeli Product
-                    statusHtml = `<span class="cross">${icon} Israeli Product (${countryName})</span>`;
-                } else {
-                    icon = '😊'; // Other recognized country
-                    statusHtml = `<span class="smile">${icon} Product from ${countryName}</span>`;
-                }
-            } else {
-                 // Prefix not found in our list or invalid code type
-                 if (cleanedBarcode.length === 13 || cleanedBarcode.length === 8) {
-                     // Looks like a standard length barcode but prefix is unknown
-                     icon = '❓';
-                     statusHtml = `<span class="info-text">${icon} Unrecognized Prefix: ${prefix} (Code: ${cleanedBarcode})</span>`;
-                 } else {
-                     // Not a standard EAN length either
-                     icon = '❓';
-                      statusHtml = `<span class="info-text">${icon} Invalid Code Format: ${cleanedBarcode}</span>`;
-                 }
-
-            }
-
-
-            // Update the result display directly
-            resultElement.innerHTML = `<strong>Code:</strong> ${cleanedBarcode}<br>${statusHtml}`;
-
-             console.log(`Checked ${cleanedBarcode}: Prefix=${prefix}, Country=${countryName}, Icon=${icon}`);
-        }
-
-        // Event listener for manual check button
-        checkManualButton.addEventListener('click', () => {
-            const manualBarcode = manualBarcodeInput.value.trim();
-            if (manualBarcode) {
-                 // Stop camera scanning temporarily while checking manually (optional)
-                 // if (codeReader) {
-                 //    codeReader.reset();
-                 // }
-                checkBarcode(manualBarcode); // Directly call checkBarcode
-                manualBarcodeInput.value = ''; // Optional: clear input after check
-            } else {
-                resultElement.innerHTML = `<span class="cross">Error: Please enter a barcode number.</span>`;
-            }
+  document.querySelectorAll('.share-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.dataset.url;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Check this out!',
+          url: url
+        }).catch(console.error);
+      } else {
+        navigator.clipboard.writeText(url).then(() => {
+          alert('Link copied to clipboard!');
         });
-
-         // Allow pressing Enter key in manual input to check
-         manualBarcodeInput.addEventListener('keypress', (event) => {
-             if (event.key === 'Enter') {
-                 event.preventDefault();
-                 checkManualButton.click();
-             }
-         });
-
-         // Optional: Add click handlers to footer links if they should do something (e.g., scroll)
-         // const footerLinks = document.querySelectorAll('.footer-nav a');
-         // footerLinks.forEach(link => {
-         //     link.addEventListener('click', (event) => {
-         //         event.preventDefault();
-         //         // Add your logic here, e.g., scrolling to a section
-         //         console.log(`${link.textContent} clicked`);
-         //     });
-         // });
-    </script>
+      }
+    });
+  });
+</script>
 
 </body>
 </html>
