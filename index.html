@@ -1,802 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <title>WeMuslim Prayer App</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-    <!-- Google Fonts (Inter) -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet"/>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>App Keys</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <style>
+        /* --- Global Styles (iOS Feel) --- */
         body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Style for the highlighted next prayer */
-        .next-prayer-highlight {
-            font-weight: bold;
-            color: #005B1A; /* Darker green for text */
-            background-color: #D9E9B9; /* Lighter background highlight */
-            padding: 8px; /* Add padding for visibility */
-            margin: -8px; /* Compensate padding to maintain layout */
-            border-radius: 8px; /* Match rounded corners */
-        }
-         /* Ensure the checkbox is visible for interaction when applicable */
-        .prayer-checkbox {
-            display: block; /* Show the checkbox by default */
-            cursor: pointer; /* Indicate it's interactive */
-        }
-        /* Hide the checkbox when the checkmark box is shown */
-        .prayer-checkbox.hidden {
-            display: none;
-        }
-         /* Hide the checkmark box by default */
-        .prayer-checkmark-box {
-             display: none; /* Hide the checkmark box by default */
-        }
-        /* Show the checkmark box when applicable */
-        .prayer-checkmark-box.visible {
-            display: flex; /* Use flex to center the checkmark */
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; /* iOS font stack */
+            background-color: #f8f8f8; /* Light background like iOS */
+            color: #333;
+            line-height: 1.4; /* Tighter line height */
+            padding-top: 60px; /* Space for fixed header */
+            -webkit-font-smoothing: antialiased; /* Better font rendering */
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Basic styles for the settings overlay */
-        #settings-overlay {
+        .container {
+            width: 100%;
+            max-width: 600px; /* Max width for larger screens */
+            margin: 0 auto;
+            padding: 0 15px; /* Side padding */
+            box-sizing: border-box;
+        }
+
+        /* --- Header Navigation Bar --- */
+        header {
+            background-color: #fff; /* White header background */
+            border-bottom: 1px solid #e0e0e0; /* Subtle bottom border */
             position: fixed;
             top: 0;
             left: 0;
+            right: 0;
             width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000; /* Above everything else */
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 10; /* Ensure it's above content */
+            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08); /* Subtle shadow */
+            height: 55px; /* Standard header height */
+            display: flex; /* Use flexbox for layout */
+            align-items: center; /* Vertically center items */
+            padding: 0 15px;
+            box-sizing: border-box;
         }
 
-        #settings-overlay.visible {
-            opacity: 1;
-            visibility: visible;
+        .header-content {
+            flex-grow: 1;
+            text-align: center; /* Center title */
         }
 
-        #settings-content {
-            background-color: white;
-            padding: 24px;
-            border-radius: 12px;
-            max-width: 90%;
-            width: 400px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        header h1 {
+            margin: 0;
+            font-size: 1.1em; /* Slightly smaller, bolder title */
+            font-weight: 600; /* Semibold */
+            color: #000; /* Black title */
         }
 
-         #settings-content h2 {
-             margin-bottom: 16px;
-             font-size: 1.25rem; /* text-xl */
-             font-weight: 600; /* font-semibold */
+        .header-button {
+            /* Style for potential left/right buttons */
+            color: #007aff; /* iOS blue color */
+            font-size: 1em;
+            background: none;
+            border: none;
+            padding: 0 10px;
+            cursor: pointer;
+            font-weight: 400; /* Regular weight */
+        }
+
+        .header-button:first-child { /* Left button */
+            margin-right: auto; /* Pushes title to center */
+        }
+
+         .header-button:last-child { /* Right button */
+            margin-left: auto; /* Pushes title to center */
+        }
+
+         .header-button:active {
+             opacity: 0.5; /* Dim on tap */
+         }
+
+
+        /* --- Card Styles --- */
+        .card {
+            background-color: #fff;
+            padding: 15px; /* Slightly less padding */
+            margin-top: 20px; /* Space after header/previous card */
+            margin-bottom: 20px;
+            border-radius: 10px; /* More rounded corners */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Softer shadow */
+        }
+
+         h2 {
+            text-align: left; /* Align section titles left */
+            color: #000;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            font-weight: 600; /* Semibold */
+            padding-left: 5px; /* Small indent */
+        }
+
+        /* --- Functions Section --- */
+        .function-buttons {
+            display: flex; /* Arrange buttons horizontally */
+            justify-content: space-around; /* Distribute space */
+            padding-top: 10px; /* Space above buttons */
+        }
+
+        .function-button {
+            flex: 1; /* Make buttons take equal width */
+            text-align: center;
+            padding: 12px 8px; /* Padding inside buttons */
+            margin: 0 5px; /* Space between buttons */
+            background-color: #007aff; /* iOS blue */
+            color: white;
+            border: none;
+            border-radius: 8px; /* Rounded buttons */
+            font-size: 0.9em;
+            font-weight: 500; /* Medium weight */
+            cursor: pointer;
+            transition: background-color 0.2s ease, opacity 0.2s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+
+        .function-button:hover {
+            background-color: #005bb5;
+        }
+
+        .function-button:active {
+            opacity: 0.8;
+        }
+
+         .function-button:first-child { margin-left: 0; }
+         .function-button:last-child { margin-right: 0; }
+
+
+        /* --- Key List Styles --- */
+        #keyList {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #keyList li {
+            background-color: #fff; /* White background for list items */
+            padding: 15px 10px; /* Padding */
+            margin-bottom: 8px; /* Space between items */
+            border-radius: 8px; /* Rounded corners */
+            border: 1px solid #e0e0e0; /* Subtle border */
+            word-break: break-all;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Very subtle shadow */
+             font-size: 0.95em; /* Slightly smaller font */
+             color: #555; /* Slightly lighter text color */
+        }
+
+        #keyList li:last-child {
+            margin-bottom: 0;
+        }
+
+        #keyList li:hover {
+             background-color: #f0f0f0; /* Light grey on hover */
+        }
+
+        #keyList li:active {
+            background-color: #e0e0e0; /* Darker when tapped */
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Inner shadow */
+        }
+
+         /* --- Empty State Message --- */
+         #keyList li.empty-state {
              text-align: center;
-             color: #007A2B;
-         }
-
-         #settings-content label {
-             display: flex;
-             align-items: center;
-             margin-bottom: 10px;
-             cursor: pointer;
-         }
-
-         #settings-content input[type="checkbox"],
-         #settings-content input[type="radio"] {
-             margin-right: 10px;
-         }
-
-         #settings-content button {
-             display: block;
-             width: 100%;
-             padding: 10px;
-             background-color: #007A2B;
-             color: white;
+             font-style: italic;
+             color: #888;
+             cursor: default;
+             background-color: #f8f8f8;
              border: none;
-             border-radius: 8px;
-             cursor: pointer;
-             margin-top: 20px;
-             font-size: 1rem;
-             font-weight: 600;
+             box-shadow: none;
          }
 
-         #settings-content button:hover {
-             background-color: #005B1A;
+         #keyList li.error-state {
+             color: #dc3545; /* Red for error */
+             background-color: #f8d7da;
+             border-color: #dc3545;
+             cursor: default;
+             box-shadow: none;
          }
-          #settings-content .uid-display {
-              font-size: 0.875rem; /* text-sm */
-              color: #555;
-              word-break: break-all; /* Prevent long UID from overflowing */
-              margin-bottom: 15px;
-              border-top: 1px solid #eee;
-              padding-top: 15px;
-              text-align: center;
-          }
-
-           .time-format-options label {
-               margin-right: 15px;
-               display: inline-flex; /* Arrange options side-by-side */
-               align-items: center;
-           }
-           .time-format-options {
-               margin-bottom: 15px;
-               padding-bottom: 15px;
-               border-bottom: 1px solid #eee;
-           }
 
 
+        /* --- Toast Message for Copy Confirmation --- */
+        .toast {
+            visibility: hidden;
+            min-width: 220px; /* Slightly smaller */
+            margin-left: -110px; /* Center */
+            background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+            color: #fff;
+            text-align: center;
+            border-radius: 25px; /* More rounded pill shape */
+            padding: 10px 15px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px; /* Position from bottom */
+            font-size: 0.85em; /* Smaller font */
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        /* --- Responsive adjustments --- */
+        @media (min-width: 600px) {
+            header {
+                 height: 60px; /* Taller header on desktop */
+                 padding: 0 20px;
+            }
+             header h1 {
+                font-size: 1.2em;
+             }
+             body {
+                 padding-top: 65px; /* Adjust body padding */
+             }
+             h2 {
+                font-size: 1.3em;
+             }
+             .card {
+                 padding: 20px;
+             }
+             .function-button {
+                 font-size: 1em;
+                 padding: 15px 10px;
+             }
+             #keyList li {
+                 padding: 15px;
+                 font-size: 1em;
+             }
+        }
     </style>
 </head>
-<body class="bg-white min-h-screen flex flex-col justify-between">
+<body>
 
-    <!-- Main Content Wrapper -->
-    <div class="max-w-md mx-auto rounded-b-none md:rounded-b-3xl rounded-t-3xl overflow-hidden shadow-lg w-full md:w-full" style="background: linear-gradient(180deg, #007A2B 0%, #005B1A 100%)">
-        <header class="flex items-center justify-between px-4 pt-4 text-white">
-            <div class="flex items-center space-x-1 text-sm">
-                <i class="fas fa-map-marker-alt text-white"></i>
-                <span id="location">Fetching Location...</span>
-            </div>
-            <h1 class="text-lg font-semibold" id="next-prayer-name"></h1>
-            <div class="flex space-x-4 text-white text-xl">
-                <button aria-label="Edit">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button aria-label="Settings" id="settings-btn">
-                    <i class="fas fa-cog"></i>
-                </button>
-            </div>
-        </header>
-        <main class="px-6 pb-6 pt-2">
-            <div class="text-center text-white">
-                <p class="text-6xl font-extrabold leading-none" id="current-time">--:--</p>
-                <p class="text-sm font-normal mt-1" id="next-prayer-countdown"></p>
-            </div>
-
-            <section class="mt-6 bg-[#E6F0E9] rounded-2xl p-4 text-black font-semibold text-sm">
-                <div class="flex items-center justify-between mb-4">
-                    <button aria-label="Previous date" class="text-lg font-bold text-black" id="prev-date-btn"><</button>
-                    <span id="date-display"></span>
-                    <button aria-label="Next date" class="text-lg font-bold text-black" id="next-date-btn">></button>
-                </div>
-                <ul class="space-y-3" id="prayer-list">
-                    <!-- Prayer list items will be dynamically generated here -->
-                </ul>
-            </section>
-
-            <nav aria-label="Quick access navigation" class="mt-6 flex justify-between px-2 bg-white rounded-xl py-3 shadow-md">
-                <button class="flex flex-col items-center space-y-1 text-xs text-black">
-                    <img alt="Green Quran icon on stand" class="w-10 h-10" height="40" src="https://storage.googleapis.com/a1aa/image/f0c21e4d-85f6-46c1-b948-d9dd631c95fb.jpg" width="40"/>
-                    <span>Quran</span>
-                </button>
-                <button class="flex flex-col items-center space-y-1 text-xs text-black">
-                    <img alt="Green hands raised in prayer icon" class="w-10 h-10" height="40" src="https://storage.googleapis.com/a1aa/image/c368f998-46f1-4389-6cc5-cd25bbb274ea.jpg" width="40"/>
-                    <span>Azkar</span>
-                </button>
-                <button class="flex flex-col items-center space-y-1 text-xs text-black">
-                    <img alt="Green prayer beads (Tasbih) icon" class="w-10 h-10" height="40" src="https://storage.googleapis.com/a1aa/image/a5f2c70e-fb8f-4315-3ac0-82fc4697e04c.jpg" width="40"/>
-                    <span>Tasbih</span>
-                </button>
-                <button class="flex flex-col items-center space-y-1 text-xs text-black">
-                    <img alt="Green compass with Kaaba icon representing Qibla" class="w-10 h-10" height="40" src="https://storage.googleapis.com/a1aa/image/26790213-8a23-4205-5599-eb462ffab415.jpg" width="40"/>
-                    <span>Qibla</span>
-                </button>
-                <button class="flex flex-col items-center space-y-1 text-xs text-black">
-                    <img alt="Green squares icon representing More options" class="w-10 h-10" height="40" src="https://storage.googleapis.com/a1aa/image/e2a05ecd-7cef-47e4-9456-7426031b6437.jpg" width="40"/>
-                    <span>More</span>
-                </button>
-            </nav>
-
-            <section class="mt-6 bg-[#005B1A] rounded-3xl p-4 flex items-center space-x-4 text-[#D9E9B9]">
-                <div class="bg-[#007A2B] rounded-lg p-2">
-                    <i class="fas fa-mosque text-[#D9E9B9] text-xl"></i>
-                </div>
-                <h2 class="font-semibold text-lg">Welcome to WeMuslim</h2>
-                <div class="flex-1"></div>
-                <img alt="Green mosque silhouette with golden arch decoration" class="w-20 h-14 object-contain" height="60" src="https://storage.googleapis.com/a1aa/image/920dbb0d-fb7c-4c06-fb09-b1f61c101e9b.jpg" width="80"/>
-            </section>
-        </main>
-    </div>
-
-    <!-- Bottom Navigation -->
-    <nav class="max-w-md mx-auto bg-white rounded-t-none md:rounded-t-3xl rounded-b-3xl shadow-lg flex justify-around py-3 text-xs text-[#007A2B] font-semibold w-full md:w-full" id="bottom-nav">
-        <button class="flex flex-col items-center space-y-1 text-[#007A2B]" data-nav="Home">
-            <i class="fas fa-home text-lg"></i>
-            <span>Home</span>
-        </button>
-        <button class="flex flex-col items-center space-y-1 text-green-300" data-nav="Ummah">
-            <i class="fas fa-users-cog text-lg"></i>
-            <span>Ummah</span>
-        </button>
-        <button class="flex flex-col items-center space-y-1 text-green-300" data-nav="Quran">
-            <i class="fas fa-book-open text-lg"></i>
-            <span>Quran</span>
-        </button>
-        <button class="flex flex-col items-center space-y-1 text-green-300" data-nav="Messages">
-            <i class="fas fa-comments text-lg"></i>
-            <span>Messages</span>
-        </button>
-        <button class="flex flex-col items-center space-y-1 text-green-300" data-nav="Me">
-            <i class="fas fa-user text-lg"></i>
-            <span>Me</span>
-        </button>
-    </nav>
-
-    <!-- Settings Overlay -->
-    <div id="settings-overlay" class="fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex justify-center items-center z-50 hidden">
-        <div id="settings-content" class="bg-white p-6 rounded-xl shadow-lg w-11/12 max-w-sm">
-            <h2 class="text-xl font-semibold text-center text-[#007A2B]">Settings</h2>
-
-            <div class="uid-display">
-                Your User ID: <span id="display-uid">Loading...</span>
-                 <p class="text-xs mt-1 text-gray-500">(This ID is locally generated)</p>
-            </div>
-
-            <div class="time-format-options">
-                 <p class="font-semibold text-sm mb-2">Time Format:</p>
-                 <label>
-                    <input type="radio" name="timeFormat" value="12" checked> 12-Hour AM/PM
-                 </label>
-                 <label>
-                    <input type="radio" name="timeFormat" value="24"> 24-Hour
-                 </label>
-            </div>
-
-            <p class="font-semibold text-sm mb-2">Notification Preferences:</p>
-            <div id="settings-notification-list">
-                <!-- Notification toggles will be populated here -->
-            </div>
-
-            <button id="close-settings-btn">Close</button>
+    <header>
+        <button class="header-button" id="settingsButton">Settings</button>
+        <div class="header-content">
+            <h1>App Keys</h1>
         </div>
+        <button class="header-button" id="refreshButton">Refresh</button>
+    </header>
+
+    <div class="container">
+
+        <!-- Functions Section -->
+        <div class="card function-card">
+            <h2>App Functions</h2>
+            <div class="function-buttons">
+                <button class="function-button" id="function1">Function 1</button>
+                <button class="function-button" id="function2">Function 2</button>
+                <button class="function-button" id="function3">Function 3</button>
+            </div>
+        </div>
+
+        <!-- Keys List Section -->
+        <div class="card key-list-card">
+            <h2>Your Available Keys</h2>
+            <ul id="keyList">
+                <!-- Keys will be loaded here by JavaScript -->
+                <li class="empty-state">Loading keys...</li>
+            </ul>
+        </div>
+
     </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <!-- Add other SDKs if needed on this page, e.g., auth or firestore -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script> -->
-    <!-- <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script> -->
-
+    <!-- Toast message element -->
+    <div id="toastMessage" class="toast"></div>
 
     <script>
-        // --- YOUR ACTUAL FIREBASE CONFIGURATION (Derived from your google-services.json) ---
+        // Your Firebase configuration from google-services.json (extracted for web)
         const firebaseConfig = {
             apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
-            authDomain: "rn-gfx-tool.firebaseapp.com", // Inferred
+            authDomain: "rn-gfx-tool.firebaseapp.com", // Derived from project_id
+            databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "rn-gfx-tool",
             storageBucket: "rn-gfx-tool.firebasestorage.app",
             messagingSenderId: "163149358541",
-            appId: "1:163149358541:android:2ef6d22fcd23e77ee09084", // Note: Using the Web App ID from Firebase Console is best practice.
-            databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app"
+            // appId: "YOUR_APP_ID" // Add if you generated one for Web
         };
 
-        // Initialize Firebase (Only initialize if not already initialized)
+        // Initialize Firebase
         if (!firebase.apps.length) {
-             firebase.initializeApp(firebaseConfig);
+          firebase.initializeApp(firebaseConfig);
+        } else {
+          firebase.app(); // if already initialized, use that one
         }
-        console.log("Firebase Initialized on index.html");
 
+        const database = firebase.database();
+        const keysRef = database.ref('keys'); // Reference to the 'keys' node
 
-    </script>
+        const keyList = document.getElementById('keyList');
+        const toastMessageDiv = document.getElementById('toastMessage');
 
-    <!-- Hijri.js for Hijri Date Calculation -->
-    <script src="https://cdn.jsdelivr.net/npm/hijri-js/hijri.js"></script>
+        // --- Toast Message Functions ---
+        let toastTimeout;
+        function showToast(message) {
+            // Clear any existing timeout so the new toast isn't cut short
+            clearTimeout(toastTimeout);
 
-    <script>
-        // --- Local Storage & UID Handling ---
-        function getUID() {
-            let uid = localStorage.getItem('weMuslimUID');
-            if (!uid) {
-                uid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                    const r = Math.random() * 16 | 0;
-                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
-                    return v.toString(16);
+            toastMessageDiv.textContent = message;
+            toastMessageDiv.style.visibility = 'visible';
+            toastMessageDiv.style.opacity = '1';
+
+            // Hide the toast after 3 seconds
+            toastTimeout = setTimeout(() => {
+                toastMessageDiv.style.opacity = '0';
+                setTimeout(() => {
+                     toastMessageDiv.style.visibility = 'hidden';
+                }, 300); // Match CSS fade-out duration
+            }, 3000);
+        }
+
+        // --- Copy to Clipboard Function ---
+        function copyToClipboard(text) {
+            if (!navigator.clipboard) {
+                 console.warn('Clipboard API not available.');
+                 showToast('Copying not supported on this browser.');
+                 return;
+            }
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    console.log('Text copied to clipboard');
+                    showToast('Key copied!');
+                })
+                .catch(err => {
+                    console.error('Failed to copy text: ', err);
+                    showToast('Failed to copy key.');
                 });
-                localStorage.setItem('weMuslimUID', uid);
-            }
-             // Check if display-uid element exists before updating
-             const displayUidElement = document.getElementById('display-uid');
-             if (displayUidElement) {
-                 displayUidElement.textContent = uid;
-             }
-            return uid;
         }
 
-        function loadSettings(uid) {
-            const defaultSettings = {
-                notifications: {},
-                timeFormat: '12'
-            };
-            const settingsString = localStorage.getItem('weMuslimSettings_' + uid);
-            if (settingsString) {
-                try {
-                    const savedSettings = JSON.parse(settingsString);
-                    return { ...defaultSettings, ...savedSettings, notifications: { ...defaultSettings.notifications, ...savedSettings.notifications } };
-                } catch (e) {
-                    console.error("Error loading settings from local storage:", e);
-                    return defaultSettings;
-                }
-            }
-            return defaultSettings;
-        }
+        // --- Placeholder Function Buttons ---
+        const settingsButton = document.getElementById('settingsButton');
+        const refreshButton = document.getElementById('refreshButton');
+        const function1Button = document.getElementById('function1');
+        const function2Button = document.getElementById('function2');
+        const function3Button = document.getElementById('function3');
 
-        function saveSettings(uid, settings) {
-            try {
-                localStorage.setItem('weMuslimSettings_' + uid, JSON.stringify(settings));
-            } catch (e) {
-                console.error("Error saving settings to local storage:", e);
-            }
-        }
+        settingsButton.addEventListener('click', () => {
+            alert('Settings button clicked!'); // Placeholder action
+        });
 
-        // --- Prayer Data (Hardcoded for Dubai - June 7, 2024) ---
-        const prayerTimesData = [
-            { name: 'Fajr', time: '04:05 AM', icon: 'https://storage.googleapis.com/a1aa/image/99f7f89b-c6cf-4a35-d52d-759bf6f8f2a9.jpg', type: 'fajr' },
-            { name: 'Sunrise', time: '05:26 AM', icon: 'https://storage.googleapis.com/a1aa/image/cb1c1bfe-6fc6-4ed0-2dc0-13376b6e9a4a.jpg', type: 'sunrise' },
-            { name: 'Dhuhr', time: '12:25 PM', icon: 'https://storage.googleapis.com/a1aa/image/c48d30c4-547b-442b-f115-f3f3e634fb1e.jpg', type: 'dhuhr' },
-            { name: 'Asr', time: '03:50 PM', icon: 'https://storage.googleapis.com/a1aa/image/68c6dbf9-5a6f-4dd8-ee7c-7bb7fd72d76c.jpg', type: 'asr' },
-            { name: 'Maghrib', time: '07:04 PM', icon: 'https://storage.googleapis.com/a1aa/image/8945b182-cec4-4ec3-374f-6c445c09e6a5.jpg', type: 'maghrib' },
-            { name: 'Isha', time: '08:24 PM', icon: 'https://storage.googleapis.com/a1aa/image/e7788ece-f0e9-47c4-0669-8088fd7827c4.jpg', type: 'isha' },
-        ];
+        refreshButton.addEventListener('click', () => {
+            // Re-fetch data manually if needed, or rely on Firebase listener
+            alert('Refresh button clicked (data updates automatically)!'); // Placeholder action
+             // To force re-render without waiting for Firebase update, you could
+             // re-run the data processing logic here if needed, but Firebase's .on()
+             // handles real-time updates already.
+        });
 
-        // --- Date Handling ---
-        let currentDate = new Date();
+         function1Button.addEventListener('click', () => {
+             alert('Function 1 clicked!'); // Placeholder action
+         });
 
-        function updateDateDisplay() {
-            const dateDisplayElement = document.getElementById('date-display');
-            if(!dateDisplayElement) return; // Exit if element doesn't exist
+         function2Button.addEventListener('click', () => {
+             alert('Function 2 clicked!'); // Placeholder action
+         });
 
-            const now = new Date();
-            const isToday = currentDate.toDateString() === now.toDateString();
-
-            const gregorianOptions = { year: 'numeric', month: 'long', day: 'numeric' };
-            const gregorianFormatted = currentDate.toLocaleDateString('en-US', gregorianOptions);
-
-            let hijriFormatted = 'Loading Hijri Date...';
-            if (typeof HijriDate !== 'undefined') {
-                try {
-                    const hijriDate = new HijriDate(currentDate);
-                    hijriFormatted = `${hijriDate.getDayOfMonth()} ${hijriDate.getMonthName()} ${hijriDate.getFullYear()} AH`;
-                } catch (e) {
-                    console.error("Error calculating Hijri date:", e);
-                    hijriFormatted = 'Error calculating Hijri Date';
-                }
-            }
-
-            dateDisplayElement.textContent = `${hijriFormatted} (${gregorianFormatted})`;
-
-             renderPrayerList();
-             updateNextPrayerDisplay();
-        }
-
-        function changeDate(days) {
-            currentDate.setDate(currentDate.getDate() + days);
-            updateDateDisplay();
-        }
-
-        // --- Location Handling ---
-        function getLocation() {
-            const locationElement = document.getElementById('location');
-             if (!locationElement) return; // Exit if element doesn't exist
-
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    try {
-                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`, {
-                             headers: { 'User-Agent': 'WeMuslimPrayerApp/1.0 (Contact: your-email@example.com)' }
-                        });
-                        const data = await response.json();
-                         if (data && data.address) {
-                             const address = data.address;
-                             const placeName = address.city || address.town || address.village || address.county || address.state || 'Unknown Place';
-                             locationElement.textContent = placeName;
-                         } else {
-                             locationElement.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
-                         }
-                    } catch (error) {
-                        console.error("Error fetching location name:", error);
-                        if (error.message.includes('network error') || error.message.includes('Failed to fetch')) {
-                             locationElement.textContent = `Location (Network Error)`;
-                        } else {
-                             locationElement.textContent = `Lat: ${lat.toFixed(2)}, Lon: ${lon.toFixed(2)}`;
-                        }
-                    }
-
-                }, (error) => {
-                    console.error("Error getting location:", error);
-                    let errorMessage = "Location Unavailable";
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            errorMessage = "Location Permission Denied";
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            errorMessage = "Location Information Unavailable";
-                            break;
-                        case error.TIMEOUT:
-                            errorMessage = "Location Request Timed Out";
-                            break;
-                        case error.UNKNOWN_ERROR:
-                            errorMessage = "An Unknown Location Error Occurred";
-                            break;
-                    }
-                    locationElement.textContent = errorMessage;
-                }, {
-                     enableHighAccuracy: true,
-                     timeout: 10000,
-                     maximumAge: 0
-                 });
-            } else {
-                locationElement.textContent = "Geolocation Not Supported";
-            }
-        }
+         function3Button.addEventListener('click', () => {
+             alert('Function 3 clicked!'); // Placeholder action
+         });
 
 
-        // --- Prayer List Rendering & State Management ---
-        function renderPrayerList() {
-            const prayerListElement = document.getElementById('prayer-list');
-            if (!prayerListElement) return;
+        // --- Fetch and Display Keys from Firebase ---
+        keysRef.on('value', (snapshot) => {
+            const keys = snapshot.val();
+            keyList.innerHTML = ''; // Clear the current list
 
-            prayerListElement.innerHTML = '';
+            if (keys) {
+                const keysArray = Object.keys(keys).map(keyId => ({
+                    id: keyId,
+                    ...keys[keyId]
+                }));
 
-            const uid = getUID();
-            const settings = loadSettings(uid);
-            const now = new Date();
-            const isToday = currentDate.toDateString() === now.toDateString();
-            const nextPrayerInfo = isToday ? getNextPrayer(now) : null;
+                // Optional: Sort keys if you want them in a specific order (e.g., by timestamp)
+                // keysArray.sort((a, b) => a.timestamp - b.timestamp);
 
-            renderSettingsNotifications(settings);
+                keysArray.forEach(keyData => {
+                    const keyText = keyData.key;
+                    const li = document.createElement('li');
+                    li.textContent = keyText;
 
-            prayerTimesData.forEach((prayer, index) => {
-                const prayerDateTime = parseTime(prayer.time, currentDate);
-                const isPassedToday = isToday && prayerDateTime <= now;
-                const prayerSettings = settings.notifications[prayer.name] !== undefined ?
-                                     settings.notifications[prayer.name] : true;
-
-                const li = document.createElement('li');
-                li.className = 'flex items-center justify-between py-1';
-
-                 if (nextPrayerInfo && nextPrayerInfo.prayer.name === prayer.name && isToday) {
-                      li.classList.add('next-prayer-highlight');
-                 }
-
-                li.innerHTML = `
-                    <div class="flex items-center space-x-2 flex-grow">
-                        <img alt="${prayer.name} prayer icon" class="w-5 h-5" height="20" src="${prayer.icon}" width="20"/>
-                        <span>${prayer.name}</span>
-                        <i class="fas ${prayerSettings ? 'fa-bell text-green-600' : 'fa-bell-slash text-gray-400'} ml-1 prayer-notification-icon"></i>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm font-normal">${prayer.time}</span>
-                        ${isPassedToday
-                            ? `<div class="w-6 h-6 bg-green-700 rounded-md flex items-center justify-center prayer-checkmark-box visible">
-                                    <i class="fas fa-check text-white text-xs"></i>
-                               </div>
-                               <input type="checkbox" aria-label="${prayer.name} prayer notification"
-                                    class="w-6 h-6 border-2 border-green-600 rounded prayer-checkbox hidden"
-                                    data-prayer-name="${prayer.name}" ${prayerSettings ? 'checked' : ''}/>`
-                            : `<div class="w-6 h-6 bg-green-700 rounded-md flex items-center justify-center prayer-checkmark-box"></div>
-                               <input type="checkbox" aria-label="${prayer.name} prayer notification"
-                                    class="w-6 h-6 border-2 border-green-600 rounded prayer-checkbox"
-                                    data-prayer-name="${prayer.name}" ${prayerSettings ? 'checked' : ''}/>`
-                        }
-                    </div>
-                `;
-
-                const checkbox = li.querySelector('.prayer-checkbox:not(.hidden)');
-                if (checkbox) {
-                     checkbox.addEventListener('change', (event) => {
-                        const uid = getUID();
-                        const updatedSettings = loadSettings(uid);
-                        const prayerName = event.target.dataset.prayerName;
-                        updatedSettings.notifications[prayerName] = event.target.checked;
-                        saveSettings(uid, updatedSettings);
-
-                        const icon = li.querySelector('.prayer-notification-icon');
-                        if (icon) {
-                            if (event.target.checked) {
-                                icon.classList.remove('fa-bell-slash', 'text-gray-400');
-                                icon.classList.add('fa-bell', 'text-green-600');
-                            } else {
-                                 icon.classList.remove('fa-bell', 'text-green-600');
-                                 icon.classList.add('fa-bell-slash', 'text-gray-400');
-                            }
-                        }
-
-                        const settingsCheckbox = document.querySelector(`#settings-notification-list input[data-prayer-name="${prayerName}"]`);
-                        if(settingsCheckbox) {
-                            settingsCheckbox.checked = event.target.checked;
-                        }
+                    // Add click listener for copying
+                    li.addEventListener('click', () => {
+                        copyToClipboard(keyText);
                     });
-                }
 
-                prayerListElement.appendChild(li);
-            });
-        }
-
-         function renderSettingsNotifications(settings) {
-             const listElement = document.getElementById('settings-notification-list');
-              if (!listElement) return;
-
-             listElement.innerHTML = '';
-
-              prayerTimesData.forEach(prayer => {
-                  const prayerSettings = settings.notifications[prayer.name] !== undefined ?
-                                       settings.notifications[prayer.name] : true;
-
-                  const label = document.createElement('label');
-                  label.innerHTML = `
-                      <input type="checkbox" data-prayer-name="${prayer.name}" ${prayerSettings ? 'checked' : ''}>
-                      ${prayer.name} Notifications
-                  `;
-                   listElement.appendChild(label);
-
-                  const checkbox = label.querySelector('input[type="checkbox"]');
-                  checkbox.addEventListener('change', (event) => {
-                       const uid = getUID();
-                       const updatedSettings = loadSettings(uid);
-                       const prayerName = event.target.dataset.prayerName;
-                       updatedSettings.notifications[prayerName] = event.target.checked;
-                       saveSettings(uid, updatedSettings);
-
-                       const listItem = document.querySelector(`#prayer-list li:has(span:contains("${prayerName}"))`);
-                       if (listItem) {
-                            const listItemIcon = listItem.querySelector('.prayer-notification-icon');
-                            if (listItemIcon) {
-                                if (event.target.checked) {
-                                    listItemIcon.classList.remove('fa-bell-slash', 'text-gray-400');
-                                    listItemIcon.classList.add('fa-bell', 'text-green-600');
-                                } else {
-                                     listItemIcon.classList.remove('fa-bell', 'text-green-600');
-                                     listItemIcon.classList.add('fa-bell-slash', 'text-gray-400');
-                                }
-                            }
-                            const listItemCheckbox = listItem.querySelector('.prayer-checkbox:not(.hidden)');
-                             if (listItemCheckbox) {
-                                 listItemCheckbox.checked = event.target.checked;
-                             }
-                       }
-                  });
-              });
-         }
-
-        // --- Real-time Clock & Next Prayer ---
-         function formatTimeMain(date, use24HourFormat) {
-             if (use24HourFormat) {
-                 return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-             } else {
-                 const hours = date.getHours();
-                 const minutes = date.getMinutes();
-                 const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
-                 const formattedMinutes = minutes < 10 ? '0' + minutes : minutes;
-                 return `${formattedHours < 10 ? '0' + formattedHours : formattedHours}:${formattedMinutes}`;
-             }
-         }
-
-         function parseTime(timeStr, dateObj) {
-             const [time, period] = timeStr.split(' ');
-             let [hours, minutes] = time.split(':').map(Number);
-
-             if (period === 'PM' && hours < 12) hours += 12;
-             if (period === 'AM' && hours === 12) hours = 0;
-
-             const dateTime = new Date(dateObj);
-             dateTime.setHours(hours, minutes, 0, 0);
-             return dateTime;
-         }
-
-        function getNextPrayer(now) {
-             const isToday = currentDate.toDateString() === now.toDateString();
-             if (!isToday) {
-                 return null;
-             }
-
-            let nextPrayer = null;
-            let nextPrayerTime = null;
-            let nextPrayerIndex = -1;
-
-            for (let i = 0; i < prayerTimesData.length; i++) {
-                const prayer = prayerTimesData[i];
-                const prayerDateTime = parseTime(prayer.time, now);
-
-                if (prayerDateTime > now) {
-                    nextPrayer = prayer;
-                    nextPrayerTime = prayerDateTime;
-                    nextPrayerIndex = i;
-                    break;
-                }
-            }
-
-             if (!nextPrayer && prayerTimesData.length > 0) {
-                const fajrTomorrow = parseTime(prayerTimesData[0].time, new Date(now));
-                fajrTomorrow.setDate(fajrTomorrow.getDate() + 1);
-                 nextPrayer = prayerTimesData[0];
-                 nextPrayerTime = fajrTomorrow;
-                 nextPrayerIndex = 0;
-             }
-
-            if (nextPrayer) {
-                 const diffMs = nextPrayerTime - now;
-                 const diffTotalMinutes = Math.floor(diffMs / (1000 * 60));
-                 const diffHours = Math.floor(diffTotalMinutes / 60);
-                 const diffMinutes = diffTotalMinutes % 60;
-
-                 const countdown = `${diffHours < 10 ? '0' + diffHours : diffHours}:${diffMinutes < 10 ? '0' + diffMinutes : diffMinutes}`;
-                 return {
-                     prayer: nextPrayer,
-                     countdown: countdown,
-                     index: nextPrayerIndex
-                 };
-             }
-
-            return null;
-        }
-
-
-        function updateClock() {
-            const now = new Date();
-            const uid = getUID();
-            const settings = loadSettings(uid);
-            const use24HourFormat = settings.timeFormat === '24';
-
-             const currentTimeElement = document.getElementById('current-time');
-             if(currentTimeElement) {
-                currentTimeElement.textContent = formatTimeMain(now, use24HourFormat);
-             }
-
-
-            if (now.getSeconds() === 0 || initialLoadComplete === false) {
-                 updateNextPrayerDisplay();
-                 renderPrayerList();
-                 initialLoadComplete = true;
-             }
-        }
-
-        let initialLoadComplete = false;
-
-        function updateNextPrayerDisplay() {
-             const now = new Date();
-             const nextPrayerInfo = getNextPrayer(now);
-
-             const nextPrayerNameElement = document.getElementById('next-prayer-name');
-             const nextPrayerCountdownElement = document.getElementById('next-prayer-countdown');
-             const prayerListItems = document.querySelectorAll('#prayer-list li');
-
-             if(!nextPrayerNameElement || !nextPrayerCountdownElement) return;
-
-
-             prayerListItems.forEach(item => item.classList.remove('next-prayer-highlight'));
-
-             const isToday = currentDate.toDateString() === now.toDateString();
-
-             if (isToday && nextPrayerInfo) {
-                 nextPrayerNameElement.textContent = nextPrayerInfo.prayer.name;
-                 nextPrayerCountdownElement.textContent = `Next Prayer in ${nextPrayerInfo.countdown}`;
-
-                 if (nextPrayerInfo.index !== -1 && prayerListItems[nextPrayerInfo.index]) {
-                      prayerListItems[nextPrayerInfo.index].classList.add('next-prayer-highlight');
-                 }
-
-             } else {
-                 if (isToday) {
-                      nextPrayerNameElement.textContent = 'No more prayers today';
-                      nextPrayerCountdownElement.textContent = '';
-                 } else {
-                      nextPrayerNameElement.textContent = '';
-                      nextPrayerCountdownElement.textContent = '';
-                 }
-             }
-        }
-
-        // --- Settings Overlay Logic ---
-        function toggleSettingsOverlay(show) {
-            const overlay = document.getElementById('settings-overlay');
-             if (!overlay) return;
-
-             if (show) {
-                 overlay.classList.add('visible');
-                 overlay.classList.remove('hidden');
-             } else {
-                 overlay.classList.remove('visible');
-                 overlay.classList.add('hidden');
-             }
-        }
-
-         function setupSettings() {
-             const uid = getUID();
-             const settings = loadSettings(uid);
-
-             const timeFormatRadios = document.querySelectorAll('input[name="timeFormat"]');
-             timeFormatRadios.forEach(radio => {
-                 if (radio.value === settings.timeFormat) {
-                     radio.checked = true;
-                 }
-                 radio.removeEventListener('change', handleTimeFormatChange);
-                 radio.addEventListener('change', handleTimeFormatChange);
-             });
-
-             renderSettingsNotifications(settings);
-         }
-
-         function handleTimeFormatChange(event) {
-              const uid = getUID();
-              const updatedSettings = loadSettings(uid);
-              updatedSettings.timeFormat = event.target.value;
-              saveSettings(uid, updatedSettings);
-              updateClock();
-         }
-
-        // --- Initialize App ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const uid = getUID();
-
-            getLocation();
-
-            updateDateDisplay();
-
-            const prevDateBtn = document.getElementById('prev-date-btn');
-            const nextDateBtn = document.getElementById('next-date-btn');
-            const settingsBtn = document.getElementById('settings-btn');
-            const closeSettingsBtn = document.getElementById('close-settings-btn');
-            const settingsOverlay = document.getElementById('settings-overlay');
-
-
-            if(prevDateBtn) prevDateBtn.addEventListener('click', () => changeDate(-1));
-            if(nextDateBtn) nextDateBtn.addEventListener('click', () => changeDate(1));
-
-            if(settingsBtn) {
-                settingsBtn.addEventListener('click', () => {
-                    setupSettings();
-                    toggleSettingsOverlay(true);
+                    keyList.appendChild(li);
                 });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = "No keys found yet. Check back later!";
+                li.className = 'empty-state'; // Apply specific style
+                keyList.appendChild(li);
             }
-
-            if(closeSettingsBtn) {
-                closeSettingsBtn.addEventListener('click', () => {
-                    toggleSettingsOverlay(false);
-                });
-            }
-
-             if(settingsOverlay) {
-                settingsOverlay.addEventListener('click', (event) => {
-                    if (event.target === settingsOverlay) {
-                         toggleSettingsOverlay(false);
-                    }
-                });
-             }
-
-
-             // --- Bottom Navigation Logic ---
-             document.querySelectorAll('#bottom-nav button').forEach(button => {
-                 button.addEventListener('click', (event) => {
-                     const navAction = button.dataset.nav;
-                     console.log(`Navigating to ${navAction}`);
-                      if (navAction === 'Home') {
-                          // Already on index.html, do nothing or reload
-                          // window.location.reload();
-                      } else if (navAction === 'Ummah') {
-                         window.location.href = 'ummah.html';
-                      } else if (navAction === 'Me') {
-                         window.location.href = 'me.html';
-                       } else {
-                          alert(`Navigating to ${navAction} (Placeholder)`);
-                       }
-                 });
-             });
-
-
-            updateClock();
-            setInterval(updateClock, 1000);
-
-
+        }, (errorObject) => {
+            console.error("The read failed: " + errorObject.code);
+            keyList.innerHTML = ''; // Clear list
+            const li = document.createElement('li');
+            li.textContent = 'Error loading keys: ' + errorObject.message;
+            li.className = 'error-state'; // Apply specific style
+            keyList.appendChild(li);
         });
 
     </script>
+
 </body>
 </html>
