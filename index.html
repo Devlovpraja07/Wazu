@@ -1,417 +1,584 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Keys</title>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-    <style>
-        /* --- Global Styles (iOS Feel) --- */
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; /* iOS font stack */
-            background-color: #f8f8f8; /* Light background like iOS */
-            color: #333;
-            line-height: 1.4; /* Tighter line height */
-            padding-top: 60px; /* Space for fixed header */
-            -webkit-font-smoothing: antialiased; /* Better font rendering */
-            -moz-osx-font-smoothing: grayscale;
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   Free Kuro Panel - Firebase Connected
+  </title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <!-- Font Awesome CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+   /* Custom styles for masking */
+        .text-security-disc {
+            -webkit-text-security: disc; /* Safari, iOS */
+            text-security: disc; /* Non-standard */
+            /* Fallback for other browsers handled by JS textContent change */
         }
 
-        .container {
-            width: 100%;
-            max-width: 600px; /* Max width for larger screens */
-            margin: 0 auto;
-            padding: 0 15px; /* Side padding */
-            box-sizing: border-box;
+        /* Style for active navigation link */
+        .nav-link.active {
+            color: #3ea18a; /* Or any color you prefer for active state */
+            font-weight: bold;
         }
+  </style>
+ </head>
+ <body class="bg-[#1a1c20] text-white font-sans min-h-screen">
 
-        /* --- Header Navigation Bar --- */
-        header {
-            background-color: #fff; /* White header background */
-            border-bottom: 1px solid #e0e0e0; /* Subtle bottom border */
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            width: 100%;
-            z-index: 10; /* Ensure it's above content */
-            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08); /* Subtle shadow */
-            height: 55px; /* Standard header height */
-            display: flex; /* Use flexbox for layout */
-            align-items: center; /* Vertically center items */
-            padding: 0 15px;
-            box-sizing: border-box;
-        }
+  <!-- Firebase Configuration (CRITICAL: Secure your database rules!) -->
+  <script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"; // Import Realtime Database
 
-        .header-content {
-            flex-grow: 1;
-            text-align: center; /* Center title */
-        }
+    // Your web app's Firebase configuration
+    // Krupya is config ko production mein client-side se direct expose na karein bina security rules ke!
+    const firebaseConfig = {
+        apiKey: "AIzaSyAY3hXmpCXJUVrBtOaosPY_tsse3sx-O5o",
+        authDomain: "nima-d4d7d.firebaseapp.com",
+        // CORRECTED databaseURL based on your provided JSON
+        databaseURL: "https://nima-d4d7d-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "nima-d4d7d",
+        storageBucket: "nima-d4d7d.firebasestorage.app"
+    };
 
-        header h1 {
-            margin: 0;
-            font-size: 1.1em; /* Slightly smaller, bolder title */
-            font-weight: 600; /* Semibold */
-            color: #000; /* Black title */
-        }
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app); // Get Realtime Database instance
 
-        .header-button {
-            /* Style for potential left/right buttons */
-            color: #007aff; /* iOS blue color */
-            font-size: 1em;
-            background: none;
-            border: none;
-            padding: 0 10px;
-            cursor: pointer;
-            font-weight: 400; /* Regular weight */
-        }
+    // Make database instance accessible globally (or pass it to functions) for this example
+    window.firebaseDatabase = database;
 
-        .header-button:first-child { /* Left button */
-            margin-right: auto; /* Pushes title to center */
-        }
-
-         .header-button:last-child { /* Right button */
-            margin-left: auto; /* Pushes title to center */
-        }
-
-         .header-button:active {
-             opacity: 0.5; /* Dim on tap */
-         }
+    console.log("Firebase app initialized.");
+  </script>
+  <!-- Firebase SDKs are now imported via modules -->
 
 
-        /* --- Card Styles --- */
-        .card {
-            background-color: #fff;
-            padding: 15px; /* Slightly less padding */
-            margin-top: 20px; /* Space after header/previous card */
-            margin-bottom: 20px;
-            border-radius: 10px; /* More rounded corners */
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Softer shadow */
-        }
+  <!-- Header -->
+  <header class="px-4 py-3 flex items-center justify-between border-b border-gray-700">
+   <div class="flex items-center space-x-2">
+    <img alt="Cube icon representing Free Kuro Panel" class="w-5 h-5" height="20" src="https://storage.googleapis.com/a1aa/image/db210c23-1b9a-4161-40ca-dd37cb939452.jpg" width="20"/>
+    <span class="text-white text-sm font-normal">
+     FREE KURO PANEL
+    </span>
+   </div>
+   <!-- Menu Toggle Button -->
+   <button id="menu-button" aria-label="Menu" class="border border-gray-600 rounded-md p-2 flex items-center justify-center md:hidden">
+    <i class="fas fa-bars text-white text-lg">
+    </i>
+   </button>
+  </header>
 
-         h2 {
-            text-align: left; /* Align section titles left */
-            color: #000;
-            margin-top: 0;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            font-weight: 600; /* Semibold */
-            padding-left: 5px; /* Small indent */
-        }
+  <!-- Navigation (Hidden on mobile by default, toggled by button, always visible on medium screens and up) -->
+  <nav id="main-nav" class="px-4 py-2 space-y-1 text-sm font-normal text-white border-b border-gray-700 hidden md:block">
+   <div id="nav-keys" class="nav-link cursor-pointer hover:text-gray-300 active">
+    Keys
+   </div>
+   <div id="nav-generate" class="nav-link cursor-pointer hover:text-gray-300">
+    Generate
+   </div>
+  </nav>
 
-        /* --- Functions Section --- */
-        .function-buttons {
-            display: flex; /* Arrange buttons horizontally */
-            justify-content: space-around; /* Distribute space */
-            padding-top: 10px; /* Space above buttons */
-        }
+  <!-- User Info / Dropdown Trigger -->
+  <section id="user-info-line" class="px-4 py-2 flex items-center space-x-2 text-sm font-normal text-white border-t border-b border-gray-700 cursor-pointer relative">
+   <i class="fas fa-user-circle text-white text-base">
+   </i>
+   <span>
+    KUROFREEPANEL
+   </span>
+   <i id="user-info-arrow" class="fas fa-chevron-down text-white text-xs transition-transform duration-300 transform">
+   </i>
+   <!-- User Dropdown Menu (Initially Hidden) -->
+   <div id="user-dropdown" class="absolute top-full left-0 w-full bg-[#1a1c20] border border-gray-700 rounded-md shadow-lg z-10 hidden">
+    <ul class="py-1 text-xs">
+     <li class="px-3 py-2 hover:bg-gray-800 cursor-pointer">
+      Profile
+     </li>
+     <li class="px-3 py-2 hover:bg-gray-800 cursor-pointer">
+      Settings
+     </li>
+     <li class="px-3 py-2 hover:bg-gray-800 cursor-pointer text-red-400">
+      Logout
+     </li>
+    </ul>
+   </div>
+  </section>
 
-        .function-button {
-            flex: 1; /* Make buttons take equal width */
-            text-align: center;
-            padding: 12px 8px; /* Padding inside buttons */
-            margin: 0 5px; /* Space between buttons */
-            background-color: #007aff; /* iOS blue */
-            color: white;
-            border: none;
-            border-radius: 8px; /* Rounded buttons */
-            font-size: 0.9em;
-            font-weight: 500; /* Medium weight */
-            cursor: pointer;
-            transition: background-color 0.2s ease, opacity 0.2s ease;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-        }
+  <!-- Main Content Area -->
+  <main class="px-4 py-3 space-y-3">
 
-        .function-button:hover {
-            background-color: #005bb5;
-        }
+   <div class="bg-gray-300 bg-opacity-20 rounded-md py-2 px-3 text-xs text-gray-300 font-normal">
+    Welcome KUROFREEPANEL
+   </div>
 
-        .function-button:active {
-            opacity: 0.8;
-        }
-
-         .function-button:first-child { margin-left: 0; }
-         .function-button:last-child { margin-right: 0; }
-
-
-        /* --- Key List Styles --- */
-        #keyList {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        #keyList li {
-            background-color: #fff; /* White background for list items */
-            padding: 15px 10px; /* Padding */
-            margin-bottom: 8px; /* Space between items */
-            border-radius: 8px; /* Rounded corners */
-            border: 1px solid #e0e0e0; /* Subtle border */
-            word-break: break-all;
-            cursor: pointer;
-            transition: background-color 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* Very subtle shadow */
-             font-size: 0.95em; /* Slightly smaller font */
-             color: #555; /* Slightly lighter text color */
-        }
-
-        #keyList li:last-child {
-            margin-bottom: 0;
-        }
-
-        #keyList li:hover {
-             background-color: #f0f0f0; /* Light grey on hover */
-        }
-
-        #keyList li:active {
-            background-color: #e0e0e0; /* Darker when tapped */
-            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); /* Inner shadow */
-        }
-
-         /* --- Empty State Message --- */
-         #keyList li.empty-state {
-             text-align: center;
-             font-style: italic;
-             color: #888;
-             cursor: default;
-             background-color: #f8f8f8;
-             border: none;
-             box-shadow: none;
-         }
-
-         #keyList li.error-state {
-             color: #dc3545; /* Red for error */
-             background-color: #f8d7da;
-             border-color: #dc3545;
-             cursor: default;
-             box-shadow: none;
-         }
-
-
-        /* --- Toast Message for Copy Confirmation --- */
-        .toast {
-            visibility: hidden;
-            min-width: 220px; /* Slightly smaller */
-            margin-left: -110px; /* Center */
-            background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
-            color: #fff;
-            text-align: center;
-            border-radius: 25px; /* More rounded pill shape */
-            padding: 10px 15px;
-            position: fixed;
-            z-index: 1;
-            left: 50%;
-            bottom: 30px; /* Position from bottom */
-            font-size: 0.85em; /* Smaller font */
-            opacity: 0;
-            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-        }
-
-        /* --- Responsive adjustments --- */
-        @media (min-width: 600px) {
-            header {
-                 height: 60px; /* Taller header on desktop */
-                 padding: 0 20px;
-            }
-             header h1 {
-                font-size: 1.2em;
-             }
-             body {
-                 padding-top: 65px; /* Adjust body padding */
-             }
-             h2 {
-                font-size: 1.3em;
-             }
-             .card {
-                 padding: 20px;
-             }
-             .function-button {
-                 font-size: 1em;
-                 padding: 15px 10px;
-             }
-             #keyList li {
-                 padding: 15px;
-                 font-size: 1em;
-             }
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <button class="header-button" id="settingsButton">Settings</button>
-        <div class="header-content">
-            <h1>App Keys</h1>
-        </div>
-        <button class="header-button" id="refreshButton">Refresh</button>
+   <!-- Keys Section (Initially Active) -->
+   <section id="section-keys" class="bg-[#1a1c20] border border-gray-700 rounded-md">
+    <header class="flex items-center justify-between bg-[#1a1c20] border-b border-gray-700 px-3 py-2 text-xs font-normal text-white">
+     <div>
+      <div>
+       Keys
+      </div>
+      <div class="text-gray-400">
+       Registered
+      </div>
+     </div>
+     <div class="flex items-center space-x-2">
+      <!-- Toggle Key Visibility Button -->
+      <button id="toggle-keys-button" aria-label="Toggle visibility" class="flex items-center space-x-1 border border-gray-600 rounded px-2 py-1 text-xs text-white">
+       <i class="fas fa-eye">
+       </i>
+       <span>
+        Hide Keys
+       </span>
+      </button>
+     </div>
     </header>
-
-    <div class="container">
-
-        <!-- Functions Section -->
-        <div class="card function-card">
-            <h2>App Functions</h2>
-            <div class="function-buttons">
-                <button class="function-button" id="function1">Function 1</button>
-                <button class="function-button" id="function2">Function 2</button>
-                <button class="function-button" id="function3">Function 3</button>
-            </div>
-        </div>
-
-        <!-- Keys List Section -->
-        <div class="card key-list-card">
-            <h2>Your Available Keys</h2>
-            <ul id="keyList">
-                <!-- Keys will be loaded here by JavaScript -->
-                <li class="empty-state">Loading keys...</li>
-            </ul>
-        </div>
-
+    <div class="overflow-x-auto">
+     <table id="keys-table" class="w-full text-xs text-left text-gray-300 border-collapse">
+      <thead>
+       <tr>
+        <th class="border-b border-gray-700 py-1 px-2 w-10">
+         <!-- Entries Select -->
+         <select id="entries-select" aria-label="Select entries" class="bg-[#1a1c20] border border-gray-700 rounded text-gray-300 text-xs py-0.5 px-1 w-full">
+          <option value="3">
+           3
+          </option>
+          <option value="5">
+           5
+          </option>
+          <option value="10">
+           10
+          </option>
+          <option value="all">
+           All
+          </option>
+         </select>
+        </th>
+        <th class="border-b border-gray-700 py-1 px-2">
+         User Keys
+        </th>
+        <th class="border-b border-gray-700 py-1 px-2">
+         Device
+        </th>
+         <th class="border-b border-gray-700 py-1 px-2 w-10">
+             Actions
+         </th>
+       </tr>
+      </thead>
+      <tbody>
+       <!-- Table rows will be populated by JavaScript from Firebase -->
+       <tr>
+           <td colspan="4" class="text-center py-4 text-gray-400">Loading keys...</td>
+       </tr>
+      </tbody>
+     </table>
     </div>
+   </section>
 
-    <!-- Toast message element -->
-    <div id="toastMessage" class="toast"></div>
+   <!-- Generate Section (Initially Hidden) -->
+   <section id="section-generate" class="bg-[#1a1c20] border border-gray-700 rounded-md p-4 space-y-4 hidden">
+    <h2 class="text-lg font-normal text-white">
+     Generate New Key
+    </h2>
+    <div class="flex flex-col space-y-2">
+     <label for="key-length" class="text-sm text-gray-300">
+      Key Length:
+     </label>
+     <input type="number" id="key-length" value="16" min="8" max="32" class="bg-[#1a1c20] border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-[#3ea18a]"/>
+    </div>
+    <!-- Generate Button -->
+    <button id="generate-key-button" class="bg-[#3ea18a] text-white px-4 py-2 rounded hover:bg-[#348d78] focus:outline-none text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
+     <i class="fas fa-plus-circle">
+     </i>
+     <span>
+      Generate Key
+     </span>
+    </button>
+    <div id="generated-key-output" class="bg-gray-800 p-3 rounded text-xs text-gray-300 hidden">
+     Generated Key:
+     <span id="latest-generated-key" class="text-[#3ea18a] break-all font-mono">
+     </span>
+    </div>
+     <div id="generate-error" class="text-red-400 text-xs hidden"></div>
+   </section>
 
-    <script>
-        // Your Firebase configuration from google-services.json (extracted for web)
-        const firebaseConfig = {
-            apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
-            authDomain: "rn-gfx-tool.firebaseapp.com", // Derived from project_id
-            databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "rn-gfx-tool",
-            storageBucket: "rn-gfx-tool.firebasestorage.app",
-            messagingSenderId: "163149358541",
-            // appId: "YOUR_APP_ID" // Add if you generated one for Web
-        };
+  </main>
 
-        // Initialize Firebase
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-        } else {
-          firebase.app(); // if already initialized, use that one
-        }
+  <script type="module">
+    // Import necessary functions including remove for deletion
+    import { ref, push, get, child, remove } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
 
-        const database = firebase.database();
-        const keysRef = database.ref('keys'); // Reference to the 'keys' node
-
-        const keyList = document.getElementById('keyList');
-        const toastMessageDiv = document.getElementById('toastMessage');
-
-        // --- Toast Message Functions ---
-        let toastTimeout;
-        function showToast(message) {
-            // Clear any existing timeout so the new toast isn't cut short
-            clearTimeout(toastTimeout);
-
-            toastMessageDiv.textContent = message;
-            toastMessageDiv.style.visibility = 'visible';
-            toastMessageDiv.style.opacity = '1';
-
-            // Hide the toast after 3 seconds
-            toastTimeout = setTimeout(() => {
-                toastMessageDiv.style.opacity = '0';
-                setTimeout(() => {
-                     toastMessageDiv.style.visibility = 'hidden';
-                }, 300); // Match CSS fade-out duration
-            }, 3000);
-        }
-
-        // --- Copy to Clipboard Function ---
-        function copyToClipboard(text) {
-            if (!navigator.clipboard) {
-                 console.warn('Clipboard API not available.');
-                 showToast('Copying not supported on this browser.');
-                 return;
+    document.addEventListener('DOMContentLoaded', () => {
+            // Ensure firebaseDatabase is available (from the module script above)
+            const database = window.firebaseDatabase;
+            if (!database) {
+                console.error("Firebase Database not initialized.");
+                // Display an error message to the user or handle appropriately
+                document.body.innerHTML = "<p style='color:red; text-align:center;'>Error: Firebase not initialized. Check console for details.</p>";
+                return; // Stop script execution if Firebase is not ready
             }
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                    console.log('Text copied to clipboard');
-                    showToast('Key copied!');
-                })
-                .catch(err => {
-                    console.error('Failed to copy text: ', err);
-                    showToast('Failed to copy key.');
-                });
-        }
-
-        // --- Placeholder Function Buttons ---
-        const settingsButton = document.getElementById('settingsButton');
-        const refreshButton = document.getElementById('refreshButton');
-        const function1Button = document.getElementById('function1');
-        const function2Button = document.getElementById('function2');
-        const function3Button = document.getElementById('function3');
-
-        settingsButton.addEventListener('click', () => {
-            alert('Settings button clicked!'); // Placeholder action
-        });
-
-        refreshButton.addEventListener('click', () => {
-            // Re-fetch data manually if needed, or rely on Firebase listener
-            alert('Refresh button clicked (data updates automatically)!'); // Placeholder action
-             // To force re-render without waiting for Firebase update, you could
-             // re-run the data processing logic here if needed, but Firebase's .on()
-             // handles real-time updates already.
-        });
-
-         function1Button.addEventListener('click', () => {
-             alert('Function 1 clicked!'); // Placeholder action
-         });
-
-         function2Button.addEventListener('click', () => {
-             alert('Function 2 clicked!'); // Placeholder action
-         });
-
-         function3Button.addEventListener('click', () => {
-             alert('Function 3 clicked!'); // Placeholder action
-         });
 
 
-        // --- Fetch and Display Keys from Firebase ---
-        keysRef.on('value', (snapshot) => {
-            const keys = snapshot.val();
-            keyList.innerHTML = ''; // Clear the current list
+            // --- Element References ---
+            const menuButton = document.getElementById('menu-button');
+            const mainNav = document.getElementById('main-nav');
+            const navKeys = document.getElementById('nav-keys');
+            const navGenerate = document.getElementById('nav-generate');
+            const sectionKeys = document.getElementById('section-keys');
+            const sectionGenerate = document.getElementById('section-generate');
+            const userInfoLine = document.getElementById('user-info-line');
+            const userDropdown = document.getElementById('user-dropdown');
+            const userInfoArrow = document.getElementById('user-info-arrow');
+            const toggleKeysButton = document.getElementById('toggle-keys-button');
+            const toggleKeysIcon = toggleKeysButton ? toggleKeysButton.querySelector('i') : null;
+            const toggleKeysSpan = toggleKeysButton ? toggleKeysButton.querySelector('span') : null;
+            const keysTableBody = document.querySelector('#keys-table tbody');
+            const entriesSelect = document.getElementById('entries-select');
+            const generateKeyButton = document.getElementById('generate-key-button');
+            const keyLengthInput = document.getElementById('key-length');
+            const generatedKeyOutput = document.getElementById('generated-key-output');
+            const latestGeneratedKeySpan = document.getElementById('latest-generated-key');
+            const generateErrorDiv = document.getElementById('generate-error');
 
-            if (keys) {
-                const keysArray = Object.keys(keys).map(keyId => ({
-                    id: keyId,
-                    ...keys[keyId]
-                }));
+            let areKeysMasked = false; // State for key visibility
+            let allTableRowsData = []; // To store all key data objects fetched from Firebase
 
-                // Optional: Sort keys if you want them in a specific order (e.g., by timestamp)
-                // keysArray.sort((a, b) => a.timestamp - b.timestamp);
 
-                keysArray.forEach(keyData => {
-                    const keyText = keyData.key;
-                    const li = document.createElement('li');
-                    li.textContent = keyText;
+            // --- Helper Functions ---
 
-                    // Add click listener for copying
-                    li.addEventListener('click', () => {
-                        copyToClipboard(keyText);
-                    });
-
-                    keyList.appendChild(li);
-                });
-            } else {
-                const li = document.createElement('li');
-                li.textContent = "No keys found yet. Check back later!";
-                li.className = 'empty-state'; // Apply specific style
-                keyList.appendChild(li);
+            // Function to generate a random alphanumeric key
+            function generateRandomString(length) {
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                let result = '';
+                const charactersLength = characters.length;
+                for (let i = 0; i < length; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                }
+                return result;
             }
-        }, (errorObject) => {
-            console.error("The read failed: " + errorObject.code);
-            keyList.innerHTML = ''; // Clear list
-            const li = document.createElement('li');
-            li.textContent = 'Error loading keys: ' + errorObject.message;
-            li.className = 'error-state'; // Apply specific style
-            keyList.appendChild(li);
+
+            // Function to render the table from the fetched data
+            function renderTable() {
+                 keysTableBody.innerHTML = ''; // Clear current table body
+
+                 // Get the selected number of entries to display
+                 const selectedValue = entriesSelect.value;
+                 const numEntries = selectedValue === 'all' ? allTableRowsData.length : parseInt(selectedValue, 10);
+
+                 // Slice the data based on the selected entries
+                 const rowsToDisplay = allTableRowsData.slice(0, numEntries);
+
+
+                 if (rowsToDisplay.length === 0) {
+                     keysTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-400">No keys found.</td></tr>`;
+                     return;
+                 }
+
+
+                 rowsToDisplay.forEach((keyData, index) => {
+                    const newRow = document.createElement('tr');
+                    const keyId = keyData.id; // Firebase Push ID
+                    const keyValue = keyData.value; // The actual generated key string
+                    // Ensure device count is treated as a number, default to 0 if missing or invalid
+                    const deviceCount = parseInt(keyData.device, 10) || 0;
+
+
+                    newRow.innerHTML = `
+                        <td class="border-b border-gray-700 py-1 px-2 text-center text-gray-400">${index + 1}</td>
+                        <td class="border-b border-gray-700 py-1 px-2 text-[#3ea18a] break-words" data-key="${keyValue}">
+                            ${areKeysMasked ? '********' : keyValue}
+                        </td>
+                        <td class="border-b border-gray-700 py-1 px-2">${deviceCount}</td> <!-- Display the numerical device count -->
+                         <td class="border-b border-gray-700 py-1 px-2">
+                            <button data-key-id="${keyId}" class="delete-key-button text-red-400 hover:text-red-600">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+
+                    // Apply masking class if needed (alternative visual style)
+                    if (areKeysMasked) {
+                         const keyCell = newRow.querySelector('td:nth-child(2)');
+                         keyCell.classList.add('text-security-disc'); // Add masking class
+                         keyCell.style.color = ''; // Remove teal color when masked
+                    }
+
+                    keysTableBody.appendChild(newRow);
+                 });
+
+                 // Add event listeners to delete buttons AFTER they are added to the DOM
+                 keysTableBody.querySelectorAll('.delete-key-button').forEach(button => {
+                     button.addEventListener('click', handleDeleteKey);
+                 });
+            }
+
+            // Function to fetch keys from Firebase
+            async function fetchKeys() {
+                 keysTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-400">Loading keys...</td></tr>`; // Show loading state
+
+                 const dbRef = ref(database);
+                 try {
+                     // Use get() to fetch data once
+                     const snapshot = await get(child(dbRef, 'keys'));
+                     if (snapshot.exists()) {
+                         const keysObject = snapshot.val();
+                         // Convert the object of keys into an array of objects including the Firebase key (ID)
+                         allTableRowsData = Object.keys(keysObject).map(key => ({
+                             id: key, // Store Firebase push key
+                             ...keysObject[key] // Spread the key data (value, device, etc.)
+                         }));
+                         // Optional: Sort the keys, e.g., by timestamp if you added one during generation
+                          allTableRowsData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); // Sort by timestamp descending
+
+
+                         console.log("Keys fetched:", allTableRowsData);
+                     } else {
+                         allTableRowsData = []; // No keys found
+                         console.log("No keys data available in Firebase.");
+                     }
+                 } catch (error) {
+                     console.error("Error fetching keys:", error);
+                      // Log more details of the error object
+                     console.error("Error code:", error.code);
+                     console.error("Error message:", error.message);
+                     console.error("Full error object:", error);
+                     keysTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-400">Error loading keys. Details: ${error.message || error.code || 'Unknown error'}</td></tr>`;
+                     // Clear data on error to prevent displaying old data
+                     allTableRowsData = [];
+                 }
+
+                 // Render the table with the fetched data
+                 renderTable();
+            }
+
+
+            // Function to toggle key visibility
+            function toggleKeyMasking() {
+                areKeysMasked = !areKeysMasked;
+                // Re-render the table to apply masking state to all rows
+                renderTable();
+
+                // Update the button text and icon
+                if (toggleKeysIcon && toggleKeysSpan) {
+                     if (areKeysMasked) {
+                         toggleKeysIcon.classList.remove('fa-eye');
+                         toggleKeysIcon.classList.add('fa-eye-slash');
+                         toggleKeysSpan.textContent = 'Show Keys';
+                     } else {
+                         toggleKeysIcon.classList.remove('fa-eye-slash');
+                         toggleKeysIcon.classList.add('fa-eye');
+                         toggleKeysSpan.textContent = 'Hide Keys';
+                     }
+                }
+            }
+
+            // Function to handle deleting a key
+            async function handleDeleteKey(event) {
+                const button = event.currentTarget;
+                const keyId = button.getAttribute('data-key-id');
+                if (!keyId || !confirm('Are you sure you want to delete this key?')) {
+                    return;
+                }
+
+                // Get the specific key reference using ref()
+                const keyRef = ref(database, 'keys/' + keyId);
+
+
+                // Disable button during deletion
+                button.disabled = true;
+                button.classList.add('opacity-50', 'cursor-not-allowed');
+                const icon = button.querySelector('i');
+                 if(icon) {
+                     icon.classList.remove('fa-trash');
+                     icon.classList.add('fa-spinner', 'fa-spin');
+                 }
+
+
+                try {
+                     // Use the imported remove function
+                     await remove(keyRef);
+                     console.log(`Key ${keyId} deleted successfully.`);
+                     // Refetch and re-render the table after deletion
+                     fetchKeys();
+                } catch (error) {
+                    console.error("Error deleting key:", error);
+                     // Log more details of the error object
+                    console.error("Error code:", error.code);
+                    console.error("Error message:", error.message);
+                    console.error("Full error object:", error);
+                    alert("Error deleting key. Details: " + (error.message || error.code || 'Unknown error')); // Basic error feedback
+                } finally {
+                     // Re-enable button (might not be necessary if table is re-rendered anyway)
+                     button.disabled = false;
+                     button.classList.remove('opacity-50', 'cursor-not-allowed');
+                     if(icon) {
+                         icon.classList.remove('fa-spinner', 'fa-spin');
+                         icon.classList.add('fa-trash');
+                     }
+                }
+            }
+
+
+            // --- Event Listeners ---
+
+            // Toggle mobile navigation
+            if (menuButton && mainNav) {
+                menuButton.addEventListener('click', () => {
+                    mainNav.classList.toggle('hidden');
+                });
+            }
+
+            // Tab Switching (Keys vs Generate)
+            const navLinks = [navKeys, navGenerate];
+            const sections = [sectionKeys, sectionGenerate];
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    // Remove active class from all links
+                    navLinks.forEach(item => item.classList.remove('active'));
+                    // Add active class to clicked link
+                    link.classList.add('active');
+
+                    // Hide all sections
+                    sections.forEach(section => section.classList.add('hidden'));
+
+                    // Show the corresponding section
+                    if (link.id === 'nav-keys') {
+                        sectionKeys.classList.remove('hidden');
+                        // Re-fetch and render keys when switching back to the keys tab
+                        fetchKeys();
+                    } else if (link.id === 'nav-generate') {
+                        sectionGenerate.classList.remove('hidden');
+                        // Clear any previous output/error when switching to generate tab
+                        generatedKeyOutput.classList.add('hidden');
+                        generateErrorDiv.classList.add('hidden');
+                    }
+                });
+            });
+
+            // Toggle User Dropdown
+            if (userInfoLine && userDropdown && userInfoArrow) {
+                 userInfoLine.addEventListener('click', () => {
+                    userDropdown.classList.toggle('hidden');
+                    // Rotate arrow icon
+                    userInfoArrow.classList.toggle('rotate-180');
+                });
+
+                // Close dropdown if clicked outside (optional but good UX)
+                document.addEventListener('click', (event) => {
+                    if (!userInfoLine.contains(event.target) && !userDropdown.contains(event.target)) {
+                        userDropdown.classList.add('hidden');
+                        userInfoArrow.classList.remove('rotate-180');
+                    }
+                });
+            }
+
+
+            // Toggle Key Visibility
+            if (toggleKeysButton) {
+                // Initial button state setup based on default areKeysMasked
+                 if (areKeysMasked) {
+                     toggleKeysIcon.classList.remove('fa-eye');
+                     toggleKeysIcon.classList.add('fa-eye-slash');
+                     toggleKeysSpan.textContent = 'Show Keys';
+                 } else {
+                     toggleKeysIcon.classList.remove('fa-eye-slash');
+                     toggleKeysIcon.classList.add('fa-eye');
+                     toggleKeysSpan.textContent = 'Hide Keys';
+                 }
+
+                toggleKeysButton.addEventListener('click', toggleKeyMasking);
+            }
+
+            // Handle Entries Select change - this now just triggers re-rendering the currently loaded data
+            if (entriesSelect) {
+                entriesSelect.addEventListener('change', renderTable);
+            }
+
+            // Handle Generate Key Button click
+            if (generateKeyButton && keyLengthInput && generatedKeyOutput && latestGeneratedKeySpan && generateErrorDiv) {
+                generateKeyButton.addEventListener('click', async () => {
+                    const keyLength = parseInt(keyLengthInput.value, 10);
+
+                    // Basic validation
+                    if (isNaN(keyLength) || keyLength < 8 || keyLength > 32) {
+                        generateErrorDiv.textContent = "Please enter a valid key length between 8 and 32.";
+                        generateErrorDiv.classList.remove('hidden');
+                        generatedKeyOutput.classList.add('hidden');
+                        return;
+                    }
+
+                    // Clear previous error/output
+                    generateErrorDiv.classList.add('hidden');
+                    generatedKeyOutput.classList.add('hidden');
+
+                    // Generate the key string
+                    const newKeyString = generateRandomString(keyLength);
+                    console.log("Attempting to generate and save key:", newKeyString);
+
+                    // Disable button and show loading feedback
+                    generateKeyButton.disabled = true;
+                    generateKeyButton.querySelector('span').textContent = 'Generating...';
+                    generateKeyButton.querySelector('i').classList.remove('fa-plus-circle');
+                    generateKeyButton.querySelector('i').classList.add('fa-spinner', 'fa-spin');
+
+
+                    // Data to save in Firebase
+                    const keyDataToSave = {
+                         value: newKeyString,
+                         device: 0, // Initialize device count as a number
+                         timestamp: Date.now() // Add timestamp for sorting/ordering
+                    };
+
+                    // Get a reference to the 'keys' path in the database
+                    const keysRef = ref(database, 'keys');
+
+                    try {
+                        // Use push() to add a new key with a unique ID
+                        await push(keysRef, keyDataToSave);
+                        // const newNodeRef = await push(keysRef, keyDataToSave); // If you need the new ID
+                        // const newKeyId = newNodeRef.key;
+
+                        console.log("Key saved to Firebase.");
+
+                        // Display the generated key
+                        latestGeneratedKeySpan.textContent = newKeyString;
+                        generatedKeyOutput.classList.remove('hidden');
+                        generateErrorDiv.classList.add('hidden'); // Ensure error is hidden
+
+                        // Refetch and re-render the table to include the new key from the database
+                        fetchKeys();
+
+
+                    } catch (error) {
+                        console.error("Error saving key to Firebase:", error);
+                         // Log more details of the error object
+                         console.error("Error code:", error.code);
+                         console.error("Error message:", error.message);
+                         console.error("Full error object:", error);
+
+                        generateErrorDiv.textContent = "Error generating or saving key: " + (error.message || error.code || 'Unknown error');
+                        generateErrorDiv.classList.remove('hidden');
+                        generatedKeyOutput.classList.add('hidden'); // Hide output on error
+                    } finally {
+                        // Re-enable button and restore text/icon
+                        generateKeyButton.disabled = false;
+                        generateKeyButton.querySelector('span').textContent = 'Generate Key';
+                        generateKeyButton.querySelector('i').classList.remove('fa-spinner', 'fa-spin');
+                        generateKeyButton.querySelector('i').classList.add('fa-plus-circle');
+                    }
+                });
+            }
+
+            // --- Initial calls ---
+            // Fetch keys from Firebase when the page loads
+            fetchKeys();
+
         });
 
-    </script>
-
-</body>
+  </script>
+ </body>
 </html>
