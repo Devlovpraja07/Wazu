@@ -1,1091 +1,1647 @@
 <!DOCTYPE html>
 <html lang="en">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1" name="viewport"/>
-  <title>
-   ePathshala
-  </title>
-  <script src="https://cdn.tailwindcss.com">
-  </script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-  <style>
-   @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-    body {
-      font-family: 'Roboto', sans-serif;
-      /* background-color: #f4f7f6; Optional: Add a light background */
-    }
-    /* Add a subtle focus outline for accessibility when links/buttons are tabbed */
-    a:focus, button:focus, input:focus, textarea:focus {
-        outline: 2px solid currentColor;
-        outline-offset: 2px;
-    }
-     /* Basic styling for hidden sections */
-    .hidden {
-        display: none;
-    }
-    /* Style for the update alert banner */
-    .update-alert {
-        background-color: #fff3cd; /* Light yellow */
-        border-color: #ffecb5; /* Darker yellow */
-        color: #856404; /* Dark yellow text */
-    }
-    .update-alert button {
-        color: #856404; /* Button color matches text */
-        font-weight: bold;
-    }
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <title>Group Zikr & DEEN</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap'); /* For Arabic text if needed */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0ede7; /* Match Tailwind bg-[#f0ede7] */
+        }
+         .arabic-text {
+             font-family: 'Amiri', serif;
+         }
+        /* Custom styles for menu */
+        .menu {
+            position: fixed;
+            top: 0;
+            right: -250px; /* Initially hidden off-screen */
+            width: 250px;
+            height: 100%;
+            background-color: white;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.5);
+            transition: right 0.3s ease;
+            z-index: 100;
+            padding-top: 60px; /* Space for fixed header */
+            overflow-y: auto; /* Enable scrolling if menu is too long */
+        }
+        .menu.open {
+            right: 0; /* Slide in */
+        }
+        .menu-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 90;
+            display: none; /* Initially hidden */
+        }
+        .menu-backdrop.visible {
+            display: block;
+        }
+        .menu-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            color: #333;
+            transition: background-color 0.2s ease;
+        }
+        .menu-item:hover {
+            background-color: #f0f0f0;
+        }
+        .hidden-section {
+            display: none;
+        }
+         .firebaseui-auth-container {
+            margin-top: 20px;
+        }
+        /* Style for active tab */
+        .tab-button.active {
+            color: #1e9b2f;
+            font-weight: 600;
+            border-bottom-width: 4px;
+            border-bottom-color: #1e9b2f;
+        }
 
-    /* Style for clickable post cards in All Posts */
-    .post-card-link {
-        display: block; /* Make the whole div a block link */
-        text-decoration: none; /* Remove underline by default */
-        color: inherit; /* Inherit text color */
-    }
-     .post-card-link:hover {
-         text-decoration: none; /* Optional: Keep no underline on hover */
-         opacity: 0.9; /* Subtle hover effect */
-     }
-  </style>
- </head>
- <body class="m-0 p-0 antialiased">
-
-  <!-- Main container - Responsive width, centered -->
-  <!-- pb-20 added to prevent content from being hidden by fixed bottom nav -->
-  <div class="w-full max-w-screen-lg mx-auto px-4 py-8 pb-20">
-
-   <!-- Header -->
-   <header class="bg-[#1a3354] text-white text-2xl md:text-3xl font-bold px-4 py-4 flex justify-between items-center rounded-t-lg shadow-md">
-    <div class="cursor-pointer hover:opacity-90 transition-opacity" onclick="showMainGrid()">
-     ePathshala
-    </div>
-    <!-- Ellipsis button - Working example (shows alert) -->
-    <button class="text-xl md:text-2xl cursor-pointer hover:opacity-90 transition-opacity focus:outline-none" aria-label="More options menu" onclick="alert('More options menu clicked!')">
-     <i class="fas fa-ellipsis-v">
-     </i>
-    </button>
-   </header>
-
-   <!-- Main Grid Container (Initially visible) -->
-   <div id="main-grid" class="mt-8">
-         <!-- App Update Alert (Initially Hidden) -->
-        <div id="update-alert" class="update-alert p-4 rounded-lg border mb-6 flex items-center justify-between hidden">
-            <div>
-                <i class="fas fa-exclamation-triangle mr-2"></i>
-                New app update available! Please update for the latest features and improvements.
-            </div>
-            <!-- Optional: Add a button to dismiss or go to update source -->
-            <!-- <button class="ml-4 text-sm hover:underline" onclick="document.getElementById('update-alert').classList.add('hidden')">Dismiss</button> -->
-             <!-- Replace # with actual app store/download URL -->
-             <!-- <a href="#" class="ml-4 text-sm hover:underline">Update Now</a> -->
-        </div>
-       <!-- The original grid items -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-white text-center text-lg font-medium">
-            <!-- Students Card (Clickable & Working to show all posts) -->
-            <a href="#" class="block h-full flex flex-col items-center justify-between bg-[#7a574a] hover:bg-opacity-90 transition-colors duration-200 rounded-lg overflow-hidden shadow-lg" onclick="showAllPosts(event)">
-             <div class="flex-grow flex items-center justify-center p-4">
-              <img alt="Illustration of a girl student with clock, lamp, and open book behind her" class="w-36 h-36 object-contain" src="https://storage.googleapis.com/a1aa/image/248ea332-8b77-40c6-0946-c5fc63ba887e.jpg"/>
-             </div>
-             <div class="w-full bg-[#4f3a33] py-3 px-2 text-center font-semibold">
-              STUDENTS (View All Posts)
-             </div>
-            </a>
-
-            <!-- Teachers Card (Clickable Placeholder) -->
-            <a href="#" class="block h-full flex flex-col items-center justify-between bg-[#f15a44] hover:bg-opacity-90 transition-colors duration-200 rounded-lg overflow-hidden shadow-lg" onclick="alert('Teachers section clicked!')">
-             <div class="flex-grow flex items-center justify-center p-4">
-              <img alt="Illustration of a boy teacher with science flask and geometry tools behind him" class="w-36 h-36 object-contain" src="https://storage.googleapis.com/a1aa/image/f53b6985-5be7-4b26-f30d-611f52eb6492.jpg"/>
-             </div>
-             <div class="w-full bg-[#b94a3a] py-3 px-2 text-center font-semibold">
-              TEACHERS
-             </div>
-            </a>
-
-            <!-- Parents Card (Clickable Placeholder) -->
-            <a href="#" class="block h-full flex flex-col items-center justify-between bg-[#3a3633] hover:bg-opacity-90 transition-colors duration-200 rounded-lg overflow-hidden shadow-lg" onclick="alert('Parents section clicked!')">
-             <div class="flex-grow flex items-center justify-center p-4">
-              <img alt="Illustration of parents with child, trophy, and house behind them" class="w-36 h-36 object-contain" src="https://storage.googleapis.com/a1aa/image/56f8395e-8c48-4a0e-fb84-4e1338838796.jpg"/>
-             </div>
-             <div class="w-full bg-[#1f1c1a] py-3 px-2 text-center font-semibold">
-              PARENTS
-             </div>
-            </a>
-
-            <!-- Educators Card (Clickable Placeholder) -->
-            <a href="#" class="block h-full flex flex-col items-center justify-between bg-[#6f8b7d] hover:bg-opacity-90 transition-colors duration-200 rounded-lg overflow-hidden shadow-lg" onclick="alert('Educators section clicked!')">
-             <div class="flex-grow flex items-center justify-center p-4">
-              <img alt="Illustration of an educator with blackboard and globe behind her" class="w-36 h-36 object-contain" src="https://storage.googleapis.com/a1aa/image/cba6d657-e6b9-4729-c573-0944e4fd31db.jpg"/>
-             </div>
-             <div class="w-full bg-[#3f4a44] py-3 px-2 text-center font-semibold">
-              EDUCATORS
-             </div>
-            </a>
-        </div>
-   </div>
-
-
-    <!-- Login/Signup Section (Initially Hidden) -->
-    <div id="auth-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-sm mx-auto">
-        <h2 class="text-2xl font-bold mb-4 text-center text-gray-800" id="auth-title">Login</h2>
-        <form id="auth-form">
-            <div class="mb-4">
-                <label for="auth-email" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
-                <input type="email" id="auth-email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-            </div>
-             <div class="mb-4" id="username-group">
-                <label for="auth-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
-                <input type="text" id="auth-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-             <div class="mb-6" id="name-group">
-                <label for="auth-name" class="block text-gray-700 text-sm font-bold mb-2">Name:</label>
-                <input type="text" id="auth-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-            <div class="mb-6">
-                <label for="auth-password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
-                <input type="password" id="auth-password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-            </div>
-            <div id="auth-error-message" class="text-red-500 text-xs italic mb-4"></div>
-            <div class="flex items-center justify-between">
-                <button type="submit" id="auth-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                    Login
-                </button>
-                <button type="button" id="toggle-auth-mode" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" onclick="toggleAuthMode()">
-                    Create an account
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Profile Section (Initially Hidden) -->
-    <div id="profile-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-lg mx-auto">
-        <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">My Profile</h2>
-
-        <!-- Profile View State -->
-        <div id="profile-view">
-             <div id="profile-info" class="mb-6 text-center">
-                <p class="text-xl font-semibold" id="profile-name"></p>
-                <p class="text-gray-600" id="profile-username"></p>
-                <button class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2" onclick="showEditProfileForm()">Edit Profile</button>
-                <button class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="logout()">Logout</button>
-            </div>
-        </div>
-
-        <!-- Profile Edit State (Initially Hidden) -->
-        <div id="profile-edit" class="hidden">
-             <h3 class="text-xl font-bold mb-3 text-gray-800 border-b pb-2">Edit Profile</h3>
-             <form id="profile-edit-form">
-                 <div class="mb-4">
-                    <label for="edit-name" class="block text-gray-700 text-sm font-bold mb-2">Name:</label>
-                    <input type="text" id="edit-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                </div>
-                 <div class="mb-6">
-                    <label for="edit-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
-                    <input type="text" id="edit-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-                </div>
-                <div id="profile-edit-message" class="text-red-500 text-xs italic mb-4"></div>
-                 <div id="profile-edit-success" class="text-green-500 text-xs italic mb-4"></div>
-                <div class="flex items-center justify-between">
-                    <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Save Changes</button>
-                    <button type="button" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="cancelEditProfile()">Cancel</button>
-                </div>
-             </form>
-        </div>
-
-
-        <h3 class="text-xl font-bold mb-3 text-gray-800 border-b pb-2 mt-8">My Posts</h3>
-        <div id="user-posts-list" class="space-y-4">
-            <!-- User's posts will be loaded here -->
-            <p id="no-user-posts" class="text-gray-600 italic">No posts yet.</p>
-        </div>
-    </div>
-
-    <!-- Post Upload Section (Initially Hidden) -->
-    <div id="upload-post-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-md mx-auto">
-        <h2 class="text-2xl font-bold mb-4 text-center text-gray-800" id="upload-form-title">Create New Post</h2>
-        <form id="post-form">
-            <input type="hidden" id="post-id"> <!-- Hidden input for post ID when editing -->
-            <div class="mb-4">
-                <label for="post-title" class="block text-gray-700 text-sm font-bold mb-2">Title:</label>
-                <input type="text" id="post-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
-            </div>
-            <div class="mb-4">
-                <label for="post-content" class="block text-gray-700 text-sm font-bold mb-2">Content:</label>
-                <textarea id="post-content" rows="6" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
-            </div>
-
-            <!-- Image Upload -->
-            <div class="mb-4">
-                 <label for="post-image-file" class="block text-gray-700 text-sm font-bold mb-2">Upload Image (Optional):</label>
-                 <input type="file" id="post-image-file" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
-                 <p class="text-gray-600 text-xs mt-1">Overrides Image URL if both are provided.</p>
-            </div>
-
-            <!-- Image URL -->
-            <div class="mb-4">
-                 <label for="post-image-url" class="block text-gray-700 text-sm font-bold mb-2">Or Image URL (Optional):</label>
-                 <input type="url" id="post-image-url" placeholder="e.g. https://example.com/image.jpg" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
-            <!-- Download Link -->
-             <div class="mb-6">
-                 <label for="post-download-link" class="block text-gray-700 text-sm font-bold mb-2">Download Link (Optional):</label>
-                 <input type="url" id="post-download-link" placeholder="e.g. https://example.com/myfile.zip" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-            </div>
-
-
-            <div id="post-error-message" class="text-red-500 text-xs italic mb-4"></div>
-             <div id="post-success-message" class="text-green-500 text-xs italic mb-4"></div>
-            <div class="flex items-center justify-between">
-                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" id="submit-post-button">
-                    Publish Post
-                </button>
-                 <button type="button" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="showProfileSection()">
-                    Cancel
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- All Posts Section (for Students - Initially Hidden) -->
-     <div id="all-posts-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-lg mx-auto">
-        <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">All Posts</h2>
-         <button class="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="showMainGrid()">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Grid
-         </button>
-        <div id="all-posts-list" class="space-y-6">
-            <!-- All posts will be loaded here -->
-             <p id="no-all-posts" class="text-gray-600 italic hidden">No posts available yet.</p>
-        </div>
-    </div>
-
-    <!-- Single Post View Section (Initially Hidden) -->
-    <div id="single-post-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-lg mx-auto">
-         <button class="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="showAllPosts()">
-            <i class="fas fa-arrow-left mr-2"></i> Back to All Posts
-         </button>
-        <div id="single-post-content" class="bg-white p-4 rounded shadow border border-gray-200">
-            <!-- Single post details will be loaded here by renderSinglePost -->
-            <h3 id="single-post-title" class="text-xl font-semibold text-gray-800"></h3>
-            <p id="single-post-author" class="text-sm text-gray-600 mb-2"></p>
-             <img id="single-post-image" alt="Post image" class="mt-2 max-h-60 object-contain w-full rounded hidden">
-            <p id="single-post-description" class="text-gray-700 mt-2 break-words whitespace-pre-wrap"></p>
-             <p id="single-post-download" class="mt-4 hidden">
-                 <a href="#" target="_blank" class="text-blue-500 hover:underline">
-                     <i class="fas fa-download mr-1"></i>Visit Link
-                 </a>
-             </p>
-        </div>
-    </div>
-
-
-  </div>
-
-  <!-- Mobile App Navigation Bar (Fixed at Bottom) -->
-  <nav class="fixed bottom-0 left-0 right-0 bg-[#1a3354] text-white p-3 shadow-lg z-50">
-    <div class="flex justify-around items-center h-full">
-        <!-- Home Link -->
-        <a href="#" class="nav-link flex flex-col items-center text-xs md:text-sm hover:text-gray-300 transition-colors duration-200" onclick="showMainGrid(event)">
-            <i class="fas fa-home text-lg md:text-xl mb-1"></i>
-            <span>Home</span>
-        </a>
-        <!-- Upload Post Link (Visible if logged in) -->
-         <a href="#" id="nav-upload-post" class="nav-link flex-col items-center text-xs md:text-sm hover:text-gray-300 transition-colors duration-200 hidden" onclick="showUploadPostForm(event)">
-            <i class="fas fa-plus-circle text-lg md:text-xl mb-1"></i>
-            <span>Upload Post</span>
-        </a>
-        <!-- Profile Link -->
-        <a href="#" class="nav-link flex flex-col items-center text-xs md:text-sm hover:text-gray-300 transition-colors duration-200" onclick="handleProfileClick(event)">
-            <i class="fas fa-user text-lg md:text-xl mb-1"></i>
-            <span>Profile</span>
-        </a>
-    </div>
-  </nav>
-
-  <!-- Firebase SDK Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-
-
-  <script>
-    // --- App Version ---
-    const CURRENT_APP_VERSION = 1.2; // Updated version number
-
-    // Your Firebase project configuration from the JSON provided
-    const firebaseConfig = {
-      apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
-      authDomain: "rn-gfx-tool.firebaseapp.com",
-      databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.asia-southeast1.firebasedatabase.app", // Make sure URL is correct!
-      projectId: "rn-gfx-tool",
-      storageBucket: "rn-gfx-tool.firebasestorage.app",
-      appId: "1:163149358541:android:2ef6d22fcd23e77ee09084"
-    };
-
-    // Initialize Firebase
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
-    const storage = firebase.storage();
-
-    // --- UI Element References ---
-    const mainGrid = document.getElementById('main-grid');
-    const authSection = document.getElementById('auth-section');
-    const authTitle = document.getElementById('auth-title');
-    const authForm = document.getElementById('auth-form');
-    const authEmailInput = document.getElementById('auth-email');
-    const authPasswordInput = document.getElementById('auth-password');
-    const authUsernameInput = document.getElementById('auth-username');
-    const authNameInput = document.getElementById('auth-name');
-    const usernameGroup = document.getElementById('username-group');
-    const nameGroup = document.getElementById('name-group');
-    const authButton = document.getElementById('auth-button');
-    const toggleAuthModeButton = document.getElementById('toggle-auth-mode');
-    const authErrorMessage = document.getElementById('auth-error-message');
-
-    const profileSection = document.getElementById('profile-section');
-    const profileView = document.getElementById('profile-view');
-    const profileEdit = document.getElementById('profile-edit');
-    const profileName = document.getElementById('profile-name');
-    const profileUsername = document.getElementById('profile-username');
-    const profileEditForm = document.getElementById('profile-edit-form');
-    const editNameInput = document.getElementById('edit-name');
-    const editUsernameInput = document.getElementById('edit-username');
-    const profileEditMessage = document.getElementById('profile-edit-message');
-     const profileEditSuccess = document.getElementById('profile-edit-success');
-
-    const userPostsList = document.getElementById('user-posts-list');
-    const noUserPostsMessage = document.getElementById('no-user-posts');
-    const navUploadPostLink = document.getElementById('nav-upload-post');
-
-
-    const uploadPostSection = document.getElementById('upload-post-section');
-    const postForm = document.getElementById('post-form');
-    const postIdInput = document.getElementById('post-id');
-    const postTitleInput = document.getElementById('post-title');
-    const postContentInput = document.getElementById('post-content');
-    const postImageFileInput = document.getElementById('post-image-file');
-    const postImageUrlInput = document.getElementById('post-image-url');
-    const postDownloadLinkInput = document.getElementById('post-download-link');
-
-    const submitPostButton = document.getElementById('submit-post-button');
-    const uploadFormTitle = document.getElementById('upload-form-title');
-    const postErrorMessage = document.getElementById('post-error-message');
-    const postSuccessMessage = document.getElementById('post-success-message');
-
-
-    const allPostsSection = document.getElementById('all-posts-section');
-    const allPostsList = document.getElementById('all-posts-list');
-    const noAllPostsMessage = document.getElementById('no-all-posts');
-
-    // New Single Post View Elements
-    const singlePostSection = document.getElementById('single-post-section');
-    const singlePostTitle = document.getElementById('single-post-title');
-    const singlePostAuthor = document.getElementById('single-post-author');
-    const singlePostImage = document.getElementById('single-post-image');
-    const singlePostDescription = document.getElementById('single-post-description');
-    const singlePostDownload = document.getElementById('single-post-download');
-    const singlePostDownloadLink = singlePostDownload.querySelector('a');
-
-
-    const updateAlert = document.getElementById('update-alert');
-
-
-    let isSignupMode = false; // State to track login/signup mode
-
-    // --- UI State Management Functions ---
-
-    function hideAllSections() {
-        mainGrid.classList.add('hidden');
-        authSection.classList.add('hidden');
-        profileSection.classList.add('hidden');
-        uploadPostSection.classList.add('hidden');
-        allPostsSection.classList.add('hidden');
-         singlePostSection.classList.add('hidden'); // Hide single post section too
-    }
-
-    function showMainGrid(event) {
-        if (event) event.preventDefault();
-        hideAllSections();
-        mainGrid.classList.remove('hidden');
-        checkAppUpdate(); // Check for updates when showing the main grid
-    }
-
-    function showAuthSection() {
-        hideAllSections();
-        authSection.classList.remove('hidden');
-        isSignupMode = false;
-        updateAuthFormUI();
-         authErrorMessage.textContent = '';
-         authEmailInput.value = '';
-         authPasswordInput.value = '';
-         authUsernameInput.value = '';
-         authNameInput.value = '';
-    }
-
-    function showProfileSection() {
-        hideAllSections();
-        profileSection.classList.remove('hidden');
-        showProfileView();
-        fetchUserProfile();
-        fetchUserPosts();
-    }
-
-    function showProfileView() {
-         profileView.classList.remove('hidden');
-         profileEdit.classList.add('hidden');
-         profileEditMessage.textContent = '';
-         profileEditSuccess.textContent = '';
-    }
-
-    function showEditProfileForm() {
-         profileView.classList.add('hidden');
-         profileEdit.classList.remove('hidden');
-         profileEditMessage.textContent = '';
-         profileEditSuccess.textContent = '';
-
-          const user = auth.currentUser;
-          if (user) {
-               db.ref('users/' + user.uid).once('value')
-                    .then(snapshot => {
-                         if (snapshot.exists()) {
-                              const userData = snapshot.val();
-                              editNameInput.value = userData.name || '';
-                              editUsernameInput.value = userData.username || '';
-                         } else {
-                              console.warn("User profile data not found for editing.");
-                              editNameInput.value = '';
-                              editUsernameInput.value = '';
-                         }
-                    })
-                    .catch(error => {
-                         console.error("Error fetching profile data for edit:", error);
-                         profileEditMessage.textContent = "Could not load profile data for editing.";
-                    });
-          } else {
-              profileEditMessage.textContent = "You must be logged in to edit profile.";
+        /* Styles for chat area within Zikr card */
+        .chat-area {
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+        .chat-messages {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            padding-right: 5px; /* Space for scrollbar */
+             display: flex; /* Enable flexbox for message alignment */
+            flex-direction: column; /* Stack messages vertically */
+        }
+        .chat-message {
+            margin-bottom: 5px;
+            padding: 5px 8px;
+            border-radius: 8px;
+            max-width: 80%;
+            word-wrap: break-word;
+            font-size: 0.9em;
+        }
+        .message-sent {
+            background-color: #dcf8c6; /* Light green */
+            align-self: flex-end; /* Align to the right */
+            margin-left: auto;
+        }
+        .message-received {
+            background-color: #f1f0f0; /* Light gray */
+            align-self: flex-start; /* Align to the left */
+            margin-right: auto;
+        }
+         .chat-input-area {
+             display: flex;
+             gap: 5px;
+         }
+         .chat-input-area input {
+             flex-grow: 1;
+             padding: 8px;
+             border: 1px solid #ccc;
+             border-radius: 4px;
+             outline: none; /* Remove default outline */
+              transition: border-color 0.2s;
+         }
+          .chat-input-area input:focus {
+              border-color: #1e9b2f;
           }
-    }
-
-    function cancelEditProfile() {
-         showProfileView();
-    }
-
-
-     function showUploadPostForm(event, post = null) {
-        if (event) event.preventDefault();
-         if (!auth.currentUser) {
-             alert('Please login to create or edit posts.');
-             showAuthSection();
-             return;
+         .chat-input-area button {
+             padding: 8px 15px;
+             background-color: #1e9b2f;
+             color: white;
+             border: none;
+             border-radius: 4px;
+             cursor: pointer;
+             transition: background-color 0.2s;
+         }
+         .chat-input-area button:hover {
+             background-color: #157f28;
+         }
+         .chat-header {
+             font-weight: bold;
+             margin-bottom: 2px; /* Adjust spacing */
+             font-size: 0.8em; /* Smaller font for name */
+             color: #555;
+             display: block; /* Ensure name is on its own line or block */
+         }
+         .chat-toggle-button {
+             background: none;
+             border: none;
+             color: #1e9b2f;
+             cursor: pointer;
+             font-size: 0.9em;
+             margin-top: 5px;
+             text-decoration: underline;
+             padding: 0; /* Remove padding */
+             display: block; /* Ensure button doesn't interfere with flex layout above */
          }
 
-        hideAllSections();
-        uploadPostSection.classList.remove('hidden');
-        postForm.reset();
+         /* Styles for Masjid List */
+         .masjid-item {
+             display: flex;
+             align-items: center;
+             background-color: white;
+             border-radius: 8px;
+             padding: 10px;
+             margin-bottom: 10px;
+             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+             cursor: pointer;
+             transition: background-color 0.2s ease;
+         }
+         .masjid-item:hover {
+             background-color: #f9f9f9;
+         }
+         .masjid-item img {
+             width: 60px;
+             height: 60px;
+             object-fit: cover;
+             border-radius: 4px;
+             margin-right: 15px;
+         }
+         .masjid-item-details {
+             flex-grow: 1;
+         }
+         .masjid-item-details h3 {
+             font-size: 1.1em;
+             font-weight: 500;
+             color: #333;
+         }
+         .masjid-item-details p {
+             font-size: 0.9em;
+             color: #666;
+         }
 
-        postErrorMessage.textContent = '';
-        postSuccessMessage.textContent = '';
+         /* Styles for Masjid Detail */
+         .masjid-detail img {
+             max-width: 100%;
+             height: auto;
+             border-radius: 8px;
+             margin-bottom: 15px;
+         }
+         .masjid-detail h2 {
+              font-size: 1.8em;
+              font-weight: 600;
+              color: #1e9b2f;
+              margin-bottom: 10px;
+         }
+         .masjid-detail p {
+             font-size: 1em;
+             color: #555;
+             margin-bottom: 8px;
+         }
+          .back-button {
+              color: #1e9b2f;
+             margin-bottom: 15px;
+             display: inline-flex; /* Use inline-flex to align icon and text */
+             align-items: center;
+             cursor: pointer;
+             transition: color 0.2s;
+          }
+           .back-button:hover {
+               color: #157f28;
+           }
 
-
-        if (post) {
-            uploadFormTitle.textContent = 'Edit Post';
-            submitPostButton.textContent = 'Update Post';
-            postIdInput.value = post.id;
-            postTitleInput.value = post.title;
-            postContentInput.value = post.content;
-             if(post.imageUrl) {
-                  postImageUrlInput.value = post.imageUrl;
-             }
-             if(post.downloadLink) {
-                 postDownloadLinkInput.value = post.downloadLink;
-             }
-
-        } else {
-            uploadFormTitle.textContent = 'Create New Post';
-            submitPostButton.textContent = 'Publish Post';
-            postIdInput.value = '';
+        /* Styles for DEEN Posts (Cards) */
+        .deen-post-card {
+             background-color: white;
+             border-radius: 8px;
+             padding: 15px;
+             margin-bottom: 15px;
+             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+             cursor: pointer;
+             transition: background-color 0.2s ease;
         }
+         .deen-post-card:hover {
+             background-color: #f9f9f9;
+         }
+         .deen-post-card h3 {
+             font-size: 1.1em;
+             font-weight: 500;
+             color: #333;
+             margin-bottom: 5px;
+         }
+         .deen-post-card .content-snippet {
+             font-size: 0.95em;
+             color: #555;
+             /* Display first few lines */
+             display: -webkit-box;
+             -webkit-line-clamp: 3; /* Limit to 3 lines */
+             -webkit-box-orient: vertical;
+             overflow: hidden;
+             text-overflow: ellipsis;
+             white-space: normal; /* Ensure wraps */
+              margin-bottom: 8px;
+         }
+          .deen-post-card .post-meta {
+              font-size: 0.85em;
+              color: #777;
+              text-align: right;
+          }
+
+        /* Styles for DEEN Post Detail */
+        .deen-detail-content {
+             background-color: white;
+             border-radius: 8px;
+             padding: 15px;
+             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+         .deen-detail-content h2 {
+             font-size: 1.8em;
+             font-weight: 600;
+             color: #1e9b2f;
+             margin-bottom: 10px;
+         }
+         .deen-detail-content .full-content {
+             font-size: 1em;
+             color: #333;
+             line-height: 1.6;
+             margin-bottom: 15px;
+              white-space: pre-wrap; /* Preserve line breaks from input */
+         }
+          .deen-detail-content .post-meta {
+              font-size: 0.9em;
+              color: #777;
+              text-align: right;
+              border-top: 1px solid #eee;
+              padding-top: 10px;
+          }
+         .deen-detail-content .loading-message {
+              text-align: center;
+              color: #666;
+         }
+
+         /* Styles for Create DEEN Post Form */
+         #create-deen-post-section textarea {
+              width: 100%;
+              padding: 10px;
+              border: 1px solid #ccc;
+              border-radius: 4px;
+              min-height: 150px;
+              outline: none;
+              transition: border-color 0.2s;
+         }
+          #create-deen-post-section textarea:focus {
+               border-color: #1e9b2f;
+          }
+           #create-deen-post-section button[type="submit"] {
+              width: 100%;
+               padding: 12px;
+               background-color: #1e9b2f;
+               color: white;
+               border: none;
+               border-radius: 4px;
+               font-size: 1.1em;
+               cursor: pointer;
+               transition: background-color 0.2s;
+           }
+            #create-deen-post-section button[type="submit"]:hover {
+                 background-color: #157f28;
+            }
+
+    </style>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>
+        // Firebase configuration (replace with your actual config)
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
+            authDomain: "rn-gfx-tool.firebaseapp.com", // Derived from project_id
+            databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "rn-gfx-tool",
+            storageBucket: "rn-gfx-tool.firebasestorage.app"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Get Firebase services
+        const auth = firebase.auth();
+        const database = firebase.database();
+    </script>
+
+</head>
+<body class="bg-[#f0ede7]">
+
+<!-- Menu Backdrop -->
+<div id="menuBackdrop" class="menu-backdrop"></div>
+
+<!-- Navigation Menu -->
+<div id="mainMenu" class="menu">
+    <div id="menuHome" class="menu-item">Home (Live Zikr)</div> <!-- Renamed for clarity -->
+    <div id="menuZikrHistory" class="menu-item">DEEN</div> <!-- Renamed -->
+    <div id="menuCreateDeenPost" class="menu-item hidden">Create DEEN Post</div> <!-- New, initially hidden -->
+    <div id="menuMasjidList" class="menu-item">Masjid List</div>
+    <div id="menuNimaNews" class="menu-item">Nima News</div>
+    <div id="menuAuth" class="menu-item">Login / Create Account</div>
+    <div id="menuLogout" class="menu-item hidden">Logout</div>
+</div>
+
+
+<!-- Header -->
+<header class="bg-[#1e9b2f] rounded-br-[3.5rem] p-3 flex items-center gap-3 relative z-10">
+    <div class="flex-shrink-0 ml-2">
+        <img alt="Green book with mosque icon on cover" class="w-12 h-12 rounded-full border-2 border-white" height="48"
+             src="https://storage.googleapis.com/a1aa/image/1143f010-e91d-480b-01ec-8db40c987759.jpg" width="48"/>
+    </div>
+    <div class="flex flex-col text-white flex-grow">
+        <h1 class="text-xl font-normal leading-none">GROUP Zikr & DEEN</h1> <!-- Updated App Name -->
+        <p id="currentDate" class="text-sm font-normal leading-none">Loading Date...</p>
+    </div>
+    <div class="ml-auto mr-3">
+        <button id="menuButton" aria-label="Menu" class="text-white text-3xl leading-none focus:outline-none">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</header>
+
+<!-- Tabs (Only visible in Zikr/DEEN views) -->
+<nav id="mainTabs" class="bg-white flex justify-between border-b-2 border-[#1e9b2f] z-10 relative">
+    <button id="tabLiveZikr" class="tab-button active text-[#1e9b2f] font-semibold text-base py-3 px-6 border-b-4 border-[#1e9b2f]">
+        Live Zikr
+    </button>
+    <button id="tabZikrHistory" class="tab-button text-gray-600 font-normal text-base py-3 px-6">
+        DEEN
+    </button>
+</nav>
+
+<!-- Main Content Area -->
+<main class="p-4 space-y-4 relative">
+
+    <!-- Live Zikr Section -->
+    <section id="live-zikr-section">
+        <h2 class="text-center text-2xl font-semibold mb-6 text-[#1e9b2f]">Live Zikr Groups</h2>
+        <div id="liveZikrList" class="space-y-4 max-w-md mx-auto">
+            <p id="loadingLiveZikr" class="text-center text-gray-600">Loading Live Zikr groups...</p>
+        </div>
+    </section>
+
+    <!-- DEEN Section (Renamed from Zikr History) -->
+    <section id="deen-section" class="hidden-section">
+         <h2 class="text-center text-2xl font-semibold mb-6 text-[#1e9b2f]">DEEN Posts (Quran & Islam)</h2>
+        <div id="deenPostList" class="space-y-4 max-w-md mx-auto">
+             <!-- DEEN post cards will be loaded here -->
+            <p id="loadingDeenPosts" class="text-center text-gray-600">Loading DEEN posts...</p>
+        </div>
+    </section>
+
+    <!-- DEEN Detail Section (New) -->
+     <section id="deen-detail-section" class="hidden-section max-w-md mx-auto">
+         <button id="backToDeenList" class="back-button">
+             <i class="fas fa-arrow-left mr-2"></i> Back to DEEN Posts
+         </button>
+        <div id="deenDetailContent" class="deen-detail-content mt-4">
+            <!-- Full DEEN post content will be loaded here -->
+             <p class="loading-message">Loading post...</p>
+        </div>
+     </section>
+
+
+    <!-- Authentication Section (Login/Signup Forms) -->
+    <section id="auth-section" class="hidden-section max-w-sm mx-auto bg-white rounded-xl p-6 shadow-sm">
+        <h2 class="text-center text-2xl font-semibold mb-6 text-[#1e9b2f]">Login or Create Account</h2>
+
+        <!-- Login Form -->
+        <div id="loginForm">
+            <h3 class="text-xl font-medium mb-4">Login</h3>
+            <input type="email" id="loginEmail" placeholder="Email" class="w-full p-3 mb-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e9b2f]">
+            <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-[#1e9b2f]">
+            <button id="loginButton" class="w-full bg-[#1e9b2f] text-white p-3 rounded-md font-semibold hover:bg-green-700 transition">Login</button>
+            <p class="text-center mt-4 text-gray-600">Don't have an account? <button id="showSignupForm" class="text-[#1e9b2f] font-semibold focus:outline-none">Create one</button></p>
+        </div>
+
+        <!-- Signup Form (Initially hidden) -->
+        <div id="signupForm" class="hidden-section">
+            <h3 class="text-xl font-medium mb-4">Create Account</h3>
+             <input type="text" id="signupName" placeholder="Full Name" class="w-full p-3 mb-3 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e9b2f]">
+            <input type="email" id="signupEmail" placeholder="Email" class="w-full p-3 mb-3 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e9b2f]">
+            <input type="password" id="signupPassword" placeholder="Password" class="w-full p-3 mb-4 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1e9b2f]">
+            <button id="signupButton" class="w-full bg-[#1e9b2f] text-white p-3 rounded-md font-semibold hover:bg-green-700 transition">Create Account</button>
+             <p class="text-center mt-4 text-gray-600">Already have an account? <button id="showLoginForm" class="text-[#1e9b2f] font-semibold focus:outline-none">Login here</button></p>
+        </div>
+         <div id="authMessage" class="mt-4 text-center text-sm text-red-600"></div>
+    </section>
+
+     <!-- Create Group Section -->
+    <section id="create-group-section" class="hidden-section max-w-sm mx-auto bg-white rounded-xl p-6 shadow-sm">
+        <h2 class="text-center text-2xl font-semibold mb-6 text-[#1e9b2f]">Create New Zikr Group</h2>
+        <form id="createGroupForm" class="space-y-4">
+            <div>
+                <label for="groupName" class="block text-sm font-medium text-gray-700">Zikr Name</label>
+                <input type="text" id="groupName" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1e9b2f] focus:border-[#1e9b2f]">
+            </div>
+             <div>
+                <label for="groupLocation" class="block text-sm font-medium text-gray-700">Location</label>
+                <input type="text" id="groupLocation" required class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1e9b2f] focus:border-[#1e9b2f]">
+            </div>
+             <div>
+                <label for="groupTarget" class="block text-sm font-medium text-gray-700">Target Count</label>
+                <input type="number" id="groupTarget" required min="1" class="mt-1 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1e9b2f] focus:border-[#1e9b2f]">
+            </div>
+            <button type="submit" class="w-full bg-[#1e9b2f] text-white p-3 rounded-md font-semibold hover:bg-green-700 transition">Create Group</button>
+        </form>
+    </section>
+
+    <!-- Create DEEN Post Section (New) -->
+    <section id="create-deen-post-section" class="hidden-section max-w-sm mx-auto bg-white rounded-xl p-6 shadow-sm">
+        <h2 class="text-center text-2xl font-semibold mb-6 text-[#1e9b2f]">Create New DEEN Post</h2>
+        <form id="createDeenPostForm" class="space-y-4">
+            <div>
+                <label for="postContent" class="block text-sm font-medium text-gray-700">Post Content (Ayah, Hadith, etc.)</label>
+                <textarea id="postContent" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-[#1e9b2f] focus:border-[#1e9b2f]"></textarea>
+            </div>
+            <button type="submit" class="w-full bg-[#1e9b2f] text-white p-3 rounded-md font-semibold hover:bg-green-700 transition">Post to DEEN</button>
+        </form>
+    </section>
+
+
+    <!-- Masjid List Section -->
+    <section id="masjid-list-section" class="hidden-section max-w-md mx-auto">
+        <h2 class="text-center text-2xl font-semibold mb-6 text-[#1e9b2f]">Nearby Masjids</h2>
+        <div id="masjidListContent" class="space-y-4">
+            <p id="loadingMasjids" class="text-center text-gray-600">Loading Masjids...</p>
+        </div>
+    </section>
+
+    <!-- Masjid Detail Section -->
+     <section id="masjid-detail-section" class="hidden-section max-w-md mx-auto bg-white rounded-xl p-6 shadow-sm">
+        <button id="backToMasjidList" class="back-button">
+             <i class="fas fa-arrow-left mr-2"></i> Back to list
+        </button>
+        <div id="masjidDetailContent" class="masjid-detail mt-4">
+             <p class="loading-message">Loading Masjid details...</p>
+        </div>
+    </section>
+
+
+     <!-- Nima News Section -->
+    <section id="nima-news-section" class="hidden-section max-w-md mx-auto bg-white rounded-xl p-6 shadow-sm">
+        <h2 class="text-center text-2xl font-semibold mb-6 text-[#1e9b2f]">Nima News</h2>
+        <p class="text-center text-gray-600">News content will be displayed here.</p>
+        <p class="text-center text-sm text-gray-500 mt-4"> (Implementation requires fetching news data, which is not part of this example)</p>
+         <!-- Placeholder for news articles -->
+        <div id="newsFeed" class="mt-4 space-y-4">
+            <div class="border-b pb-3">
+                <h3 class="font-semibold text-gray-800">Sample News Headline 1</h3>
+                <p class="text-sm text-gray-600">A brief summary of the news article goes here...</p>
+            </div>
+             <div class="border-b pb-3">
+                <h3 class="font-semibold text-gray-800">Sample News Headline 2</h3>
+                <p class="text-sm text-gray-600">Another brief summary of the news article...</p>
+            </div>
+        </div>
+    </section>
+
+
+</main>
+
+<!-- Footer Button (Show only on Live Zikr section if logged in) -->
+<footer id="footerButtonArea" class="fixed bottom-0 left-0 w-full bg-[#f0ede7] p-4 flex justify-center z-10">
+    <button id="createGroupFooterButton" class="bg-[#1e9b2f] text-white rounded-full px-10 py-3 text-base font-normal hidden" type="button">
+        Create New Group Zikr
+    </button>
+</footer>
+
+<script>
+    // DOM Elements
+    const menuButton = document.getElementById('menuButton');
+    const mainMenu = document.getElementById('mainMenu');
+    const menuBackdrop = document.getElementById('menuBackdrop');
+    const menuItems = document.querySelectorAll('.menu-item'); // All menu items
+    const mainTabs = document.getElementById('mainTabs');
+    const tabLiveZikr = document.getElementById('tabLiveZikr');
+    const tabDeen = document.getElementById('tabZikrHistory'); // Renamed ID in JS for clarity
+
+    const mainContentSections = document.querySelectorAll('main section'); // All section within main
+    const liveZikrSection = document.getElementById('live-zikr-section');
+    const deenSection = document.getElementById('deen-section'); // Renamed
+    const deenDetailSection = document.getElementById('deen-detail-section'); // New
+    const authSection = document.getElementById('auth-section');
+    const createGroupSection = document.getElementById('create-group-section');
+    const createDeenPostSection = document.getElementById('create-deen-post-section'); // New
+    const masjidListSection = document.getElementById('masjid-list-section');
+    const masjidDetailSection = document.getElementById('masjid-detail-section');
+    const nimaNewsSection = document.getElementById('nima-news-section');
+
+    const liveZikrList = document.getElementById('liveZikrList');
+    const deenPostList = document.getElementById('deenPostList'); // Renamed
+    const deenDetailContent = document.getElementById('deenDetailContent'); // New
+    const masjidListContent = document.getElementById('masjidListContent');
+    const masjidDetailContent = document.getElementById('masjidDetailContent');
+    const loadingLiveZikr = document.getElementById('loadingLiveZikr');
+    const loadingDeenPosts = document.getElementById('loadingDeenPosts'); // Renamed
+    const loadingMasjids = document.getElementById('loadingMasjids');
+    const backToMasjidListButton = document.getElementById('backToMasjidList');
+    const backToDeenListButton = document.getElementById('backToDeenList'); // New
+
+    const footerButtonArea = document.getElementById('footerButtonArea');
+    const createGroupFooterButton = document.getElementById('createGroupFooterButton');
+    const currentDateElement = document.getElementById('currentDate');
+
+    // Auth Form Elements
+    const loginForm = document.getElementById('loginForm');
+    const signupForm = document.getElementById('signupForm');
+    const showSignupFormButton = document.getElementById('showSignupForm');
+    const showLoginFormButton = document.getElementById('showLoginForm');
+    const loginEmailInput = document.getElementById('loginEmail');
+    const loginPasswordInput = document.getElementById('loginPassword');
+    const loginButton = document.getElementById('loginButton');
+    const signupNameInput = document.getElementById('signupName');
+    const signupEmailInput = document.getElementById('signupEmail');
+    const signupPasswordInput = document.getElementById('signupPassword');
+    const signupButton = document.getElementById('signupButton');
+    const authMessageElement = document.getElementById('authMessage');
+    const menuAuthItem = document.getElementById('menuAuth');
+    const menuLogoutItem = document.getElementById('menuLogout');
+    const menuMasjidListItem = document.getElementById('menuMasjidList');
+     const menuDeenItem = document.getElementById('menuZikrHistory'); // Renamed ID in JS
+     const menuCreateDeenPostItem = document.getElementById('menuCreateDeenPost'); // New
+
+    // Create Group Form Elements
+    const createGroupForm = document.getElementById('createGroupForm');
+    const groupNameInput = document.getElementById('groupName');
+    const groupLocationInput = document.getElementById('groupLocation');
+    const groupTargetInput = document.getElementById('groupTarget');
+
+    // Create DEEN Post Form Elements (New)
+    const createDeenPostForm = document.getElementById('createDeenPostForm');
+    const postContentInput = document.getElementById('postContent');
+
+
+    let currentUser = null; // To store the logged-in user object from Firebase Auth
+    let currentUserName = 'Anonymous'; // To store the user's name from /users
+
+    // --- Helper Functions ---
+
+    // Function to format date
+    function formatDate(date) {
+        if (!date) return 'N/A';
+        const d = new Date(date); // Handles potential ISO strings, timestamps, or Date objects
+        // Check if date is valid
+        if (isNaN(d.getTime())) {
+            console.warn("Invalid date provided:", date);
+            return 'Invalid Date';
+        }
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return d.toLocaleDateString('en-US', options);
     }
 
-    function showAllPosts(event) {
-         if (event) event.preventDefault();
-        hideAllSections();
-        allPostsSection.classList.remove('hidden');
-        fetchAllPosts(); // Load all posts (listens for changes)
+    // Function to format time for chat
+    function formatTime(timestamp) {
+         if (!timestamp) return '';
+         const d = new Date(timestamp);
+          if (isNaN(d.getTime())) {
+             console.warn("Invalid timestamp provided:", timestamp);
+             return '';
+         }
+         const options = { hour: '2-digit', minute: '2-digit' };
+         return d.toLocaleTimeString('en-US', options);
     }
 
-     // New: Show single post section
-     function showSinglePost(post) {
-         hideAllSections();
-         singlePostSection.classList.remove('hidden');
-         renderSinglePost(post); // Populate the single post details
-     }
+
+     // Function to show a specific section and hide others
+    function showSection(sectionId) {
+        mainContentSections.forEach(section => {
+            section.classList.add('hidden-section');
+        });
+        document.getElementById(sectionId).classList.remove('hidden-section');
+
+         // Update tab and footer visibility based on section
+        if (sectionId === 'live-zikr-section' || sectionId === 'deen-section') { // Tabs visible for Zikr and DEEN
+            mainTabs.classList.remove('hidden-section');
+        } else {
+            mainTabs.classList.add('hidden-section');
+        }
+
+         // Update footer button visibility (only for Create Group on Live Zikr page if logged in)
+         if (sectionId === 'live-zikr-section' && currentUser) {
+              footerButtonArea.classList.remove('hidden-section');
+              createGroupFooterButton.classList.remove('hidden');
+         } else {
+              footerButtonArea.classList.add('hidden-section');
+              createGroupFooterButton.classList.add('hidden');
+         }
+
+
+        // Update tabs active state
+        tabLiveZikr.classList.remove('active');
+        tabDeen.classList.remove('active');
+        if (sectionId === 'live-zikr-section') {
+            tabLiveZikr.classList.add('active');
+        } else if (sectionId === 'deen-section') {
+            tabDeen.classList.add('active');
+        }
+
+        // Clear auth message when changing sections
+        authMessageElement.textContent = '';
+    }
+
+    // Function to toggle menu visibility
+    function toggleMenu() {
+        mainMenu.classList.toggle('open');
+        menuBackdrop.classList.toggle('visible');
+    }
+
+    // Close menu when clicking outside or on backdrop
+    function closeMenu() {
+        mainMenu.classList.remove('open');
+        menuBackdrop.classList.remove('visible');
+    }
 
     // --- Authentication Logic ---
 
-    function toggleAuthMode() {
-        isSignupMode = !isSignupMode;
-        updateAuthFormUI();
-         authErrorMessage.textContent = '';
-         authEmailInput.value = '';
-         authPasswordInput.value = '';
-         authUsernameInput.value = '';
-         authNameInput.value = '';
+    function showAuthMessage(message, isError = true) {
+         authMessageElement.textContent = message;
+         authMessageElement.className = 'mt-4 text-center text-sm ' + (isError ? 'text-red-600' : 'text-green-600');
     }
 
-    function updateAuthFormUI() {
-        if (isSignupMode) {
-            authTitle.textContent = 'Create Account';
-            authButton.textContent = 'Sign Up';
-            toggleAuthModeButton.textContent = 'Already have an account? Login';
-             usernameGroup.classList.remove('hidden');
-             nameGroup.classList.remove('hidden');
-             authUsernameInput.setAttribute('required', 'true');
-             authNameInput.setAttribute('required', 'true');
-        } else {
-            authTitle.textContent = 'Login';
-            authButton.textContent = 'Login';
-            toggleAuthModeButton.textContent = 'Create an account';
-            usernameGroup.classList.add('hidden');
-            nameGroup.classList.add('hidden');
-             authUsernameInput.removeAttribute('required');
-             authNameInput.removeAttribute('required');
+    async function handleSignup(event) {
+        event.preventDefault();
+        const name = signupNameInput.value.trim();
+        const email = signupEmailInput.value.trim();
+        const password = signupPasswordInput.value.trim();
+        authMessageElement.textContent = ''; // Clear previous messages
+
+        if (!name || !email || !password) {
+            showAuthMessage('Please fill in all fields.');
+            return;
         }
-    }
-
-    authForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const email = authEmailInput.value;
-        const password = authPasswordInput.value;
-        const username = authUsernameInput.value;
-        const name = authNameInput.value;
-         authErrorMessage.textContent = '';
+         if (password.length < 6) {
+             showAuthMessage('Password should be at least 6 characters.');
+             return;
+         }
 
         try {
-             if (isSignupMode) {
-                  if (!username || !name) {
-                       authErrorMessage.textContent = 'Please provide username and name.';
-                       return;
-                  }
-                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-                 const user = userCredential.user;
-                 console.log('User signed up:', user);
-                 await db.ref('users/' + user.uid).set({
-                     email: email,
-                     username: username,
-                     name: name,
-                     createdAt: firebase.database.ServerValue.TIMESTAMP
-                 });
-                 console.log('User profile created in DB');
-             } else {
-                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
-                 const user = userCredential.user;
-                 console.log('User signed in:', user);
-             }
-        } catch (error) {
-             const errorMessage = error.message;
-             console.error('Auth error:', errorMessage);
-             authErrorMessage.textContent = 'Authentication Error: ' + errorMessage;
-        }
-    });
-
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            console.log('Auth State Changed: Logged In', user.uid);
-            navUploadPostLink.classList.remove('hidden');
-            if (!authSection.classList.contains('hidden')) {
-                 showProfileSection();
-            }
-
-        } else {
-            console.log('Auth State Changed: Logged Out');
-            navUploadPostLink.classList.add('hidden');
-             if (!uploadPostSection.classList.contains('hidden')) {
-                showMainGrid();
-            } else if (!profileSection.classList.contains('hidden')) {
-                 showAuthSection();
-            }
-        }
-    });
-
-    function logout() {
-         auth.signOut().then(() => {
-             console.log('User signed out');
-         }).catch((error) => {
-             console.error('Logout error:', error);
-             alert('Logout failed: ' + error.message);
-         });
-    }
-
-    function handleProfileClick(event) {
-        event.preventDefault();
-        if (auth.currentUser) {
-            showProfileSection();
-        } else {
-            showAuthSection();
-        }
-    }
-
-
-    // --- User Profile Functions ---
-
-    function fetchUserProfile() {
-        const user = auth.currentUser;
-        if (user) {
-            db.ref('users/' + user.uid).on('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    profileName.textContent = userData.name || 'N/A';
-                    profileUsername.textContent = '@' + (userData.username || 'N/A');
-                } else {
-                    profileName.textContent = 'Profile not found';
-                    profileUsername.textContent = '';
-                }
-            }, (error) => {
-                 console.error('Error fetching user profile:', error);
-                 profileName.textContent = 'Error loading profile';
-                 profileUsername.textContent = '';
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
+            await database.ref('users/' + user.uid).set({
+                name: name,
+                email: email,
+                createdAt: firebase.database.ServerValue.TIMESTAMP
             });
-        } else {
-             profileName.textContent = 'Not logged in';
-             profileUsername.textContent = '';
+            // onAuthStateChanged will handle setting current user and UI updates
+            showAuthMessage('Account created successfully! You are now logged in.', false);
+             // Clear form
+            signupNameInput.value = '';
+            signupEmailInput.value = '';
+            signupPasswordInput.value = '';
+
+        } catch (error) {
+            console.error("Signup Error:", error);
+             let errorMessage = error.message;
+             if (error.code === 'auth/email-already-in-use') {
+                 errorMessage = 'The email address is already in use.';
+             } else if (error.code === 'auth/invalid-email') {
+                 errorMessage = 'The email address is not valid.';
+             } else if (error.code === 'auth/weak-password') {
+                errorMessage = 'The password is too weak.';
+             }
+            showAuthMessage(`Signup Failed: ${errorMessage}`);
         }
     }
 
-     profileEditForm.addEventListener('submit', async (e) => {
-         e.preventDefault();
-         const user = auth.currentUser;
-         if (!user) {
-              profileEditMessage.textContent = 'You must be logged in to edit your profile.';
-              return;
+    async function handleLogin(event) {
+         event.preventDefault();
+        const email = loginEmailInput.value.trim();
+        const password = loginPasswordInput.value.trim();
+         authMessageElement.textContent = ''; // Clear previous messages
+
+         if (!email || !password) {
+             showAuthMessage('Please enter email and password.');
+             return;
          }
 
-         const newName = editNameInput.value.trim();
-         const newUsername = editUsernameInput.value.trim();
+        try {
+            await auth.signInWithEmailAndPassword(email, password);
+            // onAuthStateChanged will handle setting current user and UI updates
+            showAuthMessage('Logged in successfully!', false);
+             // Clear form
+            loginEmailInput.value = '';
+            loginPasswordInput.value = '';
+        } catch (error) {
+            console.error("Login Error:", error);
+             let errorMessage = error.message;
+              if (error.code === 'auth/user-not-found') {
+                 errorMessage = 'No user found with this email.';
+             } else if (error.code === 'auth/wrong-password') {
+                 errorMessage = 'Incorrect password.';
+             } else if (error.code === 'auth/invalid-credential') {
+                 errorMessage = 'Invalid login credentials.';
+             }
+            showAuthMessage(`Login Failed: ${errorMessage}`);
+        }
+    }
 
-         profileEditMessage.textContent = '';
-         profileEditSuccess.textContent = '';
+    async function handleLogout() {
+        try {
+            // Stop any active group chat listeners before logging out
+            for (const groupId in activeGroupListeners) {
+                 stopListeningToChat(groupId);
+             }
 
-         if (!newName || !newUsername) {
-              profileEditMessage.textContent = 'Name and Username are required.';
-              return;
+            await auth.signOut();
+            // onAuthStateChanged handles UI update and section switch
+        } catch (error) {
+            console.error("Logout Error:", error);
+            alert("Logout Failed: " + error.message);
+        }
+    }
+
+     // Listen for auth state changes
+    auth.onAuthStateChanged(async (user) => {
+        currentUser = user;
+        authMessageElement.textContent = ''; // Clear auth message on state change
+
+        if (user) {
+            // User is signed in
+            console.log("User logged in:", user.uid);
+             menuAuthItem.classList.add('hidden'); // Hide Login/Create Account menu item
+            menuLogoutItem.classList.remove('hidden'); // Show Logout menu item
+            menuCreateDeenPostItem.classList.remove('hidden'); // Show Create DEEN Post menu item
+
+            // Fetch user details (name) from database
+            try {
+                const userSnapshot = await database.ref('users/' + user.uid).once('value');
+                if (userSnapshot.exists()) {
+                    const userData = userSnapshot.val();
+                    currentUserName = userData.name || user.email; // Use name or email if name missing
+                    console.log("Current user name:", currentUserName);
+                } else {
+                    currentUserName = user.email; // Fallback to email
+                     console.warn("User data not found in DB for:", user.uid, "Using email as name.");
+                }
+            } catch (error) {
+                 console.error("Error fetching user data:", error);
+                 currentUserName = user.email; // Fallback to email on error
+            }
+
+            // If currently on auth section, redirect to home (Live Zikr)
+            if (!authSection.classList.contains('hidden-section')) {
+                 showSection('live-zikr-section'); // Redirect to home/live zikr
+            } else {
+                 // If already on another page, ensure footer button visibility is correct
+                 // showSection already handles this based on current section
+                 const currentSection = document.querySelector('main section:not(.hidden-section)').id;
+                 showSection(currentSection); // Re-apply visibility logic for current section
+            }
+             // Refresh live zikr list to update card buttons (Join -> Count/Chat/Audio)
+             fetchLiveZikrGroups(); // This listener is always active, but re-render helps UI consistency
+
+        } else {
+            // User is signed out
+            console.log("User logged out");
+            currentUser = null;
+            currentUserName = 'Anonymous';
+            menuAuthItem.classList.remove('hidden'); // Show Login/Create Account menu item
+            menuLogoutItem.classList.add('hidden'); // Hide Logout menu item
+            menuCreateDeenPostItem.classList.add('hidden'); // Hide Create DEEN Post menu item
+
+             // If currently on auth-locked sections, redirect to home (Live Zikr)
+            const currentSection = document.querySelector('main section:not(.hidden-section)').id;
+            if (currentSection === 'create-group-section' || currentSection === 'create-deen-post-section') {
+                 showSection('live-zikr-section');
+            } else {
+                 // If already on another page, ensure footer button visibility is correct
+                 showSection(currentSection); // Re-apply visibility logic for current section
+            }
+
+             // Refresh live zikr list to update card buttons (show 'Login to Join')
+            fetchLiveZikrGroups(); // This listener is always active, but re-render helps UI consistency
+
+        }
+    });
+
+
+    // --- Zikr Group Functionality ---
+
+    // Store active listeners for chat/count to clean up when cards are removed
+    const activeGroupListeners = {};
+
+    // Function to create a Zikr card HTML
+    function createZikrCardHtml(group) {
+        const isJoined = currentUser && group.participants && group.participants[currentUser.uid];
+        const countDisplay = group.currentCount || 0; // Default to 0 if null/undefined
+
+        return `
+        <section data-group-id="${group.id}" class="bg-white rounded-xl p-4 shadow-sm max-w-md mx-auto group-card">
+            <h2 class="text-center text-xl font-serif mb-3">${group.name}</h2>
+            <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start text-sm text-gray-800 mb-3">
+                <div class="space-y-0.5 max-w-[60%] break-words pr-2">
+                    <p>Name: ${group.creatorName || 'N/A'}</p>
+                    <p>Location: ${group.location || 'N/A'}</p>
+                    <p>Date: ${group.date ? formatDate(group.date) : 'N/A'}</p>
+                </div>
+                <div class="text-right space-y-1 text-sm font-semibold max-w-[40%] pl-2">
+                    <p>Target : ${group.target || 0}</p>
+                    <p>Count : <span id="count-${group.id}">${countDisplay}</span></p>
+                </div>
+            </div>
+
+            ${currentUser ? ( // Only show interaction buttons if logged in
+                 isJoined ?
+                 // If joined, show counter, chat, and audio buttons
+                 `
+                 <div class="mt-4 flex gap-3 justify-end items-center">
+                     <button data-group-id="${group.id}" class="bg-[#1e9b2f] text-white rounded-full px-5 py-1.5 flex items-center gap-2 text-sm font-semibold count-button" type="button">
+                          +1 Zikr
+                         <i class="fas fa-plus"></i>
+                      </button>
+                     <button data-group-id="${group.id}" class="border border-[#1e9b2f] text-[#1e9b2f] rounded-full px-3 py-1.5 flex items-center gap-2 text-sm font-semibold toggle-chat-button" type="button">
+                         <i class="fas fa-comments"></i> Chat
+                      </button>
+                     <button data-group-id="${group.id}" class="border border-red-500 text-red-500 rounded-full px-3 py-1.5 flex items-center gap-2 text-sm font-semibold audio-call-button" type="button">
+                         <i class="fas fa-phone-alt"></i> Audio
+                      </button>
+                 </div>
+                 <!-- Chat Area (initially hidden) -->
+                 <div data-group-id="${group.id}" class="chat-area hidden-section">
+                     <div class="chat-messages" id="chat-messages-${group.id}">
+                         <!-- Messages will be loaded here -->
+                          <p class="text-center text-gray-500 text-sm">Loading messages...</p>
+                     </div>
+                     <div class="chat-input-area">
+                          <input type="text" data-group-id="${group.id}" placeholder="Type a message..." class="chat-input flex-grow">
+                          <button data-group-id="${group.id}" class="send-chat-button">Send</button>
+                     </div>
+                 </div>
+                 `
+                 :
+                 // If not joined, show Join and Share buttons
+                 `
+                 <div class="mt-4 flex gap-3 justify-end items-center">
+                     <button data-group-id="${group.id}" class="bg-[#1e9b2f] text-white rounded-full px-5 py-1.5 flex items-center gap-2 text-sm font-semibold join-button" type="button">
+                         Join
+                        <i class="fas fa-user-friends"></i>
+                     </button>
+                     <button data-group-id="${group.id}" class="border border-[#1e9b2f] text-[#1e9b2f] rounded-full px-5 py-1.5 flex items-center gap-2 text-sm font-semibold share-button" type="button">
+                         <i class="fas fa-share"></i>
+                         Share
+                     </button>
+                 </div>
+                 `
+             ) :
+             // If not logged in, show disabled join and Share buttons
+             `
+             <div class="mt-4 flex gap-3 justify-end items-center">
+                 <button class="bg-gray-400 text-white rounded-full px-5 py-1.5 flex items-center gap-2 text-sm font-semibold" type="button" disabled>
+                     Login to Join
+                    <i class="fas fa-user-friends"></i>
+                 </button>
+                 <button data-group-id="${group.id}" class="border border-gray-400 text-gray-600 rounded-full px-5 py-1.5 flex items-center gap-2 text-sm font-semibold share-button" type="button">
+                     <i class="fas fa-share"></i>
+                     Share
+                 </button>
+             </div>
+             `
+             }
+        </section>
+        `;
+    }
+
+    // Attach event listeners using delegation for Zikr card buttons (Join/Count/Chat/Audio/Share)
+    function attachZikrCardListeners(container) {
+        container.removeEventListener('click', handleZikrCardClick); // Prevent double listeners
+        container.addEventListener('click', handleZikrCardClick);
+
+         // Need separate listeners for send button click and Enter key press
+         // Delegation is better for dynamically added elements
+         container.removeEventListener('click', handleSendButtonClick);
+         container.addEventListener('click', handleSendButtonClick);
+
+         container.removeEventListener('keypress', handleChatInputKeypress);
+         container.addEventListener('keypress', handleChatInputKeypress);
+    }
+
+
+    // Handle Enter key in chat input
+    function handleChatInputKeypress(event) {
+        if (event.key === 'Enter') {
+            const input = event.target.closest('.chat-input');
+            if (input) {
+                 const groupId = input.dataset.groupId;
+                 const messageText = input.value.trim();
+                 if (messageText) { // Only send if message is not empty
+                     sendChatMessage(groupId, messageText);
+                     input.value = ''; // Clear input
+                 }
+                 event.preventDefault(); // Prevent default form submission if any
+            }
+        }
+    }
+
+    // Handle Send button click
+    function handleSendButtonClick(event) {
+         const target = event.target.closest('.send-chat-button');
+         if (target) {
+             const groupId = target.dataset.groupId;
+             const input = target.closest('.chat-input-area').querySelector('.chat-input');
+             const messageText = input.value.trim();
+             if (messageText) { // Only send if message is not empty
+                 sendChatMessage(groupId, messageText);
+                 input.value = ''; // Clear input
+             }
          }
+    }
 
-         try {
-             await db.ref('users/' + user.uid).update({
-                 name: newName,
-                 username: newUsername,
+
+    async function handleZikrCardClick(event) {
+        const target = event.target.closest('button, .toggle-chat-button'); // Include chat toggle button
+        if (!target) return;
+
+        const groupId = target.dataset.groupId;
+        if (!groupId) return;
+
+        if (target.classList.contains('join-button')) {
+             if (!currentUser) {
+                 alert('Please login to join a group.');
+                 showSection('auth-section');
+                 return;
+             }
+              // Check if already joined (double check UI state)
+             const groupRef = database.ref(`groups/${groupId}/participants/${currentUser.uid}`);
+              groupRef.once('value', async (snapshot) => {
+                  if (snapshot.exists()) {
+                      alert('You are already joined in this group.');
+                  } else {
+                      console.log("Attempting to join group:", groupId);
+                       try {
+                           await database.ref(`groups/${groupId}/participants/${currentUser.uid}`).set(true);
+                           alert('Successfully joined the group!');
+                           // UI will update automatically via the listener attached in fetchLiveZikrGroups
+                       } catch (error) {
+                           console.error("Error joining group:", error);
+                           alert("Failed to join group: " + error.message);
+                       }
+                  }
+              });
+
+
+        } else if (target.classList.contains('count-button')) {
+            if (!currentUser) return; // Should be hidden if not logged in, but double check
+
+             // Check if user is actually a participant before allowing count (basic check)
+             const groupParticipantsRef = database.ref(`groups/${groupId}/participants/${currentUser.uid}`);
+             groupParticipantsRef.once('value', (snapshot) => {
+                 if (!snapshot.exists()) {
+                     alert('You must join the group to add to the count.');
+                     // Optional: refresh the card to show the Join button again
+                     fetchLiveZikrGroups();
+                     return;
+                 }
+
+                 console.log("Incrementing count for group:", groupId);
+                  const countRef = database.ref(`groups/${groupId}/currentCount`);
+
+                  // Use a transaction for safe incrementing
+                  countRef.transaction((currentCount) => {
+                      return (currentCount || 0) + 1;
+                  }, (error, committed, snapshot) => {
+                      if (error) {
+                          console.error("Transaction failed:", error);
+                          // alert("Failed to update count: " + error.message); // Avoid too many alerts
+                      } else if (!committed) {
+                           console.log("Transaction aborted.");
+                      } else {
+                          console.log("Count updated successfully:", snapshot.val());
+                      }
+                  });
              });
-              console.log('Profile updated successfully');
-              profileEditSuccess.textContent = 'Profile updated successfully!';
-              setTimeout(() => {
-                   showProfileView();
-                   profileEditSuccess.textContent = '';
-              }, 1500);
 
-         } catch (error) {
-              console.error('Error updating profile:', error);
-              profileEditMessage.textContent = 'Error updating profile: ' + error.message;
+
+        } else if (target.classList.contains('share-button')) {
+            alert(`Share feature for group ID: ${groupId} (Not fully implemented)`);
+            // Web Share API or copy link implementation here
+        } else if (target.classList.contains('toggle-chat-button')) {
+             // Toggle chat area visibility
+             const chatArea = document.querySelector(`.group-card[data-group-id="${groupId}"] .chat-area`);
+             if (chatArea) {
+                 chatArea.classList.toggle('hidden-section');
+                 if (!chatArea.classList.contains('hidden-section')) {
+                      // Load chat messages when chat is opened
+                     loadChatMessages(groupId);
+                 } else {
+                     // Stop listening when chat is closed (optional but good practice)
+                     stopListeningToChat(groupId);
+                     // Clear messages when closing
+                      const messagesContainer = document.getElementById(`chat-messages-${groupId}`);
+                     if(messagesContainer) messagesContainer.innerHTML = '';
+                 }
+             }
+        } else if (target.classList.contains('audio-call-button')) {
+            // Check if user is a participant before allowing call (basic check)
+             const groupParticipantsRef = database.ref(`groups/${groupId}/participants/${currentUser.uid}`);
+             groupParticipantsRef.once('value', (snapshot) => {
+                 if (!snapshot.exists()) {
+                      alert('You must join the group to start an audio call.');
+                      return;
+                  }
+                alert(`Audio Call feature for group ID: ${groupId}\n\nNote: Full audio/video calls require WebRTC and a signaling server (Firebase can be used for signaling, but not the media stream itself). This is a complex feature not fully implemented in this example.`);
+                 // WebRTC signaling logic would start here
+             });
+        }
+    }
+
+    // --- Chat Functionality ---
+
+    function loadChatMessages(groupId) {
+        const messagesContainer = document.getElementById(`chat-messages-${groupId}`);
+        if (!messagesContainer) return;
+
+        // Clear previous messages and show loading
+        messagesContainer.innerHTML = '<p class="text-center text-gray-500 text-sm">Loading messages...</p>';
+        messagesContainer.scrollTop = messagesContainer.scrollHeight; // Scroll to bottom
+
+        // Stop any existing listener for this group's chat before starting a new one
+        stopListeningToChat(groupId);
+
+        // Listen for new messages being added
+        const chatRef = database.ref(`group_messages/${groupId}`).orderByChild('timestamp').limitToLast(50); // Limit messages
+        const listener = chatRef.on('child_added', (snapshot) => {
+             // Remove initial loading message if present
+             if (messagesContainer.querySelector('.loading-message')) {
+                 messagesContainer.innerHTML = '';
+             }
+             const message = snapshot.val();
+             displayMessage(messagesContainer, message, currentUser.uid);
+        }, (error) => {
+             console.error("Error loading chat messages:", error);
+             messagesContainer.innerHTML = '<p class="text-center text-red-600 text-sm">Error loading messages.</p>';
+        });
+
+        // Store the listener so it can be removed later
+        activeGroupListeners[groupId] = listener;
+        console.log("Started listening to chat for group:", groupId);
+    }
+
+    function stopListeningToChat(groupId) {
+         if (activeGroupListeners[groupId]) {
+             const chatRef = database.ref(`group_messages/${groupId}`);
+             chatRef.off('child_added', activeGroupListeners[groupId]);
+             delete activeGroupListeners[groupId];
+             console.log("Stopped listening to chat for group:", groupId);
          }
-     });
+    }
 
-
-    // --- Post Management Logic (User's Posts & All Posts) ---
-
-    postForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const user = auth.currentUser;
-        if (!user) {
-            postErrorMessage.textContent = 'You must be logged in to post.';
-            showAuthSection();
+    function displayMessage(container, message, currentUserId) {
+         // Check if the message is valid
+        if (!message || !message.text) {
+            console.warn("Skipping invalid message:", message);
             return;
         }
 
-        const postId = postIdInput.value;
-        const title = postTitleInput.value;
-        const content = postContentInput.value;
-        const imageFile = postImageFileInput.files[0];
-        const imageUrl = postImageUrlInput.value.trim();
-        const downloadLink = postDownloadLinkInput.value.trim();
-        const authorId = user.uid;
+        const messageElement = document.createElement('div');
+        messageElement.classList.add('chat-message');
 
-        postErrorMessage.textContent = '';
-        postSuccessMessage.textContent = '';
-        submitPostButton.disabled = true;
+        const isSentByCurrentUser = message.senderId === currentUserId;
+        messageElement.classList.add(isSentByCurrentUser ? 'message-sent' : 'message-received');
 
-        try {
-             if (imageFile && imageUrl) {
-                 throw new Error("Please provide either an image file OR an image URL, not both.");
+        const senderName = message.senderName || 'Anonymous';
+        const messageText = message.text;
+        const timestamp = message.timestamp;
+
+
+        if (!isSentByCurrentUser) {
+            const senderSpan = document.createElement('span');
+            senderSpan.classList.add('chat-header');
+            senderSpan.textContent = senderName; // Just name, no colon
+             messageElement.appendChild(senderSpan);
+        }
+
+         const textSpan = document.createElement('span'); // Span for the message text itself
+         textSpan.textContent = messageText;
+         messageElement.appendChild(textSpan);
+
+        // Add timestamp below the message text
+         const timeSpan = document.createElement('span');
+         timeSpan.classList.add('text-xs', 'text-gray-500', isSentByCurrentUser ? 'block text-right' : 'block text-left'); // Tailwind classes
+         timeSpan.textContent = formatTime(timestamp);
+         messageElement.appendChild(timeSpan);
+
+
+        container.appendChild(messageElement);
+
+        // Scroll to the bottom of the chat only if the user is near the bottom already
+        const isAtBottom = container.scrollHeight - container.clientHeight <= container.scrollTop + 50; // 50px tolerance
+        if (isAtBottom) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+
+    function sendChatMessage(groupId, messageText) {
+        if (!currentUser || !currentUserName || !messageText) {
+            console.warn("Cannot send message: Not logged in, name missing, or empty message.");
+            return;
+        }
+
+        // Basic check if user is a participant before sending message
+         const groupParticipantsRef = database.ref(`groups/${groupId}/participants/${currentUser.uid}`);
+         groupParticipantsRef.once('value', (snapshot) => {
+             if (!snapshot.exists()) {
+                 alert('You must join the group to send messages.');
+                 // Optional: refresh the card to hide chat if somehow visible
+                 fetchLiveZikrGroups();
+                 return;
              }
 
-             let finalImageUrl = null;
-             let oldImageUrl = null;
+             const message = {
+                 senderId: currentUser.uid,
+                 senderName: currentUserName,
+                 text: messageText,
+                 timestamp: firebase.database.ServerValue.TIMESTAMP // Use server timestamp
+             };
 
-             if (postId) {
-                 const existingPostSnapshot = await db.ref('posts/' + postId).once('value');
-                 if (existingPostSnapshot.exists()) {
-                     oldImageUrl = existingPostSnapshot.val().imageUrl;
-                 }
-             }
+             database.ref(`group_messages/${groupId}`).push(message)
+                 .then(() => {
+                     console.log("Message sent to group:", groupId);
+                     // UI update handled by the 'child_added' listener
+                 })
+                 .catch(error => {
+                     console.error("Error sending message:", error);
+                     alert("Failed to send message: " + error.message);
+                 });
+         });
+    }
 
-             if (imageFile) {
-                 const storageRef = storage.ref(`post_images/${user.uid}/${Date.now()}_${imageFile.name}`);
-                 console.log('Uploading image:', imageFile.name);
-                 const snapshot = await storageRef.put(imageFile);
-                 finalImageUrl = await snapshot.ref.getDownloadURL();
-                 console.log('Image uploaded. URL:', finalImageUrl);
 
-                 if (oldImageUrl && oldImageUrl.startsWith('https://firebasestorage.googleapis.com/')) {
-                      try {
-                          const oldImageRef = storage.refFromURL(oldImageUrl);
-                          console.log('Attempting to delete old image:', oldImageRef.fullPath);
-                           await oldImageRef.delete();
-                            console.log('Old image deleted.');
-                      } catch (storageError) {
-                           if (storageError.code !== 'storage/object-not-found') {
-                               console.warn('Error deleting old image from storage:', storageError);
-                           } else {
-                                console.log('Old image not found in storage.');
-                           }
-                      }
-                 }
+    // Function to fetch Live Zikr groups
+    function fetchLiveZikrGroups() {
+        console.log("Fetching Live Zikr groups...");
+        liveZikrList.innerHTML = ''; // Clear current list
+        loadingLiveZikr.classList.remove('hidden-section');
 
-             } else if (imageUrl) {
-                 finalImageUrl = imageUrl;
-                  if (oldImageUrl && oldImageUrl.startsWith('https://firebasestorage.googleapis.com/')) {
-                       try {
-                          const oldImageRef = storage.refFromURL(oldImageUrl);
-                          console.log('Attempting to delete old image:', oldImageRef.fullPath);
-                           await oldImageRef.delete();
-                            console.log('Old image deleted.');
-                       } catch (storageError) {
-                           if (storageError.code !== 'storage/object-not-found') {
-                                console.warn('Error deleting old image from storage:', storageError);
-                            } else {
-                                console.log('Old image not found in storage.');
-                            }
-                       }
-                  }
-             } else {
-                 if (postId && oldImageUrl && oldImageUrl.startsWith('https://firebasestorage.googleapis.com/')) {
-                     try {
-                          const oldImageRef = storage.refFromURL(oldImageUrl);
-                          console.log('Attempting to delete old image:', oldImageRef.fullPath);
-                          await oldImageRef.delete();
-                           console.log('Old image deleted because no new image was provided.');
-                      } catch (storageError) {
-                           if (storageError.code !== 'storage/object-not-found') {
-                               console.warn('Error deleting old image from storage:', storageError);
-                           } else {
-                               console.log('Old image not found.');
-                           }
-                      }
-                 }
-             }
+        // Stop any chat listeners from previously displayed groups
+        // No need to stop listeners here if fetchLiveZikrGroups is always active listener
+        // But if it were 'once', we would stop listeners here.
+        // The '.on' listener manages updates internally, so clearing and re-adding might cause flicker.
+        // A better pattern for '.on' might be to update/remove individual cards instead of clearing the whole list.
+        // For simplicity in this example, we'll keep clearing and re-adding, but be aware of flicker.
+        // Stop chat listeners attached to *cards* that might be removed:
+         for (const groupId in activeGroupListeners) {
+            stopListeningToChat(groupId);
+        }
 
-            const userSnapshot = await db.ref('users/' + authorId).once('value');
-            const userData = userSnapshot.val();
-            const authorName = userData ? userData.name || userData.username || 'Anonymous' : 'Anonymous';
 
-             const postData = {
-                title: title,
-                content: content,
-                authorId: authorId,
-                authorName: authorName,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                imageUrl: finalImageUrl,
-                downloadLink: downloadLink || null
-            };
+        const groupsRef = database.ref('groups').orderByChild('createdAt'); // Or orderByChild('status').equalTo('active')
 
-            if (postId) {
-                await db.ref('posts/' + postId).update(postData);
-                console.log('Post updated successfully');
-                postSuccessMessage.textContent = 'Post updated successfully!';
-                postImageFileInput.value = '';
-                setTimeout(() => showProfileSection(), 1500);
-            } else {
-                await db.ref('posts').push(postData);
-                console.log('Post published successfully');
-                 postSuccessMessage.textContent = 'Post published successfully!';
-                postForm.reset();
-                postIdInput.value = '';
-                postImageFileInput.value = '';
-                 setTimeout(() => showProfileSection(), 1500);
+        // Use 'value' listener for real-time updates on the group list itself
+        // This listener replaces the entire list content whenever data changes.
+        groupsRef.on('value', (snapshot) => {
+            loadingLiveZikr.classList.add('hidden-section'); // Hide loading message
+            liveZikrList.innerHTML = ''; // Clear list before adding fresh data
+
+            const groups = [];
+            if (snapshot.exists()) {
+                 snapshot.forEach(childSnapshot => {
+                     const group = childSnapshot.val();
+                     group.id = childSnapshot.key; // Add group ID to the object
+                     groups.push(group);
+                 });
             }
 
-        } catch (error) {
-             console.error('Post submission error:', error);
-             postErrorMessage.textContent = 'Error saving post: ' + error.message;
-             postSuccessMessage.textContent = '';
-        } finally {
-             submitPostButton.disabled = false;
+            // Reverse to show latest first
+            groups.reverse();
+
+            if (groups.length === 0) {
+                 liveZikrList.innerHTML = '<p class="text-center text-gray-600">No Live Zikr groups found.</p>';
+            } else {
+                 groups.forEach(group => {
+                     const cardHtml = createZikrCardHtml(group);
+                     liveZikrList.insertAdjacentHTML('beforeend', cardHtml);
+                 });
+                 // Re-attach listeners to the updated list container
+                 attachZikrCardListeners(liveZikrList);
+            }
+             console.log("Live Zikr groups fetched:", groups.length);
+        }, (error) => {
+            console.error("Error fetching Live Zikr groups:", error);
+            loadingLiveZikr.classList.add('hidden-section');
+            liveZikrList.innerHTML = '<p class="text-center text-red-600">Error loading groups.</p>';
+        });
+    }
+
+    // Function to create a new Zikr Group
+    async function handleCreateGroup(event) {
+         event.preventDefault();
+
+         if (!currentUser) {
+             alert('You must be logged in to create a group.');
+             return; // Should be prevented by UI too, but good double check
+         }
+
+         const name = groupNameInput.value.trim();
+         const location = groupLocationInput.value.trim();
+         const target = parseInt(groupTargetInput.value.trim(), 10);
+
+         if (!name || !location || isNaN(target) || target <= 0) {
+             alert('Please fill in all fields correctly. Target must be a positive number.');
+             return;
+         }
+
+        try {
+             const creatorName = currentUserName; // Use the currentUserName
+
+             const newGroup = {
+                 name: name,
+                 creatorId: currentUser.uid,
+                 creatorName: creatorName,
+                 location: location,
+                 date: new Date().toISOString().split('T')[0], // Store today's date (YYYY-MM-DD)
+                 target: target,
+                 currentCount: 0,
+                 createdAt: firebase.database.ServerValue.TIMESTAMP, // Server timestamp
+                 participants: { // Initialize with creator as participant
+                    [currentUser.uid]: true
+                 },
+                 status: 'active'
+             };
+
+             const newGroupRef = await database.ref('groups').push(newGroup);
+             console.log("New group created with key:", newGroupRef.key);
+
+             alert('Group created successfully!');
+             createGroupForm.reset();
+             showSection('live-zikr-section');
+             // fetchLiveZikrGroups() listener will pick up the new group automatically
+         } catch (error) {
+             console.error("Error creating group:", error);
+             alert("Failed to create group: " + error.message);
+         }
+    }
+
+
+    // --- DEEN Posts Functionality (Renamed from Zikr History) ---
+
+    function createDeenPostCardHtml(post) {
+         // Truncate content for card view
+         const snippet = post.content ? post.content.substring(0, 150) + (post.content.length > 150 ? '...' : '') : '';
+         const date = post.createdAt ? formatDate(new Date(post.createdAt)) : 'N/A Date';
+
+        return `
+            <div class="deen-post-card" data-post-id="${post.id}">
+                 <!-- Optional title if you add it to data -->
+                 <!-- <h3>${post.title || 'Untitled Post'}</h3> -->
+                 <div class="content-snippet">${snippet}</div>
+                 <div class="post-meta">Posted by ${post.creatorName || 'Anonymous'} on ${date}</div>
+            </div>
+        `;
+    }
+
+    function fetchDeenPosts() {
+         console.log("Fetching DEEN posts...");
+         deenPostList.innerHTML = ''; // Clear current list
+         loadingDeenPosts.classList.remove('hidden-section');
+         deenDetailContent.innerHTML = ''; // Clear detail view if anything was there
+
+         const postsRef = database.ref('deen_posts').orderByChild('createdAt');
+
+         // Use 'value' listener for real-time updates on the post list
+         postsRef.on('value', (snapshot) => {
+             loadingDeenPosts.classList.add('hidden-section'); // Hide loading message
+             deenPostList.innerHTML = ''; // Clear list before adding fresh data
+
+             const posts = [];
+             if (snapshot.exists()) {
+                 snapshot.forEach(childSnapshot => {
+                     const post = childSnapshot.val();
+                     post.id = childSnapshot.key; // Add post ID
+                     posts.push(post);
+                 });
+             }
+
+
+             // Reverse to show latest first
+             posts.reverse();
+
+             if (posts.length === 0) {
+                  deenPostList.innerHTML = '<p class="text-center text-gray-600">No DEEN posts found.</p>';
+             } else {
+                  posts.forEach(post => {
+                      const cardHtml = createDeenPostCardHtml(post);
+                      deenPostList.insertAdjacentHTML('beforeend', cardHtml);
+                  });
+                  // Attach listeners to post cards
+                   attachDeenPostListListeners();
+             }
+              console.log("DEEN posts fetched:", posts.length);
+         }, (error) => {
+             console.error("Error fetching DEEN posts:", error);
+             loadingDeenPosts.classList.add('hidden-section');
+             deenPostList.innerHTML = '<p class="text-center text-red-600">Error loading posts.</p>';
+         });
+    }
+
+    function attachDeenPostListListeners() {
+         // Use delegation on the list container
+         deenPostList.removeEventListener('click', handleDeenPostClick);
+         deenPostList.addEventListener('click', handleDeenPostClick);
+    }
+
+    function handleDeenPostClick(event) {
+        const targetItem = event.target.closest('.deen-post-card');
+        if (targetItem) {
+            const postId = targetItem.dataset.postId;
+            if (postId) {
+                showDeenPostDetail(postId);
+            }
         }
+    }
+
+    function showDeenPostDetail(postId) {
+         showSection('deen-detail-section'); // Switch section first
+         deenDetailContent.innerHTML = '<p class="loading-message">Loading post...</p>'; // Show loading in detail area
+
+         // Fetch the specific post details
+         database.ref(`deen_posts/${postId}`).once('value', (snapshot) => {
+             if (snapshot.exists()) {
+                 const post = snapshot.val();
+                 const date = post.createdAt ? formatDate(new Date(post.createdAt)) : 'N/A Date';
+                 deenDetailContent.innerHTML = `
+                     <h2>DEEN Post</h2> <!-- Can add post.title if exists -->
+                     <div class="full-content arabic-text">${post.content || 'No content available'}</div>
+                     <div class="post-meta">Posted by ${post.creatorName || 'Anonymous'} on ${date}</div>
+                 `;
+             } else {
+                 deenDetailContent.innerHTML = '<p class="text-center text-red-600">Post not found.</p>';
+             }
+         }, (error) => {
+              console.error("Error fetching DEEN post detail:", error);
+              deenDetailContent.innerHTML = '<p class="text-center text-red-600">Error loading post details.</p>';
+         });
+    }
+
+     async function handleCreateDeenPost(event) {
+         event.preventDefault();
+
+         if (!currentUser) {
+             alert('You must be logged in to create a post.');
+             return; // Should be prevented by UI too
+         }
+
+         const content = postContentInput.value.trim();
+
+         if (!content) {
+             alert('Post content cannot be empty.');
+             return;
+         }
+
+         try {
+              const creatorName = currentUserName; // Use the currentUserName
+
+              const newPost = {
+                 content: content,
+                 creatorId: currentUser.uid,
+                 creatorName: creatorName,
+                 createdAt: firebase.database.ServerValue.TIMESTAMP // Server timestamp
+             };
+
+             await database.ref('deen_posts').push(newPost);
+             console.log("New DEEN post created.");
+
+             alert('Post created successfully!');
+             createDeenPostForm.reset();
+             showSection('deen-section'); // Go back to DEEN list
+             // fetchDeenPosts() listener will pick up the new post automatically
+         } catch (error) {
+             console.error("Error creating DEEN post:", error);
+             alert("Failed to create post: " + error.message);
+         }
+     }
+
+
+    // --- Masjid Functionality ---
+
+    function createMasjidListItemHtml(masjid) {
+        return `
+            <div class="masjid-item" data-masjid-id="${masjid.id}">
+                <img src="${masjid.imageUrl || 'https://via.placeholder.com/100?text=No+Image'}" alt="${masjid.name || 'Masjid'} Image"/>
+                <div class="masjid-item-details">
+                    <h3>${masjid.name || 'Unnamed Masjid'}</h3>
+                    <p>${masjid.address || 'No Address'}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    function fetchMasjidList() {
+         console.log("Fetching Masjid list...");
+         masjidListContent.innerHTML = ''; // Clear current list
+         loadingMasjids.classList.remove('hidden-section');
+         masjidDetailContent.innerHTML = ''; // Clear detail view
+
+         const masjidsRef = database.ref('masjids').orderByChild('name');
+
+         masjidsRef.once('value', (snapshot) => { // Use 'once' for list that doesn't change often
+             loadingMasjids.classList.add('hidden-section'); // Hide loading message
+             masjidListContent.innerHTML = ''; // Clear list again
+
+             const masjids = [];
+             if (snapshot.exists()) {
+                 snapshot.forEach(childSnapshot => {
+                     const masjid = childSnapshot.val();
+                     masjid.id = childSnapshot.key; // Add masjid ID
+                      // Filter out any invalid entries if necessary
+                      if (masjid && masjid.name) {
+                        masjids.push(masjid);
+                      }
+                 });
+             }
+
+
+             if (masjids.length === 0) {
+                  masjidListContent.innerHTML = '<p class="text-center text-gray-600">No Masjids found in the database.</p>';
+             } else {
+                  masjids.forEach(masjid => {
+                      const itemHtml = createMasjidListItemHtml(masjid);
+                      masjidListContent.insertAdjacentHTML('beforeend', itemHtml);
+                  });
+                  // Attach listeners to masjid items
+                   attachMasjidListListeners();
+             }
+              console.log("Masjids fetched:", masjids.length);
+         }, (error) => {
+             console.error("Error fetching Masjids:", error);
+             loadingMasjids.classList.add('hidden-section');
+             masjidListContent.innerHTML = '<p class="text-center text-red-600">Error loading Masjids.</p>';
+         });
+    }
+
+    function attachMasjidListListeners() {
+         // Use delegation on the list container
+         masjidListContent.removeEventListener('click', handleMasjidItemClick);
+         masjidListContent.addEventListener('click', handleMasjidItemClick);
+    }
+
+    function handleMasjidItemClick(event) {
+        const targetItem = event.target.closest('.masjid-item');
+        if (targetItem) {
+            const masjidId = targetItem.dataset.masjidId;
+            if (masjidId) {
+                showMasjidDetail(masjidId);
+            }
+        }
+    }
+
+    function showMasjidDetail(masjidId) {
+         showSection('masjid-detail-section'); // Switch section first
+         masjidDetailContent.innerHTML = '<p class="loading-message">Loading Masjid details...</p>'; // Show loading
+
+         // Fetch the specific masjid details
+         database.ref(`masjids/${masjidId}`).once('value', (snapshot) => {
+             if (snapshot.exists()) {
+                 const masjid = snapshot.val();
+                 masjidDetailContent.innerHTML = `
+                     ${masjid.imageUrl ? `<img src="${masjid.imageUrl}" alt="${masjid.name || 'Masjid'} Image" />` : ''}
+                     <h2>${masjid.name || 'Unnamed Masjid'}</h2>
+                     <p><strong>Address:</strong> ${masjid.address || 'No address available'}</p>
+                      <!-- Add more details here if available in data -->
+                 `;
+             } else {
+                 masjidDetailContent.innerHTML = '<p class="text-center text-red-600">Masjid details not found.</p>';
+             }
+         }, (error) => {
+              console.error("Error fetching Masjid detail:", error);
+              masjidDetailContent.innerHTML = '<p class="text-center text-red-600">Error loading Masjid details.</p>';
+         });
+    }
+
+
+    // --- Event Listeners ---
+
+    // Menu button toggle
+    menuButton.addEventListener('click', toggleMenu);
+    // Close menu on backdrop click
+    menuBackdrop.addEventListener('click', closeMenu);
+    // Close menu on menu item click and navigate
+    menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            closeMenu();
+            authMessageElement.textContent = ''; // Clear auth messages when changing section
+
+            if (item.id === 'menuHome') { // Home is Live Zikr
+                showSection('live-zikr-section');
+                 fetchLiveZikrGroups();
+
+            } else if (item.id === 'menuZikrHistory') { // This is now DEEN
+                showSection('deen-section');
+                 fetchDeenPosts();
+
+            } else if (item.id === 'menuCreateDeenPost') { // New create DEEN Post
+                 if (currentUser) { // Only show if logged in
+                     showSection('create-deen-post-section');
+                 } else {
+                     alert('Please login to create a DEEN post.');
+                     showSection('auth-section'); // Redirect to login
+                 }
+
+            } else if (item.id === 'menuMasjidList') {
+                 showSection('masjid-list-section');
+                 fetchMasjidList(); // Load masjid data
+
+            } else if (item.id === 'menuNimaNews') {
+                showSection('nima-news-section');
+                 // Nima News content loading logic here
+            } else if (item.id === 'menuAuth') {
+                 if (!currentUser) {
+                    showSection('auth-section');
+                     loginForm.classList.remove('hidden-section');
+                     signupForm.classList.add('hidden-section');
+                 }
+            } else if (item.id === 'menuLogout') {
+                 handleLogout();
+            }
+        });
+    });
+
+    // Tab button switching (Live Zikr and DEEN)
+    tabLiveZikr.addEventListener('click', () => {
+         showSection('live-zikr-section');
+         // fetchLiveZikrGroups(); // Listener is always active
+    });
+    tabDeen.addEventListener('click', () => { // Listener for DEEN tab
+        showSection('deen-section');
+         fetchDeenPosts();
     });
 
 
-    // Fetch and display posts for the current user (Uses 'on' for real-time updates)
-    function fetchUserPosts() {
-        const user = auth.currentUser;
+    // Auth form toggle buttons
+    showSignupFormButton.addEventListener('click', () => {
+        loginForm.classList.add('hidden-section');
+        signupForm.classList.remove('hidden-section');
+         authMessageElement.textContent = ''; // Clear message on form switch
+    });
+    showLoginFormButton.addEventListener('click', () => {
+        signupForm.classList.add('hidden-section');
+        loginForm.classList.remove('hidden-section');
+         authMessageElement.textContent = ''; // Clear message on form switch
+    });
 
-        if (!user) {
-            userPostsList.innerHTML = '';
-            noUserPostsMessage.classList.remove('hidden');
-             return;
+    // Auth form submissions
+    loginForm.addEventListener('submit', handleLogin);
+    signupForm.addEventListener('submit', handleSignup);
+
+
+     // Create Group footer button click
+    createGroupFooterButton.addEventListener('click', () => {
+        if (currentUser) {
+             showSection('create-group-section');
+        } else {
+             alert('Please login to create a group.');
+             showSection('auth-section');
         }
+    });
 
-         noUserPostsMessage.classList.add('hidden');
-         userPostsList.innerHTML = '';
+     // Create Group form submission
+     createGroupForm.addEventListener('submit', handleCreateGroup);
 
-         // Query posts where authorId matches current user's UID
-        db.ref('posts').orderByChild('authorId').equalTo(user.uid).on('value', (snapshot) => {
-            userPostsList.innerHTML = '';
-            const posts = snapshot.val();
+     // Create DEEN Post form submission (New)
+     createDeenPostForm.addEventListener('submit', handleCreateDeenPost);
 
-            if (!posts) {
-                 noUserPostsMessage.classList.remove('hidden');
-                return;
-            }
 
-            noUserPostsMessage.classList.add('hidden');
+     // Back button on Masjid Detail page
+     backToMasjidListButton.addEventListener('click', () => {
+         showSection('masjid-list-section');
+         // No need to re-fetch masjid list, it should still be there
+     });
 
-            const postList = Object.keys(posts).map(key => ({
-                id: key,
-                ...posts[key]
-            })).sort((a, b) => b.timestamp - a.timestamp);
+     // Back button on DEEN Detail page (New)
+      backToDeenListButton.addEventListener('click', () => {
+          showSection('deen-section');
+          // No need to re-fetch deen posts, the listener is active
+      });
 
-            postList.forEach(post => {
-                const postElement = createUserPostElement(post);
-                userPostsList.appendChild(postElement);
-            });
-        }, (error) => {
-            console.error('Error fetching user posts:', error);
-             userPostsList.innerHTML = '<p class="text-red-500">Error loading your posts.</p>';
-             noUserPostsMessage.classList.add('hidden');
-        });
+
+    // --- Initial Setup ---
+
+    // Set current date in header
+    function updateHeaderDate() {
+        const today = new Date();
+        currentDateElement.textContent = formatDate(today);
+        // Note: Hijri date requires external library or complex calculation.
     }
+    updateHeaderDate();
 
-     function createUserPostElement(post) {
-         const div = document.createElement('div');
-         div.className = 'bg-white p-4 rounded shadow border border-gray-200';
-         const sanitizedTitle = escapeHTML(post.title);
-         const sanitizedContent = escapeHTML(post.content);
-         const sanitizedImageUrl = post.imageUrl ? escapeHTML(post.imageUrl) : '';
-         const sanitizedDownloadLink = post.downloadLink ? escapeHTML(post.downloadLink) : '';
-
-         div.innerHTML = `
-             <h4 class="text-lg font-semibold text-gray-800">${sanitizedTitle}</h4>
-             ${sanitizedImageUrl ? `<img src="${sanitizedImageUrl}" alt="${sanitizedTitle || 'Post image'}" class="mt-2 max-h-48 object-contain w-full rounded">` : ''}
-             <p class="text-gray-700 mt-2 break-words whitespace-pre-wrap">${sanitizedContent}</p>
-             ${sanitizedDownloadLink ? `<p class="mt-2"><a href="${sanitizedDownloadLink}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-download mr-1"></i>Download File</a></p>` : ''}
-             <div class="mt-4 flex justify-end space-x-2">
-                 <button class="text-blue-500 hover:underline text-sm" onclick="editPost('${post.id}')">Edit</button>
-                 <button class="text-red-500 hover:underline text-sm" onclick="deletePost('${post.id}')">Delete</button>
-             </div>
-         `;
-         return div;
-     }
-
-     function editPost(postId) {
-         db.ref('posts/' + postId).once('value')
-             .then(snapshot => {
-                 const post = snapshot.val();
-                 if (snapshot.exists() && auth.currentUser && post.authorId === auth.currentUser.uid) {
-                     showUploadPostForm(null, { id: postId, ...post });
-                 } else {
-                     alert('You can only edit your own posts.');
-                 }
-             })
-             .catch(error => {
-                 console.error('Error fetching post for edit:', error);
-                 alert('Could not load post for editing.');
-             });
-     }
-
-     function deletePost(postId) {
-         if (confirm('Are you sure you want to delete this post?')) {
-              const user = auth.currentUser;
-              if (!user) {
-                  alert('You must be logged in to delete posts.');
-                  showAuthSection();
-                  return;
-              }
-
-              db.ref('posts/' + postId).once('value').then(async snapshot => {
-                  const post = snapshot.val();
-                  if (snapshot.exists() && post.authorId === user.uid) {
-                       try {
-                           if (post.imageUrl && post.imageUrl.startsWith('https://firebasestorage.googleapis.com/')) {
-                               const imageRef = storage.refFromURL(post.imageUrl);
-                               console.log('Attempting to delete image from storage:', imageRef.fullPath);
-                               await imageRef.delete().then(() => {
-                                   console.log('Image deleted from storage');
-                               }).catch(storageError => {
-                                    if (storageError.code !== 'storage/object-not-found') {
-                                         console.warn('Error deleting image from storage:', storageError);
-                                     } else {
-                                          console.log('Image not found in storage.');
-                                     }
-                               });
-                           }
-                           await db.ref('posts/' + postId).remove();
-                           console.log('Post deleted successfully from DB');
-                       } catch (error) {
-                           console.error('Error deleting post or image:', error);
-                            alert('Error deleting post: ' + error.message);
-                       }
-
-                  } else {
-                       alert('You can only delete your own posts.');
-                  }
-              }).catch(error => {
-                  console.error('Error checking post author for delete:', error);
-                   alert('Could not verify post ownership for deletion.');
-              });
-         }
-     }
+    // Initialize view: Firebase auth listener handles the initial section display.
+    // It calls fetchLiveZikrGroups() whether logged in or out to show the initial list.
+    // We don't call fetchLiveZikrGroups() directly here because the onAuthStateChanged
+    // listener will call it after determining the auth state. This avoids redundant fetches.
 
 
-     // Fetch and display all posts (for Students section - Uses 'on' for real-time updates)
-    function fetchAllPosts() {
-         allPostsList.innerHTML = ''; // Clear list before loading
+</script>
 
-         // Listen for changes to all posts
-        db.ref('posts').on('value', (snapshot) => {
-            allPostsList.innerHTML = '';
-            const posts = snapshot.val();
-
-            if (!posts) {
-                 noAllPostsMessage.classList.remove('hidden');
-                return;
-            }
-
-             noAllPostsMessage.classList.add('hidden');
-
-            const postList = Object.keys(posts).map(key => ({
-                id: key,
-                ...posts[key]
-            })).sort((a, b) => b.timestamp - a.timestamp); // Newest first
-
-            postList.forEach(post => {
-                const postElement = createAllPostElement(post);
-                allPostsList.appendChild(postElement);
-            });
-        }, (error) => {
-            console.error('Error fetching all posts:', error);
-             allPostsList.innerHTML = '<p class="text-red-500">Error loading posts.</p>';
-              noAllPostsMessage.classList.add('hidden');
-        });
-    }
-
-    // Create HTML element for a single post in the "All Posts" list
-    // THIS NOW RETURNS AN <a> TAG THAT CALLS showSinglePost
-    function createAllPostElement(post) {
-        const anchor = document.createElement('a'); // Changed from div to a
-        anchor.href = "#"; // Use # as placeholder, click handled by JS
-        anchor.className = 'post-card-link bg-white p-4 rounded shadow border border-gray-200 cursor-pointer'; // Added post-card-link class and cursor-pointer
-        anchor.onclick = (e) => { // Add click handler
-            e.preventDefault(); // Prevent default link behavior
-            showSinglePost(post); // Call the new function to show the single post
-        };
-
-         const sanitizedTitle = escapeHTML(post.title);
-         const sanitizedAuthorName = escapeHTML(post.authorName || 'Anonymous');
-         const sanitizedImageUrl = post.imageUrl ? escapeHTML(post.imageUrl) : '';
-         // Note: We only show title, author, and image/thumbnail in the list view.
-         // Full content and download link are in the single view.
-
-        anchor.innerHTML = `
-            <h4 class="text-lg font-semibold text-gray-800">${sanitizedTitle}</h4>
-             <p class="text-sm text-gray-600 mb-2">by ${sanitizedAuthorName}</p>
-             ${sanitizedImageUrl ? `<img src="${sanitizedImageUrl}" alt="${sanitizedTitle || 'Post image'}" class="mt-2 max-h-40 object-cover w-full rounded">` : ''}
-             <!-- Description and Download Link are shown in the single view -->
-        `;
-        return anchor; // Return the clickable anchor element
-    }
-
-    // New: Render details of a single post in the single-post-section
-    function renderSinglePost(post) {
-         const sanitizedTitle = escapeHTML(post.title);
-         const sanitizedAuthorName = escapeHTML(post.authorName || 'Anonymous');
-         const sanitizedContent = escapeHTML(post.content);
-         const sanitizedImageUrl = post.imageUrl ? escapeHTML(post.imageUrl) : '';
-         const sanitizedDownloadLink = post.downloadLink ? escapeHTML(post.downloadLink) : '';
-
-
-         singlePostTitle.textContent = sanitizedTitle;
-         singlePostAuthor.textContent = `by ${sanitizedAuthorName}`;
-         singlePostDescription.textContent = sanitizedContent; // Text content is safer
-
-         // Handle Image Display
-         if (sanitizedImageUrl) {
-             singlePostImage.src = sanitizedImageUrl;
-             singlePostImage.classList.remove('hidden');
-             singlePostImage.alt = sanitizedTitle || 'Post image'; // Better alt text
-         } else {
-             singlePostImage.src = ''; // Clear src
-             singlePostImage.classList.add('hidden');
-         }
-
-         // Handle Download Link Display
-         if (sanitizedDownloadLink) {
-             singlePostDownloadLink.href = sanitizedDownloadLink;
-             singlePostDownload.classList.remove('hidden');
-         } else {
-             singlePostDownloadLink.href = "#"; // Reset href
-             singlePostDownload.classList.add('hidden');
-         }
-    }
-
-
-    // Simple helper to prevent XSS by escaping HTML entities in text
-    function escapeHTML(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
-    }
-
-
-     // --- In-App Update Logic ---
-
-    function checkAppUpdate() {
-        db.ref('settings/latestAppVersion').once('value')
-            .then(snapshot => {
-                const latestVersion = parseFloat(snapshot.val());
-
-                if (!isNaN(latestVersion) && latestVersion > CURRENT_APP_VERSION) {
-                    updateAlert.classList.remove('hidden');
-                    console.log(`App update available! Current: ${CURRENT_APP_VERSION}, Latest: ${latestVersion}`);
-                } else {
-                    updateAlert.classList.add('hidden');
-                     if (isNaN(latestVersion)) {
-                        console.warn('Firebase settings/latestAppVersion is not a valid number:', snapshot.val());
-                     } else {
-                         console.log(`App is up to date. Current: ${CURRENT_APP_VERSION}, Latest (Firebase): ${latestVersion}`);
-                     }
-                }
-            })
-            .catch(error => {
-                console.error('Error checking for app update:', error);
-            });
-    }
-
-
-    // --- Initial Load / Setup ---
-
-    // Hide all sections except the main grid on page load
-    hideAllSections();
-    mainGrid.classList.remove('hidden'); // Show the main grid initially
-
-    // Fetch all posts for the "Students" view so it's ready when needed.
-    // This uses an 'on' listener, so it stays updated.
-    fetchAllPosts();
-
-    // Check for updates immediately on load after Firebase init.
-     checkAppUpdate();
-
-
-  </script>
-
- </body>
+</body>
 </html>
