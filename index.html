@@ -1,536 +1,1091 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1" name="viewport" />
-    <title>Quiz App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
-        .handwriting {
-            font-family: 'Patrick Hand', cursive;
-        }
-        .alert {
-            padding: 0.75rem 1.25rem;
-            margin-bottom: 1rem;
-            border: 1px solid transparent;
-            border-radius: 0.25rem;
-            font-size: 0.875rem; /* text-sm */
-        }
-        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
-        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
-        .hidden { display: none; }
-        /* Basic styling for quiz option buttons */
-        .quiz-option-btn {
-            transition: background-color 0.3s ease;
-        }
-        .quiz-option-btn.correct {
-            background-color: #4ade80 !important; /* green-400 */
-            color: white !important;
-        }
-        .quiz-option-btn.incorrect {
-            background-color: #f87171 !important; /* red-400 */
-            color: white !important;
-        }
-    </style>
-</head>
-<body class="bg-white p-4 max-w-sm mx-auto text-gray-800">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <title>
+   ePathshala
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <style>
+   @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Roboto', sans-serif;
+      /* background-color: #f4f7f6; Optional: Add a light background */
+    }
+    /* Add a subtle focus outline for accessibility when links/buttons are tabbed */
+    a:focus, button:focus, input:focus, textarea:focus {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+    }
+     /* Basic styling for hidden sections */
+    .hidden {
+        display: none;
+    }
+    /* Style for the update alert banner */
+    .update-alert {
+        background-color: #fff3cd; /* Light yellow */
+        border-color: #ffecb5; /* Darker yellow */
+        color: #856404; /* Dark yellow text */
+    }
+    .update-alert button {
+        color: #856404; /* Button color matches text */
+        font-weight: bold;
+    }
 
-    <!-- Main Content Area (Dynamic) -->
-    <div id="appArea">
+    /* Style for clickable post cards in All Posts */
+    .post-card-link {
+        display: block; /* Make the whole div a block link */
+        text-decoration: none; /* Remove underline by default */
+        color: inherit; /* Inherit text color */
+    }
+     .post-card-link:hover {
+         text-decoration: none; /* Optional: Keep no underline on hover */
+         opacity: 0.9; /* Subtle hover effect */
+     }
+  </style>
+ </head>
+ <body class="m-0 p-0 antialiased">
 
-        <!-- Main Quiz Page (Home) -->
-        <div id="homePage">
-            <header class="mb-4">
-                <p class="text-gray-400 text-sm" id="greetingText">As-Salamu Alaikum</p>
-                <div>
-                    <h1 id="userNameDisplay" class="font-bold text-2xl cursor-pointer hover:text-teal-600 transition-colors">Profile / Login</h1>
-                    <a href="#" id="logoutLink" class="text-xs text-red-500 hover:underline hidden mt-1">Logout</a>
-                </div>
-            </header>
+  <!-- Main container - Responsive width, centered -->
+  <!-- pb-20 added to prevent content from being hidden by fixed bottom nav -->
+  <div class="w-full max-w-screen-lg mx-auto px-4 py-8 pb-20">
 
-            <section class="flex justify-between mb-6 space-x-2">
-                <div id="singlePlayerBtn" class="bg-teal-600 rounded-2xl flex-1 h-28 flex flex-col items-center justify-center shadow-lg relative cursor-pointer hover:opacity-90 transition-opacity p-2 text-center">
-                    <img alt="Blue megaphone" class="mb-1" height="48" src="https://storage.googleapis.com/a1aa/image/8f338e4d-8f23-491e-f5ae-db2abf25d95f.jpg" width="48"/>
-                    <p class="text-white handwriting text-sm leading-tight">SINGLE PLAYER</p>
-                </div>
-                <div id="challengeModeBtn" class="bg-sky-400 rounded-2xl flex-1 h-28 flex flex-col items-center justify-center shadow-lg relative cursor-pointer hover:opacity-90 transition-opacity p-2 text-center">
-                    <img alt="Game controller" class="mb-1" height="48" src="https://storage.googleapis.com/a1aa/image/052a6dbd-b90b-4eb5-110b-42233e27c880.jpg" width="48"/>
-                    <p class="text-white handwriting text-sm leading-tight">CHALLENGE MODE</p>
-                </div>
-                <div id="islamicQuizBtn" class="bg-orange-400 rounded-2xl flex-1 h-28 flex flex-col items-center justify-center shadow-lg relative cursor-pointer hover:opacity-90 transition-opacity p-2 text-center">
-                    <img alt="Colorful mosque" class="mb-1" height="48" src="https://storage.googleapis.com/a1aa/image/317f4abc-74bb-47e2-2e62-a4c53b860d75.jpg" width="48"/>
-                    <p class="text-white handwriting text-sm leading-tight">ISLAMIC QUIZ</p>
-                </div>
-            </section>
+   <!-- Header -->
+   <header class="bg-[#1a3354] text-white text-2xl md:text-3xl font-bold px-4 py-4 flex justify-between items-center rounded-t-lg shadow-md">
+    <div class="cursor-pointer hover:opacity-90 transition-opacity" onclick="showMainGrid()">
+     ePathshala
+    </div>
+    <!-- Ellipsis button - Working example (shows alert) -->
+    <button class="text-xl md:text-2xl cursor-pointer hover:opacity-90 transition-opacity focus:outline-none" aria-label="More options menu" onclick="alert('More options menu clicked!')">
+     <i class="fas fa-ellipsis-v">
+     </i>
+    </button>
+   </header>
 
-            <section class="flex justify-around mb-6 px-1">
-                <!-- Icons as before -->
-                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
-                    <div class="bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
-                        <img alt="White book icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/4aeec49c-57cc-46d7-a5d2-d028201a1013.jpg" width="24"/>
-                    </div>
-                    <p class="text-gray-900 text-xs font-semibold">ALL</p>
-                </div>
-                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
-                    <div class="bg-yellow-50 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
-                        <img alt="Green headphones icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/beb617fc-77dc-495f-63b2-7b72458f31fd.jpg" width="24"/>
-                    </div>
-                    <p class="text-gray-900 text-xs font-semibold">AUDIBLE</p>
-                </div>
-                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
-                    <div class="bg-yellow-50 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
-                        <img alt="Blue video camera icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/1d7c2dcb-4962-4589-6f41-1a9224aceaa9.jpg" width="24"/>
-                    </div>
-                    <p class="text-gray-900 text-xs font-semibold">VIDEOS</p>
-                </div>
-                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
-                    <div class="bg-yellow-50 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
-                        <img alt="Blue chat bubble icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/121202a4-9140-499f-6e74-6db00bfded05.jpg" width="24"/>
-                    </div>
-                    <p class="text-gray-900 text-xs font-semibold">UNREAD</p>
-                </div>
-                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
-                    <div class="bg-yellow-50 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
-                        <img alt="Purple lightbulb icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/855c90a7-674c-40ce-7b38-de26a9ea0c48.jpg" width="24"/>
-                    </div>
-                    <p class="text-gray-900 text-xs font-semibold">NEW</p>
-                </div>
-            </section>
-
-            <section>
-                <h2 class="font-semibold text-lg mb-3">Hakma Specials</h2>
-                <div id="hakmaSpecialsContainer" class="space-y-3">
-                    <!-- Hakma Specials will be loaded here by JavaScript -->
-                    <p class="text-gray-500">Loading Hakma Specials...</p>
-                </div>
-            </section>
-        </div>
-
-        <!-- Login Page -->
-        <div id="loginPage" class="hidden py-8">
-            <div id="loginMessage" class="mb-4"></div>
-            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Login</h2>
-            <form id="loginForm" class="space-y-4">
-                <div>
-                    <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="loginEmail" name="email" required autocomplete="email"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
-                    <input type="password" id="loginPassword" name="password" required autocomplete="current-password"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                </div>
-                <div>
-                    <button type="submit"
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors">
-                        Login
-                    </button>
-                </div>
-            </form>
-            <p class="mt-4 text-center text-sm">
-                Don't have an account?
-                <a href="#" id="showRegisterPageLink" class="font-medium text-teal-600 hover:text-teal-500">Sign up</a>
-            </p>
-            <p class="mt-2 text-center text-sm">
-                <a href="#" class="font-medium text-gray-600 hover:text-gray-500 backToHomeLink">← Back to Home</a>
-            </p>
-        </div>
-
-        <!-- Registration Page -->
-        <div id="registerPage" class="hidden py-8">
-            <div id="registerMessage" class="mb-4"></div>
-            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Create Account</h2>
-            <form id="registerForm" class="space-y-4">
-                 <div>
-                    <label for="registerUsername" class="block text-sm font-medium text-gray-700">Username (Display Name)</label>
-                    <input type="text" id="registerUsername" name="username" required
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="registerEmail" class="block text-sm font-medium text-gray-700">Email</label>
-                    <input type="email" id="registerEmail" name="email" required autocomplete="email"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="registerPassword" class="block text-sm font-medium text-gray-700">Password (min. 6 characters)</label>
-                    <input type="password" id="registerPassword" name="password" required minlength="6" autocomplete="new-password"
-                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
-                </div>
-                <div>
-                    <button type="submit"
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-colors">
-                        Register
-                    </button>
-                </div>
-            </form>
-            <p class="mt-4 text-center text-sm">
-                Already have an account?
-                <a href="#" id="showLoginPageLink" class="font-medium text-teal-600 hover:text-teal-500">Log in</a>
-            </p>
-             <p class="mt-2 text-center text-sm">
-                <a href="#" class="font-medium text-gray-600 hover:text-gray-500 backToHomeLink">← Back to Home</a>
-            </p>
-        </div>
-
-        <!-- Quiz Game Page -->
-        <div id="quizGamePage" class="hidden py-8">
-            <div class="flex justify-between items-center mb-4">
-                <h2 id="quizTitle" class="text-xl font-bold text-gray-800">Quiz Time!</h2>
-                <a href="#" class="font-medium text-gray-600 hover:text-gray-500 backToHomeLink">← Exit Quiz</a>
+   <!-- Main Grid Container (Initially visible) -->
+   <div id="main-grid" class="mt-8">
+         <!-- App Update Alert (Initially Hidden) -->
+        <div id="update-alert" class="update-alert p-4 rounded-lg border mb-6 flex items-center justify-between hidden">
+            <div>
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                New app update available! Please update for the latest features and improvements.
             </div>
-            <div id="quizMessage" class="mb-4"></div>
-            
-            <div id="questionArea" class="mb-6 p-4 bg-gray-100 rounded-lg shadow">
-                <p id="questionText" class="text-lg font-semibold mb-4">Loading question...</p>
-                <div id="optionsContainer" class="space-y-3">
-                    <!-- Options will be loaded here -->
-                </div>
-            </div>
+            <!-- Optional: Add a button to dismiss or go to update source -->
+            <!-- <button class="ml-4 text-sm hover:underline" onclick="document.getElementById('update-alert').classList.add('hidden')">Dismiss</button> -->
+             <!-- Replace # with actual app store/download URL -->
+             <!-- <a href="#" class="ml-4 text-sm hover:underline">Update Now</a> -->
+        </div>
+       <!-- The original grid items -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-white text-center text-lg font-medium">
+            <!-- Students Card (Clickable & Working to show all posts) -->
+            <a href="#" class="block h-full flex flex-col items-center justify-between bg-[#7a574a] hover:bg-opacity-90 transition-colors duration-200 rounded-lg overflow-hidden shadow-lg" onclick="showAllPosts(event)">
+             <div class="flex-grow flex items-center justify-center p-4">
+              <img alt="Illustration of a girl student with clock, lamp, and open book behind her" class="w-36 h-36 object-contain" src="https://storage.googleapis.com/a1aa/image/248ea332-8b77-40c6-0946-c5fc63ba887e.jpg"/>
+             </div>
+             <div class="w-full bg-[#4f3a33] py-3 px-2 text-center font-semibold">
+              STUDENTS (View All Posts)
+             </div>
+            </a>
 
-            <div id="quizProgressArea" class="flex justify-between items-center text-sm text-gray-600 mb-6">
-                <p>Question: <span id="currentQuestionNumber">0</span>/<span id="totalQuestions">0</span></p>
-                <p>Score: <span id="currentScore">0</span></p>
+            <!-- Teachers Card (Clickable Placeholder) -->
+            <a href="#" class="block h-full flex flex-col items-center justify-between bg-[#f15a44] hover:bg-opacity-90 transition-colors duration-200 rounded-lg overflow-hidden shadow-lg" onclick="alert('Teachers section clicked!')">
+             <div class="flex-grow flex items-center justify-center p-4">
+              <img alt="Illustration of a boy teacher with science flask and geometry tools behind him" class="w-36 h-36 object-contain" src="https://storage.googleapis.com/a1aa/image/f53b6985-5be7-4b26-f30d-611f52eb6492.jpg"/>
+             </div>
+             <div class="w-full bg-[#b94a3a] py-3 px-2 text-center font-semibold">
+              TEACHERS
+             </div>
+            </a>
+
+            <!-- Parents Card (Clickable Placeholder) -->
+            <a href="#" class="block h-full flex flex-col items-center justify-between bg-[#3a3633] hover:bg-opacity-90 transition-colors duration-200 rounded-lg overflow-hidden shadow-lg" onclick="alert('Parents section clicked!')">
+             <div class="flex-grow flex items-center justify-center p-4">
+              <img alt="Illustration of parents with child, trophy, and house behind them" class="w-36 h-36 object-contain" src="https://storage.googleapis.com/a1aa/image/56f8395e-8c48-4a0e-fb84-4e1338838796.jpg"/>
+             </div>
+             <div class="w-full bg-[#1f1c1a] py-3 px-2 text-center font-semibold">
+              PARENTS
+             </div>
+            </a>
+
+            <!-- Educators Card (Clickable Placeholder) -->
+            <a href="#" class="block h-full flex flex-col items-center justify-between bg-[#6f8b7d] hover:bg-opacity-90 transition-colors duration-200 rounded-lg overflow-hidden shadow-lg" onclick="alert('Educators section clicked!')">
+             <div class="flex-grow flex items-center justify-center p-4">
+              <img alt="Illustration of an educator with blackboard and globe behind her" class="w-36 h-36 object-contain" src="https://storage.googleapis.com/a1aa/image/cba6d657-e6b9-4729-c573-0944e4fd31db.jpg"/>
+             </div>
+             <div class="w-full bg-[#3f4a44] py-3 px-2 text-center font-semibold">
+              EDUCATORS
+             </div>
+            </a>
+        </div>
+   </div>
+
+
+    <!-- Login/Signup Section (Initially Hidden) -->
+    <div id="auth-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-sm mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-center text-gray-800" id="auth-title">Login</h2>
+        <form id="auth-form">
+            <div class="mb-4">
+                <label for="auth-email" class="block text-gray-700 text-sm font-bold mb-2">Email:</label>
+                <input type="email" id="auth-email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
             </div>
-            
-            <div id="quizResultArea" class="hidden text-center p-6 bg-green-50 rounded-lg shadow">
-                <h3 class="text-2xl font-bold mb-2 text-green-700">Quiz Finished!</h3>
-                <p class="text-xl mb-4">Your final score: <span id="finalScore">0</span>/<span id="finalTotalQuestions">0</span></p>
-                <button id="playAgainBtn" class="py-2 px-6 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors mr-2">Play Again</button>
-                <button class="py-2 px-6 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors backToHomeLink">Back to Home</button>
+             <div class="mb-4" id="username-group">
+                <label for="auth-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+                <input type="text" id="auth-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+             <div class="mb-6" id="name-group">
+                <label for="auth-name" class="block text-gray-700 text-sm font-bold mb-2">Name:</label>
+                <input type="text" id="auth-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+            <div class="mb-6">
+                <label for="auth-password" class="block text-gray-700 text-sm font-bold mb-2">Password:</label>
+                <input type="password" id="auth-password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div id="auth-error-message" class="text-red-500 text-xs italic mb-4"></div>
+            <div class="flex items-center justify-between">
+                <button type="submit" id="auth-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Login
+                </button>
+                <button type="button" id="toggle-auth-mode" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" onclick="toggleAuthMode()">
+                    Create an account
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Profile Section (Initially Hidden) -->
+    <div id="profile-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-lg mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">My Profile</h2>
+
+        <!-- Profile View State -->
+        <div id="profile-view">
+             <div id="profile-info" class="mb-6 text-center">
+                <p class="text-xl font-semibold" id="profile-name"></p>
+                <p class="text-gray-600" id="profile-username"></p>
+                <button class="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mr-2" onclick="showEditProfileForm()">Edit Profile</button>
+                <button class="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="logout()">Logout</button>
             </div>
         </div>
 
-    </div> <!-- End #appArea -->
+        <!-- Profile Edit State (Initially Hidden) -->
+        <div id="profile-edit" class="hidden">
+             <h3 class="text-xl font-bold mb-3 text-gray-800 border-b pb-2">Edit Profile</h3>
+             <form id="profile-edit-form">
+                 <div class="mb-4">
+                    <label for="edit-name" class="block text-gray-700 text-sm font-bold mb-2">Name:</label>
+                    <input type="text" id="edit-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                 <div class="mb-6">
+                    <label for="edit-username" class="block text-gray-700 text-sm font-bold mb-2">Username:</label>
+                    <input type="text" id="edit-username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div id="profile-edit-message" class="text-red-500 text-xs italic mb-4"></div>
+                 <div id="profile-edit-success" class="text-green-500 text-xs italic mb-4"></div>
+                <div class="flex items-center justify-between">
+                    <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Save Changes</button>
+                    <button type="button" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="cancelEditProfile()">Cancel</button>
+                </div>
+             </form>
+        </div>
 
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
-    <script>
-        // IMPORTANT: Replace with your actual Firebase project configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAY3hXmpCXJUVrBtOaosPY_tsse3sx-O5o", // From your provided details
-            authDomain: "nima-d4d7d.firebaseapp.com",        // project_id.firebaseapp.com
-            databaseURL: "https://nima-d4d7d-default-rtdb.asia-southeast1.firebasedatabase.app", // From your provided details
-            projectId: "nima-d4d7d",                         // From your provided details
-            storageBucket: "nima-d4d7d.firebasestorage.app",  // From your provided details
-            messagingSenderId: "919311840182",               // From your provided details
-            // appId: "1:your:web:app:id" // Optional: Get from Firebase console if needed
+        <h3 class="text-xl font-bold mb-3 text-gray-800 border-b pb-2 mt-8">My Posts</h3>
+        <div id="user-posts-list" class="space-y-4">
+            <!-- User's posts will be loaded here -->
+            <p id="no-user-posts" class="text-gray-600 italic">No posts yet.</p>
+        </div>
+    </div>
+
+    <!-- Post Upload Section (Initially Hidden) -->
+    <div id="upload-post-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-md mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-center text-gray-800" id="upload-form-title">Create New Post</h2>
+        <form id="post-form">
+            <input type="hidden" id="post-id"> <!-- Hidden input for post ID when editing -->
+            <div class="mb-4">
+                <label for="post-title" class="block text-gray-700 text-sm font-bold mb-2">Title:</label>
+                <input type="text" id="post-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+            </div>
+            <div class="mb-4">
+                <label for="post-content" class="block text-gray-700 text-sm font-bold mb-2">Content:</label>
+                <textarea id="post-content" rows="6" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required></textarea>
+            </div>
+
+            <!-- Image Upload -->
+            <div class="mb-4">
+                 <label for="post-image-file" class="block text-gray-700 text-sm font-bold mb-2">Upload Image (Optional):</label>
+                 <input type="file" id="post-image-file" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                 <p class="text-gray-600 text-xs mt-1">Overrides Image URL if both are provided.</p>
+            </div>
+
+            <!-- Image URL -->
+            <div class="mb-4">
+                 <label for="post-image-url" class="block text-gray-700 text-sm font-bold mb-2">Or Image URL (Optional):</label>
+                 <input type="url" id="post-image-url" placeholder="e.g. https://example.com/image.jpg" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+            <!-- Download Link -->
+             <div class="mb-6">
+                 <label for="post-download-link" class="block text-gray-700 text-sm font-bold mb-2">Download Link (Optional):</label>
+                 <input type="url" id="post-download-link" placeholder="e.g. https://example.com/myfile.zip" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+            </div>
+
+
+            <div id="post-error-message" class="text-red-500 text-xs italic mb-4"></div>
+             <div id="post-success-message" class="text-green-500 text-xs italic mb-4"></div>
+            <div class="flex items-center justify-between">
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" id="submit-post-button">
+                    Publish Post
+                </button>
+                 <button type="button" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="showProfileSection()">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- All Posts Section (for Students - Initially Hidden) -->
+     <div id="all-posts-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-lg mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-center text-gray-800">All Posts</h2>
+         <button class="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="showMainGrid()">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Grid
+         </button>
+        <div id="all-posts-list" class="space-y-6">
+            <!-- All posts will be loaded here -->
+             <p id="no-all-posts" class="text-gray-600 italic hidden">No posts available yet.</p>
+        </div>
+    </div>
+
+    <!-- Single Post View Section (Initially Hidden) -->
+    <div id="single-post-section" class="hidden mt-8 p-6 bg-gray-100 rounded-lg shadow-lg max-w-lg mx-auto">
+         <button class="mb-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="showAllPosts()">
+            <i class="fas fa-arrow-left mr-2"></i> Back to All Posts
+         </button>
+        <div id="single-post-content" class="bg-white p-4 rounded shadow border border-gray-200">
+            <!-- Single post details will be loaded here by renderSinglePost -->
+            <h3 id="single-post-title" class="text-xl font-semibold text-gray-800"></h3>
+            <p id="single-post-author" class="text-sm text-gray-600 mb-2"></p>
+             <img id="single-post-image" alt="Post image" class="mt-2 max-h-60 object-contain w-full rounded hidden">
+            <p id="single-post-description" class="text-gray-700 mt-2 break-words whitespace-pre-wrap"></p>
+             <p id="single-post-download" class="mt-4 hidden">
+                 <a href="#" target="_blank" class="text-blue-500 hover:underline">
+                     <i class="fas fa-download mr-1"></i>Visit Link
+                 </a>
+             </p>
+        </div>
+    </div>
+
+
+  </div>
+
+  <!-- Mobile App Navigation Bar (Fixed at Bottom) -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#1a3354] text-white p-3 shadow-lg z-50">
+    <div class="flex justify-around items-center h-full">
+        <!-- Home Link -->
+        <a href="#" class="nav-link flex flex-col items-center text-xs md:text-sm hover:text-gray-300 transition-colors duration-200" onclick="showMainGrid(event)">
+            <i class="fas fa-home text-lg md:text-xl mb-1"></i>
+            <span>Home</span>
+        </a>
+        <!-- Upload Post Link (Visible if logged in) -->
+         <a href="#" id="nav-upload-post" class="nav-link flex-col items-center text-xs md:text-sm hover:text-gray-300 transition-colors duration-200 hidden" onclick="showUploadPostForm(event)">
+            <i class="fas fa-plus-circle text-lg md:text-xl mb-1"></i>
+            <span>Upload Post</span>
+        </a>
+        <!-- Profile Link -->
+        <a href="#" class="nav-link flex flex-col items-center text-xs md:text-sm hover:text-gray-300 transition-colors duration-200" onclick="handleProfileClick(event)">
+            <i class="fas fa-user text-lg md:text-xl mb-1"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+  </nav>
+
+  <!-- Firebase SDK Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+
+  <script>
+    // --- App Version ---
+    const CURRENT_APP_VERSION = 1.2; // Updated version number
+
+    // Your Firebase project configuration from the JSON provided
+    const firebaseConfig = {
+      apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
+      authDomain: "rn-gfx-tool.firebaseapp.com",
+      databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.asia-southeast1.firebasedatabase.app", // Make sure URL is correct!
+      projectId: "rn-gfx-tool",
+      storageBucket: "rn-gfx-tool.firebasestorage.app",
+      appId: "1:163149358541:android:2ef6d22fcd23e77ee09084"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const storage = firebase.storage();
+
+    // --- UI Element References ---
+    const mainGrid = document.getElementById('main-grid');
+    const authSection = document.getElementById('auth-section');
+    const authTitle = document.getElementById('auth-title');
+    const authForm = document.getElementById('auth-form');
+    const authEmailInput = document.getElementById('auth-email');
+    const authPasswordInput = document.getElementById('auth-password');
+    const authUsernameInput = document.getElementById('auth-username');
+    const authNameInput = document.getElementById('auth-name');
+    const usernameGroup = document.getElementById('username-group');
+    const nameGroup = document.getElementById('name-group');
+    const authButton = document.getElementById('auth-button');
+    const toggleAuthModeButton = document.getElementById('toggle-auth-mode');
+    const authErrorMessage = document.getElementById('auth-error-message');
+
+    const profileSection = document.getElementById('profile-section');
+    const profileView = document.getElementById('profile-view');
+    const profileEdit = document.getElementById('profile-edit');
+    const profileName = document.getElementById('profile-name');
+    const profileUsername = document.getElementById('profile-username');
+    const profileEditForm = document.getElementById('profile-edit-form');
+    const editNameInput = document.getElementById('edit-name');
+    const editUsernameInput = document.getElementById('edit-username');
+    const profileEditMessage = document.getElementById('profile-edit-message');
+     const profileEditSuccess = document.getElementById('profile-edit-success');
+
+    const userPostsList = document.getElementById('user-posts-list');
+    const noUserPostsMessage = document.getElementById('no-user-posts');
+    const navUploadPostLink = document.getElementById('nav-upload-post');
+
+
+    const uploadPostSection = document.getElementById('upload-post-section');
+    const postForm = document.getElementById('post-form');
+    const postIdInput = document.getElementById('post-id');
+    const postTitleInput = document.getElementById('post-title');
+    const postContentInput = document.getElementById('post-content');
+    const postImageFileInput = document.getElementById('post-image-file');
+    const postImageUrlInput = document.getElementById('post-image-url');
+    const postDownloadLinkInput = document.getElementById('post-download-link');
+
+    const submitPostButton = document.getElementById('submit-post-button');
+    const uploadFormTitle = document.getElementById('upload-form-title');
+    const postErrorMessage = document.getElementById('post-error-message');
+    const postSuccessMessage = document.getElementById('post-success-message');
+
+
+    const allPostsSection = document.getElementById('all-posts-section');
+    const allPostsList = document.getElementById('all-posts-list');
+    const noAllPostsMessage = document.getElementById('no-all-posts');
+
+    // New Single Post View Elements
+    const singlePostSection = document.getElementById('single-post-section');
+    const singlePostTitle = document.getElementById('single-post-title');
+    const singlePostAuthor = document.getElementById('single-post-author');
+    const singlePostImage = document.getElementById('single-post-image');
+    const singlePostDescription = document.getElementById('single-post-description');
+    const singlePostDownload = document.getElementById('single-post-download');
+    const singlePostDownloadLink = singlePostDownload.querySelector('a');
+
+
+    const updateAlert = document.getElementById('update-alert');
+
+
+    let isSignupMode = false; // State to track login/signup mode
+
+    // --- UI State Management Functions ---
+
+    function hideAllSections() {
+        mainGrid.classList.add('hidden');
+        authSection.classList.add('hidden');
+        profileSection.classList.add('hidden');
+        uploadPostSection.classList.add('hidden');
+        allPostsSection.classList.add('hidden');
+         singlePostSection.classList.add('hidden'); // Hide single post section too
+    }
+
+    function showMainGrid(event) {
+        if (event) event.preventDefault();
+        hideAllSections();
+        mainGrid.classList.remove('hidden');
+        checkAppUpdate(); // Check for updates when showing the main grid
+    }
+
+    function showAuthSection() {
+        hideAllSections();
+        authSection.classList.remove('hidden');
+        isSignupMode = false;
+        updateAuthFormUI();
+         authErrorMessage.textContent = '';
+         authEmailInput.value = '';
+         authPasswordInput.value = '';
+         authUsernameInput.value = '';
+         authNameInput.value = '';
+    }
+
+    function showProfileSection() {
+        hideAllSections();
+        profileSection.classList.remove('hidden');
+        showProfileView();
+        fetchUserProfile();
+        fetchUserPosts();
+    }
+
+    function showProfileView() {
+         profileView.classList.remove('hidden');
+         profileEdit.classList.add('hidden');
+         profileEditMessage.textContent = '';
+         profileEditSuccess.textContent = '';
+    }
+
+    function showEditProfileForm() {
+         profileView.classList.add('hidden');
+         profileEdit.classList.remove('hidden');
+         profileEditMessage.textContent = '';
+         profileEditSuccess.textContent = '';
+
+          const user = auth.currentUser;
+          if (user) {
+               db.ref('users/' + user.uid).once('value')
+                    .then(snapshot => {
+                         if (snapshot.exists()) {
+                              const userData = snapshot.val();
+                              editNameInput.value = userData.name || '';
+                              editUsernameInput.value = userData.username || '';
+                         } else {
+                              console.warn("User profile data not found for editing.");
+                              editNameInput.value = '';
+                              editUsernameInput.value = '';
+                         }
+                    })
+                    .catch(error => {
+                         console.error("Error fetching profile data for edit:", error);
+                         profileEditMessage.textContent = "Could not load profile data for editing.";
+                    });
+          } else {
+              profileEditMessage.textContent = "You must be logged in to edit profile.";
+          }
+    }
+
+    function cancelEditProfile() {
+         showProfileView();
+    }
+
+
+     function showUploadPostForm(event, post = null) {
+        if (event) event.preventDefault();
+         if (!auth.currentUser) {
+             alert('Please login to create or edit posts.');
+             showAuthSection();
+             return;
+         }
+
+        hideAllSections();
+        uploadPostSection.classList.remove('hidden');
+        postForm.reset();
+
+        postErrorMessage.textContent = '';
+        postSuccessMessage.textContent = '';
+
+
+        if (post) {
+            uploadFormTitle.textContent = 'Edit Post';
+            submitPostButton.textContent = 'Update Post';
+            postIdInput.value = post.id;
+            postTitleInput.value = post.title;
+            postContentInput.value = post.content;
+             if(post.imageUrl) {
+                  postImageUrlInput.value = post.imageUrl;
+             }
+             if(post.downloadLink) {
+                 postDownloadLinkInput.value = post.downloadLink;
+             }
+
+        } else {
+            uploadFormTitle.textContent = 'Create New Post';
+            submitPostButton.textContent = 'Publish Post';
+            postIdInput.value = '';
+        }
+    }
+
+    function showAllPosts(event) {
+         if (event) event.preventDefault();
+        hideAllSections();
+        allPostsSection.classList.remove('hidden');
+        fetchAllPosts(); // Load all posts (listens for changes)
+    }
+
+     // New: Show single post section
+     function showSinglePost(post) {
+         hideAllSections();
+         singlePostSection.classList.remove('hidden');
+         renderSinglePost(post); // Populate the single post details
+     }
+
+    // --- Authentication Logic ---
+
+    function toggleAuthMode() {
+        isSignupMode = !isSignupMode;
+        updateAuthFormUI();
+         authErrorMessage.textContent = '';
+         authEmailInput.value = '';
+         authPasswordInput.value = '';
+         authUsernameInput.value = '';
+         authNameInput.value = '';
+    }
+
+    function updateAuthFormUI() {
+        if (isSignupMode) {
+            authTitle.textContent = 'Create Account';
+            authButton.textContent = 'Sign Up';
+            toggleAuthModeButton.textContent = 'Already have an account? Login';
+             usernameGroup.classList.remove('hidden');
+             nameGroup.classList.remove('hidden');
+             authUsernameInput.setAttribute('required', 'true');
+             authNameInput.setAttribute('required', 'true');
+        } else {
+            authTitle.textContent = 'Login';
+            authButton.textContent = 'Login';
+            toggleAuthModeButton.textContent = 'Create an account';
+            usernameGroup.classList.add('hidden');
+            nameGroup.classList.add('hidden');
+             authUsernameInput.removeAttribute('required');
+             authNameInput.removeAttribute('required');
+        }
+    }
+
+    authForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = authEmailInput.value;
+        const password = authPasswordInput.value;
+        const username = authUsernameInput.value;
+        const name = authNameInput.value;
+         authErrorMessage.textContent = '';
+
+        try {
+             if (isSignupMode) {
+                  if (!username || !name) {
+                       authErrorMessage.textContent = 'Please provide username and name.';
+                       return;
+                  }
+                 const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                 const user = userCredential.user;
+                 console.log('User signed up:', user);
+                 await db.ref('users/' + user.uid).set({
+                     email: email,
+                     username: username,
+                     name: name,
+                     createdAt: firebase.database.ServerValue.TIMESTAMP
+                 });
+                 console.log('User profile created in DB');
+             } else {
+                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                 const user = userCredential.user;
+                 console.log('User signed in:', user);
+             }
+        } catch (error) {
+             const errorMessage = error.message;
+             console.error('Auth error:', errorMessage);
+             authErrorMessage.textContent = 'Authentication Error: ' + errorMessage;
+        }
+    });
+
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            console.log('Auth State Changed: Logged In', user.uid);
+            navUploadPostLink.classList.remove('hidden');
+            if (!authSection.classList.contains('hidden')) {
+                 showProfileSection();
+            }
+
+        } else {
+            console.log('Auth State Changed: Logged Out');
+            navUploadPostLink.classList.add('hidden');
+             if (!uploadPostSection.classList.contains('hidden')) {
+                showMainGrid();
+            } else if (!profileSection.classList.contains('hidden')) {
+                 showAuthSection();
+            }
+        }
+    });
+
+    function logout() {
+         auth.signOut().then(() => {
+             console.log('User signed out');
+         }).catch((error) => {
+             console.error('Logout error:', error);
+             alert('Logout failed: ' + error.message);
+         });
+    }
+
+    function handleProfileClick(event) {
+        event.preventDefault();
+        if (auth.currentUser) {
+            showProfileSection();
+        } else {
+            showAuthSection();
+        }
+    }
+
+
+    // --- User Profile Functions ---
+
+    function fetchUserProfile() {
+        const user = auth.currentUser;
+        if (user) {
+            db.ref('users/' + user.uid).on('value', (snapshot) => {
+                if (snapshot.exists()) {
+                    const userData = snapshot.val();
+                    profileName.textContent = userData.name || 'N/A';
+                    profileUsername.textContent = '@' + (userData.username || 'N/A');
+                } else {
+                    profileName.textContent = 'Profile not found';
+                    profileUsername.textContent = '';
+                }
+            }, (error) => {
+                 console.error('Error fetching user profile:', error);
+                 profileName.textContent = 'Error loading profile';
+                 profileUsername.textContent = '';
+            });
+        } else {
+             profileName.textContent = 'Not logged in';
+             profileUsername.textContent = '';
+        }
+    }
+
+     profileEditForm.addEventListener('submit', async (e) => {
+         e.preventDefault();
+         const user = auth.currentUser;
+         if (!user) {
+              profileEditMessage.textContent = 'You must be logged in to edit your profile.';
+              return;
+         }
+
+         const newName = editNameInput.value.trim();
+         const newUsername = editUsernameInput.value.trim();
+
+         profileEditMessage.textContent = '';
+         profileEditSuccess.textContent = '';
+
+         if (!newName || !newUsername) {
+              profileEditMessage.textContent = 'Name and Username are required.';
+              return;
+         }
+
+         try {
+             await db.ref('users/' + user.uid).update({
+                 name: newName,
+                 username: newUsername,
+             });
+              console.log('Profile updated successfully');
+              profileEditSuccess.textContent = 'Profile updated successfully!';
+              setTimeout(() => {
+                   showProfileView();
+                   profileEditSuccess.textContent = '';
+              }, 1500);
+
+         } catch (error) {
+              console.error('Error updating profile:', error);
+              profileEditMessage.textContent = 'Error updating profile: ' + error.message;
+         }
+     });
+
+
+    // --- Post Management Logic (User's Posts & All Posts) ---
+
+    postForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const user = auth.currentUser;
+        if (!user) {
+            postErrorMessage.textContent = 'You must be logged in to post.';
+            showAuthSection();
+            return;
+        }
+
+        const postId = postIdInput.value;
+        const title = postTitleInput.value;
+        const content = postContentInput.value;
+        const imageFile = postImageFileInput.files[0];
+        const imageUrl = postImageUrlInput.value.trim();
+        const downloadLink = postDownloadLinkInput.value.trim();
+        const authorId = user.uid;
+
+        postErrorMessage.textContent = '';
+        postSuccessMessage.textContent = '';
+        submitPostButton.disabled = true;
+
+        try {
+             if (imageFile && imageUrl) {
+                 throw new Error("Please provide either an image file OR an image URL, not both.");
+             }
+
+             let finalImageUrl = null;
+             let oldImageUrl = null;
+
+             if (postId) {
+                 const existingPostSnapshot = await db.ref('posts/' + postId).once('value');
+                 if (existingPostSnapshot.exists()) {
+                     oldImageUrl = existingPostSnapshot.val().imageUrl;
+                 }
+             }
+
+             if (imageFile) {
+                 const storageRef = storage.ref(`post_images/${user.uid}/${Date.now()}_${imageFile.name}`);
+                 console.log('Uploading image:', imageFile.name);
+                 const snapshot = await storageRef.put(imageFile);
+                 finalImageUrl = await snapshot.ref.getDownloadURL();
+                 console.log('Image uploaded. URL:', finalImageUrl);
+
+                 if (oldImageUrl && oldImageUrl.startsWith('https://firebasestorage.googleapis.com/')) {
+                      try {
+                          const oldImageRef = storage.refFromURL(oldImageUrl);
+                          console.log('Attempting to delete old image:', oldImageRef.fullPath);
+                           await oldImageRef.delete();
+                            console.log('Old image deleted.');
+                      } catch (storageError) {
+                           if (storageError.code !== 'storage/object-not-found') {
+                               console.warn('Error deleting old image from storage:', storageError);
+                           } else {
+                                console.log('Old image not found in storage.');
+                           }
+                      }
+                 }
+
+             } else if (imageUrl) {
+                 finalImageUrl = imageUrl;
+                  if (oldImageUrl && oldImageUrl.startsWith('https://firebasestorage.googleapis.com/')) {
+                       try {
+                          const oldImageRef = storage.refFromURL(oldImageUrl);
+                          console.log('Attempting to delete old image:', oldImageRef.fullPath);
+                           await oldImageRef.delete();
+                            console.log('Old image deleted.');
+                       } catch (storageError) {
+                           if (storageError.code !== 'storage/object-not-found') {
+                                console.warn('Error deleting old image from storage:', storageError);
+                            } else {
+                                console.log('Old image not found in storage.');
+                            }
+                       }
+                  }
+             } else {
+                 if (postId && oldImageUrl && oldImageUrl.startsWith('https://firebasestorage.googleapis.com/')) {
+                     try {
+                          const oldImageRef = storage.refFromURL(oldImageUrl);
+                          console.log('Attempting to delete old image:', oldImageRef.fullPath);
+                          await oldImageRef.delete();
+                           console.log('Old image deleted because no new image was provided.');
+                      } catch (storageError) {
+                           if (storageError.code !== 'storage/object-not-found') {
+                               console.warn('Error deleting old image from storage:', storageError);
+                           } else {
+                               console.log('Old image not found.');
+                           }
+                      }
+                 }
+             }
+
+            const userSnapshot = await db.ref('users/' + authorId).once('value');
+            const userData = userSnapshot.val();
+            const authorName = userData ? userData.name || userData.username || 'Anonymous' : 'Anonymous';
+
+             const postData = {
+                title: title,
+                content: content,
+                authorId: authorId,
+                authorName: authorName,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                imageUrl: finalImageUrl,
+                downloadLink: downloadLink || null
+            };
+
+            if (postId) {
+                await db.ref('posts/' + postId).update(postData);
+                console.log('Post updated successfully');
+                postSuccessMessage.textContent = 'Post updated successfully!';
+                postImageFileInput.value = '';
+                setTimeout(() => showProfileSection(), 1500);
+            } else {
+                await db.ref('posts').push(postData);
+                console.log('Post published successfully');
+                 postSuccessMessage.textContent = 'Post published successfully!';
+                postForm.reset();
+                postIdInput.value = '';
+                postImageFileInput.value = '';
+                 setTimeout(() => showProfileSection(), 1500);
+            }
+
+        } catch (error) {
+             console.error('Post submission error:', error);
+             postErrorMessage.textContent = 'Error saving post: ' + error.message;
+             postSuccessMessage.textContent = '';
+        } finally {
+             submitPostButton.disabled = false;
+        }
+    });
+
+
+    // Fetch and display posts for the current user (Uses 'on' for real-time updates)
+    function fetchUserPosts() {
+        const user = auth.currentUser;
+
+        if (!user) {
+            userPostsList.innerHTML = '';
+            noUserPostsMessage.classList.remove('hidden');
+             return;
+        }
+
+         noUserPostsMessage.classList.add('hidden');
+         userPostsList.innerHTML = '';
+
+         // Query posts where authorId matches current user's UID
+        db.ref('posts').orderByChild('authorId').equalTo(user.uid).on('value', (snapshot) => {
+            userPostsList.innerHTML = '';
+            const posts = snapshot.val();
+
+            if (!posts) {
+                 noUserPostsMessage.classList.remove('hidden');
+                return;
+            }
+
+            noUserPostsMessage.classList.add('hidden');
+
+            const postList = Object.keys(posts).map(key => ({
+                id: key,
+                ...posts[key]
+            })).sort((a, b) => b.timestamp - a.timestamp);
+
+            postList.forEach(post => {
+                const postElement = createUserPostElement(post);
+                userPostsList.appendChild(postElement);
+            });
+        }, (error) => {
+            console.error('Error fetching user posts:', error);
+             userPostsList.innerHTML = '<p class="text-red-500">Error loading your posts.</p>';
+             noUserPostsMessage.classList.add('hidden');
+        });
+    }
+
+     function createUserPostElement(post) {
+         const div = document.createElement('div');
+         div.className = 'bg-white p-4 rounded shadow border border-gray-200';
+         const sanitizedTitle = escapeHTML(post.title);
+         const sanitizedContent = escapeHTML(post.content);
+         const sanitizedImageUrl = post.imageUrl ? escapeHTML(post.imageUrl) : '';
+         const sanitizedDownloadLink = post.downloadLink ? escapeHTML(post.downloadLink) : '';
+
+         div.innerHTML = `
+             <h4 class="text-lg font-semibold text-gray-800">${sanitizedTitle}</h4>
+             ${sanitizedImageUrl ? `<img src="${sanitizedImageUrl}" alt="${sanitizedTitle || 'Post image'}" class="mt-2 max-h-48 object-contain w-full rounded">` : ''}
+             <p class="text-gray-700 mt-2 break-words whitespace-pre-wrap">${sanitizedContent}</p>
+             ${sanitizedDownloadLink ? `<p class="mt-2"><a href="${sanitizedDownloadLink}" target="_blank" class="text-blue-500 hover:underline"><i class="fas fa-download mr-1"></i>Download File</a></p>` : ''}
+             <div class="mt-4 flex justify-end space-x-2">
+                 <button class="text-blue-500 hover:underline text-sm" onclick="editPost('${post.id}')">Edit</button>
+                 <button class="text-red-500 hover:underline text-sm" onclick="deletePost('${post.id}')">Delete</button>
+             </div>
+         `;
+         return div;
+     }
+
+     function editPost(postId) {
+         db.ref('posts/' + postId).once('value')
+             .then(snapshot => {
+                 const post = snapshot.val();
+                 if (snapshot.exists() && auth.currentUser && post.authorId === auth.currentUser.uid) {
+                     showUploadPostForm(null, { id: postId, ...post });
+                 } else {
+                     alert('You can only edit your own posts.');
+                 }
+             })
+             .catch(error => {
+                 console.error('Error fetching post for edit:', error);
+                 alert('Could not load post for editing.');
+             });
+     }
+
+     function deletePost(postId) {
+         if (confirm('Are you sure you want to delete this post?')) {
+              const user = auth.currentUser;
+              if (!user) {
+                  alert('You must be logged in to delete posts.');
+                  showAuthSection();
+                  return;
+              }
+
+              db.ref('posts/' + postId).once('value').then(async snapshot => {
+                  const post = snapshot.val();
+                  if (snapshot.exists() && post.authorId === user.uid) {
+                       try {
+                           if (post.imageUrl && post.imageUrl.startsWith('https://firebasestorage.googleapis.com/')) {
+                               const imageRef = storage.refFromURL(post.imageUrl);
+                               console.log('Attempting to delete image from storage:', imageRef.fullPath);
+                               await imageRef.delete().then(() => {
+                                   console.log('Image deleted from storage');
+                               }).catch(storageError => {
+                                    if (storageError.code !== 'storage/object-not-found') {
+                                         console.warn('Error deleting image from storage:', storageError);
+                                     } else {
+                                          console.log('Image not found in storage.');
+                                     }
+                               });
+                           }
+                           await db.ref('posts/' + postId).remove();
+                           console.log('Post deleted successfully from DB');
+                       } catch (error) {
+                           console.error('Error deleting post or image:', error);
+                            alert('Error deleting post: ' + error.message);
+                       }
+
+                  } else {
+                       alert('You can only delete your own posts.');
+                  }
+              }).catch(error => {
+                  console.error('Error checking post author for delete:', error);
+                   alert('Could not verify post ownership for deletion.');
+              });
+         }
+     }
+
+
+     // Fetch and display all posts (for Students section - Uses 'on' for real-time updates)
+    function fetchAllPosts() {
+         allPostsList.innerHTML = ''; // Clear list before loading
+
+         // Listen for changes to all posts
+        db.ref('posts').on('value', (snapshot) => {
+            allPostsList.innerHTML = '';
+            const posts = snapshot.val();
+
+            if (!posts) {
+                 noAllPostsMessage.classList.remove('hidden');
+                return;
+            }
+
+             noAllPostsMessage.classList.add('hidden');
+
+            const postList = Object.keys(posts).map(key => ({
+                id: key,
+                ...posts[key]
+            })).sort((a, b) => b.timestamp - a.timestamp); // Newest first
+
+            postList.forEach(post => {
+                const postElement = createAllPostElement(post);
+                allPostsList.appendChild(postElement);
+            });
+        }, (error) => {
+            console.error('Error fetching all posts:', error);
+             allPostsList.innerHTML = '<p class="text-red-500">Error loading posts.</p>';
+              noAllPostsMessage.classList.add('hidden');
+        });
+    }
+
+    // Create HTML element for a single post in the "All Posts" list
+    // THIS NOW RETURNS AN <a> TAG THAT CALLS showSinglePost
+    function createAllPostElement(post) {
+        const anchor = document.createElement('a'); // Changed from div to a
+        anchor.href = "#"; // Use # as placeholder, click handled by JS
+        anchor.className = 'post-card-link bg-white p-4 rounded shadow border border-gray-200 cursor-pointer'; // Added post-card-link class and cursor-pointer
+        anchor.onclick = (e) => { // Add click handler
+            e.preventDefault(); // Prevent default link behavior
+            showSinglePost(post); // Call the new function to show the single post
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
+         const sanitizedTitle = escapeHTML(post.title);
+         const sanitizedAuthorName = escapeHTML(post.authorName || 'Anonymous');
+         const sanitizedImageUrl = post.imageUrl ? escapeHTML(post.imageUrl) : '';
+         // Note: We only show title, author, and image/thumbnail in the list view.
+         // Full content and download link are in the single view.
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Page Sections
-            const homePage = document.getElementById('homePage');
-            const loginPage = document.getElementById('loginPage');
-            const registerPage = document.getElementById('registerPage');
-            const quizGamePage = document.getElementById('quizGamePage');
+        anchor.innerHTML = `
+            <h4 class="text-lg font-semibold text-gray-800">${sanitizedTitle}</h4>
+             <p class="text-sm text-gray-600 mb-2">by ${sanitizedAuthorName}</p>
+             ${sanitizedImageUrl ? `<img src="${sanitizedImageUrl}" alt="${sanitizedTitle || 'Post image'}" class="mt-2 max-h-40 object-cover w-full rounded">` : ''}
+             <!-- Description and Download Link are shown in the single view -->
+        `;
+        return anchor; // Return the clickable anchor element
+    }
 
-            // Header Elements
-            const greetingText = document.getElementById('greetingText');
-            const userNameDisplay = document.getElementById('userNameDisplay');
-            const logoutLink = document.getElementById('logoutLink');
-
-            // Forms
-            const loginForm = document.getElementById('loginForm');
-            const registerForm = document.getElementById('registerForm');
-
-            // Navigation Links
-            const showRegisterPageLink = document.getElementById('showRegisterPageLink');
-            const showLoginPageLink = document.getElementById('showLoginPageLink');
-            const backToHomeLinks = document.querySelectorAll('.backToHomeLink');
-
-            // Message Divs
-            const loginMessageDiv = document.getElementById('loginMessage');
-            const registerMessageDiv = document.getElementById('registerMessage');
-            const quizMessageDiv = document.getElementById('quizMessage');
-
-            // Hakma Specials
-            const hakmaSpecialsContainer = document.getElementById('hakmaSpecialsContainer');
-
-            // Quiz Game Elements
-            const quizTitleEl = document.getElementById('quizTitle');
-            const questionAreaEl = document.getElementById('questionArea');
-            const questionTextEl = document.getElementById('questionText');
-            const optionsContainerEl = document.getElementById('optionsContainer');
-            const currentQuestionNumberEl = document.getElementById('currentQuestionNumber');
-            const totalQuestionsEl = document.getElementById('totalQuestions');
-            const currentScoreEl = document.getElementById('currentScore');
-            const quizResultAreaEl = document.getElementById('quizResultArea');
-            const finalScoreEl = document.getElementById('finalScore');
-            const finalTotalQuestionsEl = document.getElementById('finalTotalQuestions');
-            const playAgainBtn = document.getElementById('playAgainBtn');
-
-            // Quiz Mode Buttons
-            const singlePlayerBtn = document.getElementById('singlePlayerBtn');
-            const challengeModeBtn = document.getElementById('challengeModeBtn');
-            const islamicQuizBtn = document.getElementById('islamicQuizBtn');
+    // New: Render details of a single post in the single-post-section
+    function renderSinglePost(post) {
+         const sanitizedTitle = escapeHTML(post.title);
+         const sanitizedAuthorName = escapeHTML(post.authorName || 'Anonymous');
+         const sanitizedContent = escapeHTML(post.content);
+         const sanitizedImageUrl = post.imageUrl ? escapeHTML(post.imageUrl) : '';
+         const sanitizedDownloadLink = post.downloadLink ? escapeHTML(post.downloadLink) : '';
 
 
-            // --- Quiz State ---
-            let currentQuizData = null;
-            let currentQuestionIndex = 0;
-            let score = 0;
-            let quizIdForRetry = null;
+         singlePostTitle.textContent = sanitizedTitle;
+         singlePostAuthor.textContent = `by ${sanitizedAuthorName}`;
+         singlePostDescription.textContent = sanitizedContent; // Text content is safer
+
+         // Handle Image Display
+         if (sanitizedImageUrl) {
+             singlePostImage.src = sanitizedImageUrl;
+             singlePostImage.classList.remove('hidden');
+             singlePostImage.alt = sanitizedTitle || 'Post image'; // Better alt text
+         } else {
+             singlePostImage.src = ''; // Clear src
+             singlePostImage.classList.add('hidden');
+         }
+
+         // Handle Download Link Display
+         if (sanitizedDownloadLink) {
+             singlePostDownloadLink.href = sanitizedDownloadLink;
+             singlePostDownload.classList.remove('hidden');
+         } else {
+             singlePostDownloadLink.href = "#"; // Reset href
+             singlePostDownload.classList.add('hidden');
+         }
+    }
 
 
-            // --- UI Helper Functions ---
-            function displayMessage(element, message, type = 'danger') {
-                element.innerHTML = `<div class="alert alert-${type} text-center">${message}</div>`;
-                if (type === 'danger' || type === 'info') {
-                    setTimeout(() => { if (element.firstChild && element.firstChild.textContent === message) element.innerHTML = ''; }, 4000);
-                }
-            }
-            
-            function clearMessages() {
-                loginMessageDiv.innerHTML = '';
-                registerMessageDiv.innerHTML = '';
-                quizMessageDiv.innerHTML = '';
-            }
-            
-            function showPage(pageId) {
-                clearMessages();
-                [homePage, loginPage, registerPage, quizGamePage].forEach(page => page.classList.add('hidden'));
-                
-                const pageToShow = document.getElementById(pageId);
-                if (pageToShow) {
-                    pageToShow.classList.remove('hidden');
-                }
-                window.scrollTo(0, 0);
-            }
+    // Simple helper to prevent XSS by escaping HTML entities in text
+    function escapeHTML(str) {
+        if (!str) return '';
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
 
-            function updateHeaderUI(user) {
-                if (user) {
-                    greetingText.textContent = `Welcome,`;
-                    userNameDisplay.textContent = user.displayName || user.email.split('@')[0];
-                    userNameDisplay.classList.remove('cursor-pointer', 'hover:text-teal-600');
-                    userNameDisplay.onclick = null; 
-                    logoutLink.classList.remove('hidden');
+
+     // --- In-App Update Logic ---
+
+    function checkAppUpdate() {
+        db.ref('settings/latestAppVersion').once('value')
+            .then(snapshot => {
+                const latestVersion = parseFloat(snapshot.val());
+
+                if (!isNaN(latestVersion) && latestVersion > CURRENT_APP_VERSION) {
+                    updateAlert.classList.remove('hidden');
+                    console.log(`App update available! Current: ${CURRENT_APP_VERSION}, Latest: ${latestVersion}`);
                 } else {
-                    greetingText.textContent = 'As-Salamu Alaikum';
-                    userNameDisplay.textContent = 'Profile / Login';
-                    userNameDisplay.classList.add('cursor-pointer', 'hover:text-teal-600');
-                    userNameDisplay.onclick = () => showPage('loginPage');
-                    logoutLink.classList.add('hidden');
+                    updateAlert.classList.add('hidden');
+                     if (isNaN(latestVersion)) {
+                        console.warn('Firebase settings/latestAppVersion is not a valid number:', snapshot.val());
+                     } else {
+                         console.log(`App is up to date. Current: ${CURRENT_APP_VERSION}, Latest (Firebase): ${latestVersion}`);
+                     }
                 }
-            }
-
-            // --- Firebase Auth State Change ---
-            auth.onAuthStateChanged(user => {
-                updateHeaderUI(user);
-                if (user) {
-                    // If user is logged in and on login/register page, redirect to home
-                    if (!loginPage.classList.contains('hidden') || !registerPage.classList.contains('hidden')) {
-                        showPage('homePage');
-                    }
-                }
+            })
+            .catch(error => {
+                console.error('Error checking for app update:', error);
             });
-
-            // --- Event Handlers ---
-            registerForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const displayName = e.target.username.value.trim();
-                const email = e.target.email.value.trim();
-                const password = e.target.password.value;
-
-                if (!displayName || !email || !password) {
-                    displayMessage(registerMessageDiv, 'All fields are required.'); return;
-                }
-                if (password.length < 6) {
-                    displayMessage(registerMessageDiv, 'Password must be at least 6 characters.'); return;
-                }
-
-                auth.createUserWithEmailAndPassword(email, password)
-                    .then(userCredential => {
-                        return userCredential.user.updateProfile({
-                            displayName: displayName
-                        }).then(() => {
-                            displayMessage(registerMessageDiv, 'Account created successfully! Redirecting...', 'success');
-                            setTimeout(() => showPage('homePage'), 1500);
-                            e.target.reset();
-                        });
-                    })
-                    .catch(error => displayMessage(registerMessageDiv, error.message));
-            });
-
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const email = e.target.email.value.trim();
-                const password = e.target.password.value;
-
-                if (!email || !password) {
-                    displayMessage(loginMessageDiv, 'Email and password are required.'); return;
-                }
-
-                auth.signInWithEmailAndPassword(email, password)
-                    .then(userCredential => {
-                        displayMessage(loginMessageDiv, 'Login successful! Redirecting...', 'success');
-                        setTimeout(() => showPage('homePage'), 1000);
-                        e.target.reset();
-                    })
-                    .catch(error => displayMessage(loginMessageDiv, error.message));
-            });
-
-            logoutLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (confirm('Are you sure you want to log out?')) {
-                    auth.signOut().then(() => {
-                        showPage('homePage'); 
-                    }).catch(error => console.error("Logout Error:", error));
-                }
-            });
-
-            // --- Hakma Specials Loading ---
-            function loadHakmaSpecials() {
-                const specialsRef = database.ref('hakmaSpecials');
-                specialsRef.on('value', (snapshot) => {
-                    hakmaSpecialsContainer.innerHTML = ''; // Clear previous
-                    const specials = snapshot.val();
-                    if (specials) {
-                        Object.keys(specials).forEach(key => {
-                            const special = specials[key];
-                            const specialEl = document.createElement('div');
-                            specialEl.className = 'flex bg-green-50 rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow';
-                            specialEl.innerHTML = `
-                                <img alt="${special.title}" class="w-24 h-auto rounded-l-lg object-cover" src="${special.imageUrl || 'https://via.placeholder.com/96x128.png?text=Image'}" />
-                                <div class="p-3 flex flex-col justify-center">
-                                    <h3 class="font-semibold text-base leading-snug">${special.title}</h3>
-                                    <p class="text-gray-500 text-sm leading-relaxed mt-1 max-w-xs truncate">${special.description || ''}</p>
-                                </div>
-                            `;
-                            // Add click listener if Hakma specials are meant to be interactive
-                            // specialEl.addEventListener('click', () => { /* handle click */ });
-                            hakmaSpecialsContainer.appendChild(specialEl);
-                        });
-                    } else {
-                        hakmaSpecialsContainer.innerHTML = '<p class="text-gray-500">No Hakma Specials available at the moment.</p>';
-                    }
-                }, (error) => {
-                    console.error("Error fetching Hakma Specials: ", error);
-                    hakmaSpecialsContainer.innerHTML = '<p class="text-red-500">Could not load Hakma Specials.</p>';
-                });
-            }
-
-            // --- Quiz Logic ---
-            function startQuiz(quizId) {
-                quizIdForRetry = quizId; // Store for "Play Again"
-                const quizRef = database.ref(`quizzes/${quizId}`);
-                displayMessage(quizMessageDiv, 'Loading quiz...', 'info');
-                quizRef.once('value').then(snapshot => {
-                    currentQuizData = snapshot.val();
-                    if (currentQuizData && currentQuizData.questions && currentQuizData.questions.length > 0) {
-                        clearMessages();
-                        quizTitleEl.textContent = currentQuizData.title || "Quiz";
-                        currentQuestionIndex = 0;
-                        score = 0;
-                        showPage('quizGamePage');
-                        quizResultAreaEl.classList.add('hidden');
-                        questionAreaEl.classList.remove('hidden');
-                        document.getElementById('quizProgressArea').classList.remove('hidden');
-                        displayQuestion();
-                    } else {
-                        displayMessage(quizMessageDiv, 'Quiz data not found or empty.', 'danger');
-                        showPage('homePage'); // Or a specific error page
-                    }
-                }).catch(error => {
-                    console.error("Error fetching quiz: ", error);
-                    displayMessage(quizMessageDiv, `Error loading quiz: ${error.message}`, 'danger');
-                     showPage('homePage');
-                });
-            }
-
-            function displayQuestion() {
-                if (!currentQuizData || currentQuestionIndex >= currentQuizData.questions.length) {
-                    showQuizResults();
-                    return;
-                }
-                const question = currentQuizData.questions[currentQuestionIndex];
-                questionTextEl.textContent = question.questionText;
-                optionsContainerEl.innerHTML = ''; // Clear previous options
-
-                question.options.forEach(optionText => {
-                    const button = document.createElement('button');
-                    button.textContent = optionText;
-                    button.className = 'quiz-option-btn block w-full text-left p-3 bg-white border border-gray-300 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500';
-                    button.onclick = () => handleAnswer(optionText, question.correctAnswer, button);
-                    optionsContainerEl.appendChild(button);
-                });
-
-                currentQuestionNumberEl.textContent = currentQuestionIndex + 1;
-                totalQuestionsEl.textContent = currentQuizData.questions.length;
-                currentScoreEl.textContent = score;
-            }
-
-            function handleAnswer(selectedAnswer, correctAnswer, buttonEl) {
-                // Disable all option buttons after an answer is selected
-                const optionButtons = optionsContainerEl.querySelectorAll('button');
-                optionButtons.forEach(btn => btn.disabled = true);
-
-                if (selectedAnswer === correctAnswer) {
-                    score++;
-                    buttonEl.classList.add('correct');
-                    displayMessage(quizMessageDiv, 'Correct!', 'success');
-                } else {
-                    buttonEl.classList.add('incorrect');
-                    displayMessage(quizMessageDiv, `Incorrect. The answer was: ${correctAnswer}`, 'danger');
-                    // Optionally highlight the correct answer
-                    optionButtons.forEach(btn => {
-                        if (btn.textContent === correctAnswer) {
-                            btn.classList.add('correct');
-                        }
-                    });
-                }
-                currentScoreEl.textContent = score; // Update score display immediately
-
-                setTimeout(() => {
-                    currentQuestionIndex++;
-                    clearMessages(); // Clear correct/incorrect message
-                    displayQuestion();
-                }, 2000); // Wait 2 seconds before next question
-            }
-
-            function showQuizResults() {
-                questionAreaEl.classList.add('hidden');
-                document.getElementById('quizProgressArea').classList.add('hidden');
-                quizResultAreaEl.classList.remove('hidden');
-                finalScoreEl.textContent = score;
-                finalTotalQuestionsEl.textContent = currentQuizData.questions.length;
-            }
-
-            playAgainBtn.addEventListener('click', () => {
-                if (quizIdForRetry) {
-                    startQuiz(quizIdForRetry);
-                }
-            });
-            
-            // --- Quiz Mode Button Listeners ---
-            // For now, all quiz mode buttons will start the same sample quiz
-            const defaultQuizId = 'islamicQuiz1'; // Make sure this quiz exists in your Firebase
-
-            singlePlayerBtn.addEventListener('click', () => startQuiz(defaultQuizId));
-            challengeModeBtn.addEventListener('click', () => startQuiz(defaultQuizId)); // Can be different later
-            islamicQuizBtn.addEventListener('click', () => startQuiz(defaultQuizId));
+    }
 
 
-            // --- Navigation Link Event Listeners ---
-            showRegisterPageLink.addEventListener('click', (e) => { e.preventDefault(); showPage('registerPage'); });
-            showLoginPageLink.addEventListener('click', (e) => { e.preventDefault(); showPage('loginPage'); });
-            backToHomeLinks.forEach(link => {
-                link.addEventListener('click', (e) => { e.preventDefault(); showPage('homePage'); });
-            });
+    // --- Initial Load / Setup ---
 
-            // --- Initial Setup ---
-            loadHakmaSpecials(); // Load specials when the app starts
-            showPage('homePage'); // Default page
-        });
-    </script>
-</body>
+    // Hide all sections except the main grid on page load
+    hideAllSections();
+    mainGrid.classList.remove('hidden'); // Show the main grid initially
+
+    // Fetch all posts for the "Students" view so it's ready when needed.
+    // This uses an 'on' listener, so it stays updated.
+    fetchAllPosts();
+
+    // Check for updates immediately on load after Firebase init.
+     checkAppUpdate();
+
+
+  </script>
+
+ </body>
 </html>
