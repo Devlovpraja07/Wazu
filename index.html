@@ -1,584 +1,536 @@
 <!DOCTYPE html>
 <html lang="en">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1" name="viewport"/>
-  <title>
-   Free Kuro Panel - Firebase Connected
-  </title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com">
-  </script>
-  <!-- Font Awesome CDN -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-  <style>
-   /* Custom styles for masking */
-        .text-security-disc {
-            -webkit-text-security: disc; /* Safari, iOS */
-            text-security: disc; /* Non-standard */
-            /* Fallback for other browsers handled by JS textContent change */
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <title>Quiz App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
+        .handwriting {
+            font-family: 'Patrick Hand', cursive;
         }
-
-        /* Style for active navigation link */
-        .nav-link.active {
-            color: #3ea18a; /* Or any color you prefer for active state */
-            font-weight: bold;
+        .alert {
+            padding: 0.75rem 1.25rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+            font-size: 0.875rem; /* text-sm */
         }
-  </style>
- </head>
- <body class="bg-[#1a1c20] text-white font-sans min-h-screen">
+        .alert-danger { color: #721c24; background-color: #f8d7da; border-color: #f5c6cb; }
+        .alert-success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        .hidden { display: none; }
+        /* Basic styling for quiz option buttons */
+        .quiz-option-btn {
+            transition: background-color 0.3s ease;
+        }
+        .quiz-option-btn.correct {
+            background-color: #4ade80 !important; /* green-400 */
+            color: white !important;
+        }
+        .quiz-option-btn.incorrect {
+            background-color: #f87171 !important; /* red-400 */
+            color: white !important;
+        }
+    </style>
+</head>
+<body class="bg-white p-4 max-w-sm mx-auto text-gray-800">
 
-  <!-- Firebase Configuration (CRITICAL: Secure your database rules!) -->
-  <script type="module">
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-app.js";
-    import { getDatabase } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js"; // Import Realtime Database
+    <!-- Main Content Area (Dynamic) -->
+    <div id="appArea">
 
-    // Your web app's Firebase configuration
-    // Krupya is config ko production mein client-side se direct expose na karein bina security rules ke!
-    const firebaseConfig = {
-        apiKey: "AIzaSyAY3hXmpCXJUVrBtOaosPY_tsse3sx-O5o",
-        authDomain: "nima-d4d7d.firebaseapp.com",
-        // CORRECTED databaseURL based on your provided JSON
-        databaseURL: "https://nima-d4d7d-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "nima-d4d7d",
-        storageBucket: "nima-d4d7d.firebasestorage.app"
-    };
+        <!-- Main Quiz Page (Home) -->
+        <div id="homePage">
+            <header class="mb-4">
+                <p class="text-gray-400 text-sm" id="greetingText">As-Salamu Alaikum</p>
+                <div>
+                    <h1 id="userNameDisplay" class="font-bold text-2xl cursor-pointer hover:text-teal-600 transition-colors">Profile / Login</h1>
+                    <a href="#" id="logoutLink" class="text-xs text-red-500 hover:underline hidden mt-1">Logout</a>
+                </div>
+            </header>
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const database = getDatabase(app); // Get Realtime Database instance
+            <section class="flex justify-between mb-6 space-x-2">
+                <div id="singlePlayerBtn" class="bg-teal-600 rounded-2xl flex-1 h-28 flex flex-col items-center justify-center shadow-lg relative cursor-pointer hover:opacity-90 transition-opacity p-2 text-center">
+                    <img alt="Blue megaphone" class="mb-1" height="48" src="https://storage.googleapis.com/a1aa/image/8f338e4d-8f23-491e-f5ae-db2abf25d95f.jpg" width="48"/>
+                    <p class="text-white handwriting text-sm leading-tight">SINGLE PLAYER</p>
+                </div>
+                <div id="challengeModeBtn" class="bg-sky-400 rounded-2xl flex-1 h-28 flex flex-col items-center justify-center shadow-lg relative cursor-pointer hover:opacity-90 transition-opacity p-2 text-center">
+                    <img alt="Game controller" class="mb-1" height="48" src="https://storage.googleapis.com/a1aa/image/052a6dbd-b90b-4eb5-110b-42233e27c880.jpg" width="48"/>
+                    <p class="text-white handwriting text-sm leading-tight">CHALLENGE MODE</p>
+                </div>
+                <div id="islamicQuizBtn" class="bg-orange-400 rounded-2xl flex-1 h-28 flex flex-col items-center justify-center shadow-lg relative cursor-pointer hover:opacity-90 transition-opacity p-2 text-center">
+                    <img alt="Colorful mosque" class="mb-1" height="48" src="https://storage.googleapis.com/a1aa/image/317f4abc-74bb-47e2-2e62-a4c53b860d75.jpg" width="48"/>
+                    <p class="text-white handwriting text-sm leading-tight">ISLAMIC QUIZ</p>
+                </div>
+            </section>
 
-    // Make database instance accessible globally (or pass it to functions) for this example
-    window.firebaseDatabase = database;
+            <section class="flex justify-around mb-6 px-1">
+                <!-- Icons as before -->
+                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
+                    <div class="bg-gray-800 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
+                        <img alt="White book icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/4aeec49c-57cc-46d7-a5d2-d028201a1013.jpg" width="24"/>
+                    </div>
+                    <p class="text-gray-900 text-xs font-semibold">ALL</p>
+                </div>
+                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
+                    <div class="bg-yellow-50 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
+                        <img alt="Green headphones icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/beb617fc-77dc-495f-63b2-7b72458f31fd.jpg" width="24"/>
+                    </div>
+                    <p class="text-gray-900 text-xs font-semibold">AUDIBLE</p>
+                </div>
+                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
+                    <div class="bg-yellow-50 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
+                        <img alt="Blue video camera icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/1d7c2dcb-4962-4589-6f41-1a9224aceaa9.jpg" width="24"/>
+                    </div>
+                    <p class="text-gray-900 text-xs font-semibold">VIDEOS</p>
+                </div>
+                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
+                    <div class="bg-yellow-50 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
+                        <img alt="Blue chat bubble icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/121202a4-9140-499f-6e74-6db00bfded05.jpg" width="24"/>
+                    </div>
+                    <p class="text-gray-900 text-xs font-semibold">UNREAD</p>
+                </div>
+                <div class="flex flex-col items-center w-12 text-center cursor-pointer hover:opacity-75 transition-opacity">
+                    <div class="bg-yellow-50 rounded-full w-12 h-12 flex items-center justify-center mb-1 shadow-md">
+                        <img alt="Purple lightbulb icon" class="" height="24" src="https://storage.googleapis.com/a1aa/image/855c90a7-674c-40ce-7b38-de26a9ea0c48.jpg" width="24"/>
+                    </div>
+                    <p class="text-gray-900 text-xs font-semibold">NEW</p>
+                </div>
+            </section>
 
-    console.log("Firebase app initialized.");
-  </script>
-  <!-- Firebase SDKs are now imported via modules -->
+            <section>
+                <h2 class="font-semibold text-lg mb-3">Hakma Specials</h2>
+                <div id="hakmaSpecialsContainer" class="space-y-3">
+                    <!-- Hakma Specials will be loaded here by JavaScript -->
+                    <p class="text-gray-500">Loading Hakma Specials...</p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Login Page -->
+        <div id="loginPage" class="hidden py-8">
+            <div id="loginMessage" class="mb-4"></div>
+            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Login</h2>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="loginEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="loginEmail" name="email" required autocomplete="email"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input type="password" id="loginPassword" name="password" required autocomplete="current-password"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                </div>
+                <div>
+                    <button type="submit"
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors">
+                        Login
+                    </button>
+                </div>
+            </form>
+            <p class="mt-4 text-center text-sm">
+                Don't have an account?
+                <a href="#" id="showRegisterPageLink" class="font-medium text-teal-600 hover:text-teal-500">Sign up</a>
+            </p>
+            <p class="mt-2 text-center text-sm">
+                <a href="#" class="font-medium text-gray-600 hover:text-gray-500 backToHomeLink">← Back to Home</a>
+            </p>
+        </div>
+
+        <!-- Registration Page -->
+        <div id="registerPage" class="hidden py-8">
+            <div id="registerMessage" class="mb-4"></div>
+            <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Create Account</h2>
+            <form id="registerForm" class="space-y-4">
+                 <div>
+                    <label for="registerUsername" class="block text-sm font-medium text-gray-700">Username (Display Name)</label>
+                    <input type="text" id="registerUsername" name="username" required
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="registerEmail" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="registerEmail" name="email" required autocomplete="email"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="registerPassword" class="block text-sm font-medium text-gray-700">Password (min. 6 characters)</label>
+                    <input type="password" id="registerPassword" name="password" required minlength="6" autocomplete="new-password"
+                           class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                </div>
+                <div>
+                    <button type="submit"
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-sky-500 hover:bg-sky-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-400 transition-colors">
+                        Register
+                    </button>
+                </div>
+            </form>
+            <p class="mt-4 text-center text-sm">
+                Already have an account?
+                <a href="#" id="showLoginPageLink" class="font-medium text-teal-600 hover:text-teal-500">Log in</a>
+            </p>
+             <p class="mt-2 text-center text-sm">
+                <a href="#" class="font-medium text-gray-600 hover:text-gray-500 backToHomeLink">← Back to Home</a>
+            </p>
+        </div>
+
+        <!-- Quiz Game Page -->
+        <div id="quizGamePage" class="hidden py-8">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="quizTitle" class="text-xl font-bold text-gray-800">Quiz Time!</h2>
+                <a href="#" class="font-medium text-gray-600 hover:text-gray-500 backToHomeLink">← Exit Quiz</a>
+            </div>
+            <div id="quizMessage" class="mb-4"></div>
+            
+            <div id="questionArea" class="mb-6 p-4 bg-gray-100 rounded-lg shadow">
+                <p id="questionText" class="text-lg font-semibold mb-4">Loading question...</p>
+                <div id="optionsContainer" class="space-y-3">
+                    <!-- Options will be loaded here -->
+                </div>
+            </div>
+
+            <div id="quizProgressArea" class="flex justify-between items-center text-sm text-gray-600 mb-6">
+                <p>Question: <span id="currentQuestionNumber">0</span>/<span id="totalQuestions">0</span></p>
+                <p>Score: <span id="currentScore">0</span></p>
+            </div>
+            
+            <div id="quizResultArea" class="hidden text-center p-6 bg-green-50 rounded-lg shadow">
+                <h3 class="text-2xl font-bold mb-2 text-green-700">Quiz Finished!</h3>
+                <p class="text-xl mb-4">Your final score: <span id="finalScore">0</span>/<span id="finalTotalQuestions">0</span></p>
+                <button id="playAgainBtn" class="py-2 px-6 bg-teal-500 text-white rounded hover:bg-teal-600 transition-colors mr-2">Play Again</button>
+                <button class="py-2 px-6 bg-gray-500 text-white rounded hover:bg-gray-600 transition-colors backToHomeLink">Back to Home</button>
+            </div>
+        </div>
+
+    </div> <!-- End #appArea -->
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // IMPORTANT: Replace with your actual Firebase project configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAY3hXmpCXJUVrBtOaosPY_tsse3sx-O5o", // From your provided details
+            authDomain: "nima-d4d7d.firebaseapp.com",        // project_id.firebaseapp.com
+            databaseURL: "https://nima-d4d7d-default-rtdb.asia-southeast1.firebasedatabase.app", // From your provided details
+            projectId: "nima-d4d7d",                         // From your provided details
+            storageBucket: "nima-d4d7d.firebasestorage.app",  // From your provided details
+            messagingSenderId: "919311840182",               // From your provided details
+            // appId: "1:your:web:app:id" // Optional: Get from Firebase console if needed
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Page Sections
+            const homePage = document.getElementById('homePage');
+            const loginPage = document.getElementById('loginPage');
+            const registerPage = document.getElementById('registerPage');
+            const quizGamePage = document.getElementById('quizGamePage');
+
+            // Header Elements
+            const greetingText = document.getElementById('greetingText');
+            const userNameDisplay = document.getElementById('userNameDisplay');
+            const logoutLink = document.getElementById('logoutLink');
+
+            // Forms
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+
+            // Navigation Links
+            const showRegisterPageLink = document.getElementById('showRegisterPageLink');
+            const showLoginPageLink = document.getElementById('showLoginPageLink');
+            const backToHomeLinks = document.querySelectorAll('.backToHomeLink');
+
+            // Message Divs
+            const loginMessageDiv = document.getElementById('loginMessage');
+            const registerMessageDiv = document.getElementById('registerMessage');
+            const quizMessageDiv = document.getElementById('quizMessage');
+
+            // Hakma Specials
+            const hakmaSpecialsContainer = document.getElementById('hakmaSpecialsContainer');
+
+            // Quiz Game Elements
+            const quizTitleEl = document.getElementById('quizTitle');
+            const questionAreaEl = document.getElementById('questionArea');
+            const questionTextEl = document.getElementById('questionText');
+            const optionsContainerEl = document.getElementById('optionsContainer');
+            const currentQuestionNumberEl = document.getElementById('currentQuestionNumber');
+            const totalQuestionsEl = document.getElementById('totalQuestions');
+            const currentScoreEl = document.getElementById('currentScore');
+            const quizResultAreaEl = document.getElementById('quizResultArea');
+            const finalScoreEl = document.getElementById('finalScore');
+            const finalTotalQuestionsEl = document.getElementById('finalTotalQuestions');
+            const playAgainBtn = document.getElementById('playAgainBtn');
+
+            // Quiz Mode Buttons
+            const singlePlayerBtn = document.getElementById('singlePlayerBtn');
+            const challengeModeBtn = document.getElementById('challengeModeBtn');
+            const islamicQuizBtn = document.getElementById('islamicQuizBtn');
 
 
-  <!-- Header -->
-  <header class="px-4 py-3 flex items-center justify-between border-b border-gray-700">
-   <div class="flex items-center space-x-2">
-    <img alt="Cube icon representing Free Kuro Panel" class="w-5 h-5" height="20" src="https://storage.googleapis.com/a1aa/image/db210c23-1b9a-4161-40ca-dd37cb939452.jpg" width="20"/>
-    <span class="text-white text-sm font-normal">
-     FREE KURO PANEL
-    </span>
-   </div>
-   <!-- Menu Toggle Button -->
-   <button id="menu-button" aria-label="Menu" class="border border-gray-600 rounded-md p-2 flex items-center justify-center md:hidden">
-    <i class="fas fa-bars text-white text-lg">
-    </i>
-   </button>
-  </header>
-
-  <!-- Navigation (Hidden on mobile by default, toggled by button, always visible on medium screens and up) -->
-  <nav id="main-nav" class="px-4 py-2 space-y-1 text-sm font-normal text-white border-b border-gray-700 hidden md:block">
-   <div id="nav-keys" class="nav-link cursor-pointer hover:text-gray-300 active">
-    Keys
-   </div>
-   <div id="nav-generate" class="nav-link cursor-pointer hover:text-gray-300">
-    Generate
-   </div>
-  </nav>
-
-  <!-- User Info / Dropdown Trigger -->
-  <section id="user-info-line" class="px-4 py-2 flex items-center space-x-2 text-sm font-normal text-white border-t border-b border-gray-700 cursor-pointer relative">
-   <i class="fas fa-user-circle text-white text-base">
-   </i>
-   <span>
-    KUROFREEPANEL
-   </span>
-   <i id="user-info-arrow" class="fas fa-chevron-down text-white text-xs transition-transform duration-300 transform">
-   </i>
-   <!-- User Dropdown Menu (Initially Hidden) -->
-   <div id="user-dropdown" class="absolute top-full left-0 w-full bg-[#1a1c20] border border-gray-700 rounded-md shadow-lg z-10 hidden">
-    <ul class="py-1 text-xs">
-     <li class="px-3 py-2 hover:bg-gray-800 cursor-pointer">
-      Profile
-     </li>
-     <li class="px-3 py-2 hover:bg-gray-800 cursor-pointer">
-      Settings
-     </li>
-     <li class="px-3 py-2 hover:bg-gray-800 cursor-pointer text-red-400">
-      Logout
-     </li>
-    </ul>
-   </div>
-  </section>
-
-  <!-- Main Content Area -->
-  <main class="px-4 py-3 space-y-3">
-
-   <div class="bg-gray-300 bg-opacity-20 rounded-md py-2 px-3 text-xs text-gray-300 font-normal">
-    Welcome KUROFREEPANEL
-   </div>
-
-   <!-- Keys Section (Initially Active) -->
-   <section id="section-keys" class="bg-[#1a1c20] border border-gray-700 rounded-md">
-    <header class="flex items-center justify-between bg-[#1a1c20] border-b border-gray-700 px-3 py-2 text-xs font-normal text-white">
-     <div>
-      <div>
-       Keys
-      </div>
-      <div class="text-gray-400">
-       Registered
-      </div>
-     </div>
-     <div class="flex items-center space-x-2">
-      <!-- Toggle Key Visibility Button -->
-      <button id="toggle-keys-button" aria-label="Toggle visibility" class="flex items-center space-x-1 border border-gray-600 rounded px-2 py-1 text-xs text-white">
-       <i class="fas fa-eye">
-       </i>
-       <span>
-        Hide Keys
-       </span>
-      </button>
-     </div>
-    </header>
-    <div class="overflow-x-auto">
-     <table id="keys-table" class="w-full text-xs text-left text-gray-300 border-collapse">
-      <thead>
-       <tr>
-        <th class="border-b border-gray-700 py-1 px-2 w-10">
-         <!-- Entries Select -->
-         <select id="entries-select" aria-label="Select entries" class="bg-[#1a1c20] border border-gray-700 rounded text-gray-300 text-xs py-0.5 px-1 w-full">
-          <option value="3">
-           3
-          </option>
-          <option value="5">
-           5
-          </option>
-          <option value="10">
-           10
-          </option>
-          <option value="all">
-           All
-          </option>
-         </select>
-        </th>
-        <th class="border-b border-gray-700 py-1 px-2">
-         User Keys
-        </th>
-        <th class="border-b border-gray-700 py-1 px-2">
-         Device
-        </th>
-         <th class="border-b border-gray-700 py-1 px-2 w-10">
-             Actions
-         </th>
-       </tr>
-      </thead>
-      <tbody>
-       <!-- Table rows will be populated by JavaScript from Firebase -->
-       <tr>
-           <td colspan="4" class="text-center py-4 text-gray-400">Loading keys...</td>
-       </tr>
-      </tbody>
-     </table>
-    </div>
-   </section>
-
-   <!-- Generate Section (Initially Hidden) -->
-   <section id="section-generate" class="bg-[#1a1c20] border border-gray-700 rounded-md p-4 space-y-4 hidden">
-    <h2 class="text-lg font-normal text-white">
-     Generate New Key
-    </h2>
-    <div class="flex flex-col space-y-2">
-     <label for="key-length" class="text-sm text-gray-300">
-      Key Length:
-     </label>
-     <input type="number" id="key-length" value="16" min="8" max="32" class="bg-[#1a1c20] border border-gray-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-[#3ea18a]"/>
-    </div>
-    <!-- Generate Button -->
-    <button id="generate-key-button" class="bg-[#3ea18a] text-white px-4 py-2 rounded hover:bg-[#348d78] focus:outline-none text-sm flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed">
-     <i class="fas fa-plus-circle">
-     </i>
-     <span>
-      Generate Key
-     </span>
-    </button>
-    <div id="generated-key-output" class="bg-gray-800 p-3 rounded text-xs text-gray-300 hidden">
-     Generated Key:
-     <span id="latest-generated-key" class="text-[#3ea18a] break-all font-mono">
-     </span>
-    </div>
-     <div id="generate-error" class="text-red-400 text-xs hidden"></div>
-   </section>
-
-  </main>
-
-  <script type="module">
-    // Import necessary functions including remove for deletion
-    import { ref, push, get, child, remove } from "https://www.gstatic.com/firebasejs/9.1.3/firebase-database.js";
-
-    document.addEventListener('DOMContentLoaded', () => {
-            // Ensure firebaseDatabase is available (from the module script above)
-            const database = window.firebaseDatabase;
-            if (!database) {
-                console.error("Firebase Database not initialized.");
-                // Display an error message to the user or handle appropriately
-                document.body.innerHTML = "<p style='color:red; text-align:center;'>Error: Firebase not initialized. Check console for details.</p>";
-                return; // Stop script execution if Firebase is not ready
-            }
+            // --- Quiz State ---
+            let currentQuizData = null;
+            let currentQuestionIndex = 0;
+            let score = 0;
+            let quizIdForRetry = null;
 
 
-            // --- Element References ---
-            const menuButton = document.getElementById('menu-button');
-            const mainNav = document.getElementById('main-nav');
-            const navKeys = document.getElementById('nav-keys');
-            const navGenerate = document.getElementById('nav-generate');
-            const sectionKeys = document.getElementById('section-keys');
-            const sectionGenerate = document.getElementById('section-generate');
-            const userInfoLine = document.getElementById('user-info-line');
-            const userDropdown = document.getElementById('user-dropdown');
-            const userInfoArrow = document.getElementById('user-info-arrow');
-            const toggleKeysButton = document.getElementById('toggle-keys-button');
-            const toggleKeysIcon = toggleKeysButton ? toggleKeysButton.querySelector('i') : null;
-            const toggleKeysSpan = toggleKeysButton ? toggleKeysButton.querySelector('span') : null;
-            const keysTableBody = document.querySelector('#keys-table tbody');
-            const entriesSelect = document.getElementById('entries-select');
-            const generateKeyButton = document.getElementById('generate-key-button');
-            const keyLengthInput = document.getElementById('key-length');
-            const generatedKeyOutput = document.getElementById('generated-key-output');
-            const latestGeneratedKeySpan = document.getElementById('latest-generated-key');
-            const generateErrorDiv = document.getElementById('generate-error');
-
-            let areKeysMasked = false; // State for key visibility
-            let allTableRowsData = []; // To store all key data objects fetched from Firebase
-
-
-            // --- Helper Functions ---
-
-            // Function to generate a random alphanumeric key
-            function generateRandomString(length) {
-                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                let result = '';
-                const charactersLength = characters.length;
-                for (let i = 0; i < length; i++) {
-                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            // --- UI Helper Functions ---
+            function displayMessage(element, message, type = 'danger') {
+                element.innerHTML = `<div class="alert alert-${type} text-center">${message}</div>`;
+                if (type === 'danger' || type === 'info') {
+                    setTimeout(() => { if (element.firstChild && element.firstChild.textContent === message) element.innerHTML = ''; }, 4000);
                 }
-                return result;
+            }
+            
+            function clearMessages() {
+                loginMessageDiv.innerHTML = '';
+                registerMessageDiv.innerHTML = '';
+                quizMessageDiv.innerHTML = '';
+            }
+            
+            function showPage(pageId) {
+                clearMessages();
+                [homePage, loginPage, registerPage, quizGamePage].forEach(page => page.classList.add('hidden'));
+                
+                const pageToShow = document.getElementById(pageId);
+                if (pageToShow) {
+                    pageToShow.classList.remove('hidden');
+                }
+                window.scrollTo(0, 0);
             }
 
-            // Function to render the table from the fetched data
-            function renderTable() {
-                 keysTableBody.innerHTML = ''; // Clear current table body
+            function updateHeaderUI(user) {
+                if (user) {
+                    greetingText.textContent = `Welcome,`;
+                    userNameDisplay.textContent = user.displayName || user.email.split('@')[0];
+                    userNameDisplay.classList.remove('cursor-pointer', 'hover:text-teal-600');
+                    userNameDisplay.onclick = null; 
+                    logoutLink.classList.remove('hidden');
+                } else {
+                    greetingText.textContent = 'As-Salamu Alaikum';
+                    userNameDisplay.textContent = 'Profile / Login';
+                    userNameDisplay.classList.add('cursor-pointer', 'hover:text-teal-600');
+                    userNameDisplay.onclick = () => showPage('loginPage');
+                    logoutLink.classList.add('hidden');
+                }
+            }
 
-                 // Get the selected number of entries to display
-                 const selectedValue = entriesSelect.value;
-                 const numEntries = selectedValue === 'all' ? allTableRowsData.length : parseInt(selectedValue, 10);
-
-                 // Slice the data based on the selected entries
-                 const rowsToDisplay = allTableRowsData.slice(0, numEntries);
-
-
-                 if (rowsToDisplay.length === 0) {
-                     keysTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-400">No keys found.</td></tr>`;
-                     return;
-                 }
-
-
-                 rowsToDisplay.forEach((keyData, index) => {
-                    const newRow = document.createElement('tr');
-                    const keyId = keyData.id; // Firebase Push ID
-                    const keyValue = keyData.value; // The actual generated key string
-                    // Ensure device count is treated as a number, default to 0 if missing or invalid
-                    const deviceCount = parseInt(keyData.device, 10) || 0;
-
-
-                    newRow.innerHTML = `
-                        <td class="border-b border-gray-700 py-1 px-2 text-center text-gray-400">${index + 1}</td>
-                        <td class="border-b border-gray-700 py-1 px-2 text-[#3ea18a] break-words" data-key="${keyValue}">
-                            ${areKeysMasked ? '********' : keyValue}
-                        </td>
-                        <td class="border-b border-gray-700 py-1 px-2">${deviceCount}</td> <!-- Display the numerical device count -->
-                         <td class="border-b border-gray-700 py-1 px-2">
-                            <button data-key-id="${keyId}" class="delete-key-button text-red-400 hover:text-red-600">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    `;
-
-                    // Apply masking class if needed (alternative visual style)
-                    if (areKeysMasked) {
-                         const keyCell = newRow.querySelector('td:nth-child(2)');
-                         keyCell.classList.add('text-security-disc'); // Add masking class
-                         keyCell.style.color = ''; // Remove teal color when masked
+            // --- Firebase Auth State Change ---
+            auth.onAuthStateChanged(user => {
+                updateHeaderUI(user);
+                if (user) {
+                    // If user is logged in and on login/register page, redirect to home
+                    if (!loginPage.classList.contains('hidden') || !registerPage.classList.contains('hidden')) {
+                        showPage('homePage');
                     }
-
-                    keysTableBody.appendChild(newRow);
-                 });
-
-                 // Add event listeners to delete buttons AFTER they are added to the DOM
-                 keysTableBody.querySelectorAll('.delete-key-button').forEach(button => {
-                     button.addEventListener('click', handleDeleteKey);
-                 });
-            }
-
-            // Function to fetch keys from Firebase
-            async function fetchKeys() {
-                 keysTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-gray-400">Loading keys...</td></tr>`; // Show loading state
-
-                 const dbRef = ref(database);
-                 try {
-                     // Use get() to fetch data once
-                     const snapshot = await get(child(dbRef, 'keys'));
-                     if (snapshot.exists()) {
-                         const keysObject = snapshot.val();
-                         // Convert the object of keys into an array of objects including the Firebase key (ID)
-                         allTableRowsData = Object.keys(keysObject).map(key => ({
-                             id: key, // Store Firebase push key
-                             ...keysObject[key] // Spread the key data (value, device, etc.)
-                         }));
-                         // Optional: Sort the keys, e.g., by timestamp if you added one during generation
-                          allTableRowsData.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); // Sort by timestamp descending
-
-
-                         console.log("Keys fetched:", allTableRowsData);
-                     } else {
-                         allTableRowsData = []; // No keys found
-                         console.log("No keys data available in Firebase.");
-                     }
-                 } catch (error) {
-                     console.error("Error fetching keys:", error);
-                      // Log more details of the error object
-                     console.error("Error code:", error.code);
-                     console.error("Error message:", error.message);
-                     console.error("Full error object:", error);
-                     keysTableBody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-red-400">Error loading keys. Details: ${error.message || error.code || 'Unknown error'}</td></tr>`;
-                     // Clear data on error to prevent displaying old data
-                     allTableRowsData = [];
-                 }
-
-                 // Render the table with the fetched data
-                 renderTable();
-            }
-
-
-            // Function to toggle key visibility
-            function toggleKeyMasking() {
-                areKeysMasked = !areKeysMasked;
-                // Re-render the table to apply masking state to all rows
-                renderTable();
-
-                // Update the button text and icon
-                if (toggleKeysIcon && toggleKeysSpan) {
-                     if (areKeysMasked) {
-                         toggleKeysIcon.classList.remove('fa-eye');
-                         toggleKeysIcon.classList.add('fa-eye-slash');
-                         toggleKeysSpan.textContent = 'Show Keys';
-                     } else {
-                         toggleKeysIcon.classList.remove('fa-eye-slash');
-                         toggleKeysIcon.classList.add('fa-eye');
-                         toggleKeysSpan.textContent = 'Hide Keys';
-                     }
                 }
-            }
-
-            // Function to handle deleting a key
-            async function handleDeleteKey(event) {
-                const button = event.currentTarget;
-                const keyId = button.getAttribute('data-key-id');
-                if (!keyId || !confirm('Are you sure you want to delete this key?')) {
-                    return;
-                }
-
-                // Get the specific key reference using ref()
-                const keyRef = ref(database, 'keys/' + keyId);
-
-
-                // Disable button during deletion
-                button.disabled = true;
-                button.classList.add('opacity-50', 'cursor-not-allowed');
-                const icon = button.querySelector('i');
-                 if(icon) {
-                     icon.classList.remove('fa-trash');
-                     icon.classList.add('fa-spinner', 'fa-spin');
-                 }
-
-
-                try {
-                     // Use the imported remove function
-                     await remove(keyRef);
-                     console.log(`Key ${keyId} deleted successfully.`);
-                     // Refetch and re-render the table after deletion
-                     fetchKeys();
-                } catch (error) {
-                    console.error("Error deleting key:", error);
-                     // Log more details of the error object
-                    console.error("Error code:", error.code);
-                    console.error("Error message:", error.message);
-                    console.error("Full error object:", error);
-                    alert("Error deleting key. Details: " + (error.message || error.code || 'Unknown error')); // Basic error feedback
-                } finally {
-                     // Re-enable button (might not be necessary if table is re-rendered anyway)
-                     button.disabled = false;
-                     button.classList.remove('opacity-50', 'cursor-not-allowed');
-                     if(icon) {
-                         icon.classList.remove('fa-spinner', 'fa-spin');
-                         icon.classList.add('fa-trash');
-                     }
-                }
-            }
-
-
-            // --- Event Listeners ---
-
-            // Toggle mobile navigation
-            if (menuButton && mainNav) {
-                menuButton.addEventListener('click', () => {
-                    mainNav.classList.toggle('hidden');
-                });
-            }
-
-            // Tab Switching (Keys vs Generate)
-            const navLinks = [navKeys, navGenerate];
-            const sections = [sectionKeys, sectionGenerate];
-
-            navLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    // Remove active class from all links
-                    navLinks.forEach(item => item.classList.remove('active'));
-                    // Add active class to clicked link
-                    link.classList.add('active');
-
-                    // Hide all sections
-                    sections.forEach(section => section.classList.add('hidden'));
-
-                    // Show the corresponding section
-                    if (link.id === 'nav-keys') {
-                        sectionKeys.classList.remove('hidden');
-                        // Re-fetch and render keys when switching back to the keys tab
-                        fetchKeys();
-                    } else if (link.id === 'nav-generate') {
-                        sectionGenerate.classList.remove('hidden');
-                        // Clear any previous output/error when switching to generate tab
-                        generatedKeyOutput.classList.add('hidden');
-                        generateErrorDiv.classList.add('hidden');
-                    }
-                });
             });
 
-            // Toggle User Dropdown
-            if (userInfoLine && userDropdown && userInfoArrow) {
-                 userInfoLine.addEventListener('click', () => {
-                    userDropdown.classList.toggle('hidden');
-                    // Rotate arrow icon
-                    userInfoArrow.classList.toggle('rotate-180');
-                });
+            // --- Event Handlers ---
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const displayName = e.target.username.value.trim();
+                const email = e.target.email.value.trim();
+                const password = e.target.password.value;
 
-                // Close dropdown if clicked outside (optional but good UX)
-                document.addEventListener('click', (event) => {
-                    if (!userInfoLine.contains(event.target) && !userDropdown.contains(event.target)) {
-                        userDropdown.classList.add('hidden');
-                        userInfoArrow.classList.remove('rotate-180');
+                if (!displayName || !email || !password) {
+                    displayMessage(registerMessageDiv, 'All fields are required.'); return;
+                }
+                if (password.length < 6) {
+                    displayMessage(registerMessageDiv, 'Password must be at least 6 characters.'); return;
+                }
+
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then(userCredential => {
+                        return userCredential.user.updateProfile({
+                            displayName: displayName
+                        }).then(() => {
+                            displayMessage(registerMessageDiv, 'Account created successfully! Redirecting...', 'success');
+                            setTimeout(() => showPage('homePage'), 1500);
+                            e.target.reset();
+                        });
+                    })
+                    .catch(error => displayMessage(registerMessageDiv, error.message));
+            });
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const email = e.target.email.value.trim();
+                const password = e.target.password.value;
+
+                if (!email || !password) {
+                    displayMessage(loginMessageDiv, 'Email and password are required.'); return;
+                }
+
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(userCredential => {
+                        displayMessage(loginMessageDiv, 'Login successful! Redirecting...', 'success');
+                        setTimeout(() => showPage('homePage'), 1000);
+                        e.target.reset();
+                    })
+                    .catch(error => displayMessage(loginMessageDiv, error.message));
+            });
+
+            logoutLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (confirm('Are you sure you want to log out?')) {
+                    auth.signOut().then(() => {
+                        showPage('homePage'); 
+                    }).catch(error => console.error("Logout Error:", error));
+                }
+            });
+
+            // --- Hakma Specials Loading ---
+            function loadHakmaSpecials() {
+                const specialsRef = database.ref('hakmaSpecials');
+                specialsRef.on('value', (snapshot) => {
+                    hakmaSpecialsContainer.innerHTML = ''; // Clear previous
+                    const specials = snapshot.val();
+                    if (specials) {
+                        Object.keys(specials).forEach(key => {
+                            const special = specials[key];
+                            const specialEl = document.createElement('div');
+                            specialEl.className = 'flex bg-green-50 rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-xl transition-shadow';
+                            specialEl.innerHTML = `
+                                <img alt="${special.title}" class="w-24 h-auto rounded-l-lg object-cover" src="${special.imageUrl || 'https://via.placeholder.com/96x128.png?text=Image'}" />
+                                <div class="p-3 flex flex-col justify-center">
+                                    <h3 class="font-semibold text-base leading-snug">${special.title}</h3>
+                                    <p class="text-gray-500 text-sm leading-relaxed mt-1 max-w-xs truncate">${special.description || ''}</p>
+                                </div>
+                            `;
+                            // Add click listener if Hakma specials are meant to be interactive
+                            // specialEl.addEventListener('click', () => { /* handle click */ });
+                            hakmaSpecialsContainer.appendChild(specialEl);
+                        });
+                    } else {
+                        hakmaSpecialsContainer.innerHTML = '<p class="text-gray-500">No Hakma Specials available at the moment.</p>';
                     }
-                });
-            }
-
-
-            // Toggle Key Visibility
-            if (toggleKeysButton) {
-                // Initial button state setup based on default areKeysMasked
-                 if (areKeysMasked) {
-                     toggleKeysIcon.classList.remove('fa-eye');
-                     toggleKeysIcon.classList.add('fa-eye-slash');
-                     toggleKeysSpan.textContent = 'Show Keys';
-                 } else {
-                     toggleKeysIcon.classList.remove('fa-eye-slash');
-                     toggleKeysIcon.classList.add('fa-eye');
-                     toggleKeysSpan.textContent = 'Hide Keys';
-                 }
-
-                toggleKeysButton.addEventListener('click', toggleKeyMasking);
-            }
-
-            // Handle Entries Select change - this now just triggers re-rendering the currently loaded data
-            if (entriesSelect) {
-                entriesSelect.addEventListener('change', renderTable);
-            }
-
-            // Handle Generate Key Button click
-            if (generateKeyButton && keyLengthInput && generatedKeyOutput && latestGeneratedKeySpan && generateErrorDiv) {
-                generateKeyButton.addEventListener('click', async () => {
-                    const keyLength = parseInt(keyLengthInput.value, 10);
-
-                    // Basic validation
-                    if (isNaN(keyLength) || keyLength < 8 || keyLength > 32) {
-                        generateErrorDiv.textContent = "Please enter a valid key length between 8 and 32.";
-                        generateErrorDiv.classList.remove('hidden');
-                        generatedKeyOutput.classList.add('hidden');
-                        return;
-                    }
-
-                    // Clear previous error/output
-                    generateErrorDiv.classList.add('hidden');
-                    generatedKeyOutput.classList.add('hidden');
-
-                    // Generate the key string
-                    const newKeyString = generateRandomString(keyLength);
-                    console.log("Attempting to generate and save key:", newKeyString);
-
-                    // Disable button and show loading feedback
-                    generateKeyButton.disabled = true;
-                    generateKeyButton.querySelector('span').textContent = 'Generating...';
-                    generateKeyButton.querySelector('i').classList.remove('fa-plus-circle');
-                    generateKeyButton.querySelector('i').classList.add('fa-spinner', 'fa-spin');
-
-
-                    // Data to save in Firebase
-                    const keyDataToSave = {
-                         value: newKeyString,
-                         device: 0, // Initialize device count as a number
-                         timestamp: Date.now() // Add timestamp for sorting/ordering
-                    };
-
-                    // Get a reference to the 'keys' path in the database
-                    const keysRef = ref(database, 'keys');
-
-                    try {
-                        // Use push() to add a new key with a unique ID
-                        await push(keysRef, keyDataToSave);
-                        // const newNodeRef = await push(keysRef, keyDataToSave); // If you need the new ID
-                        // const newKeyId = newNodeRef.key;
-
-                        console.log("Key saved to Firebase.");
-
-                        // Display the generated key
-                        latestGeneratedKeySpan.textContent = newKeyString;
-                        generatedKeyOutput.classList.remove('hidden');
-                        generateErrorDiv.classList.add('hidden'); // Ensure error is hidden
-
-                        // Refetch and re-render the table to include the new key from the database
-                        fetchKeys();
-
-
-                    } catch (error) {
-                        console.error("Error saving key to Firebase:", error);
-                         // Log more details of the error object
-                         console.error("Error code:", error.code);
-                         console.error("Error message:", error.message);
-                         console.error("Full error object:", error);
-
-                        generateErrorDiv.textContent = "Error generating or saving key: " + (error.message || error.code || 'Unknown error');
-                        generateErrorDiv.classList.remove('hidden');
-                        generatedKeyOutput.classList.add('hidden'); // Hide output on error
-                    } finally {
-                        // Re-enable button and restore text/icon
-                        generateKeyButton.disabled = false;
-                        generateKeyButton.querySelector('span').textContent = 'Generate Key';
-                        generateKeyButton.querySelector('i').classList.remove('fa-spinner', 'fa-spin');
-                        generateKeyButton.querySelector('i').classList.add('fa-plus-circle');
-                    }
+                }, (error) => {
+                    console.error("Error fetching Hakma Specials: ", error);
+                    hakmaSpecialsContainer.innerHTML = '<p class="text-red-500">Could not load Hakma Specials.</p>';
                 });
             }
 
-            // --- Initial calls ---
-            // Fetch keys from Firebase when the page loads
-            fetchKeys();
+            // --- Quiz Logic ---
+            function startQuiz(quizId) {
+                quizIdForRetry = quizId; // Store for "Play Again"
+                const quizRef = database.ref(`quizzes/${quizId}`);
+                displayMessage(quizMessageDiv, 'Loading quiz...', 'info');
+                quizRef.once('value').then(snapshot => {
+                    currentQuizData = snapshot.val();
+                    if (currentQuizData && currentQuizData.questions && currentQuizData.questions.length > 0) {
+                        clearMessages();
+                        quizTitleEl.textContent = currentQuizData.title || "Quiz";
+                        currentQuestionIndex = 0;
+                        score = 0;
+                        showPage('quizGamePage');
+                        quizResultAreaEl.classList.add('hidden');
+                        questionAreaEl.classList.remove('hidden');
+                        document.getElementById('quizProgressArea').classList.remove('hidden');
+                        displayQuestion();
+                    } else {
+                        displayMessage(quizMessageDiv, 'Quiz data not found or empty.', 'danger');
+                        showPage('homePage'); // Or a specific error page
+                    }
+                }).catch(error => {
+                    console.error("Error fetching quiz: ", error);
+                    displayMessage(quizMessageDiv, `Error loading quiz: ${error.message}`, 'danger');
+                     showPage('homePage');
+                });
+            }
 
+            function displayQuestion() {
+                if (!currentQuizData || currentQuestionIndex >= currentQuizData.questions.length) {
+                    showQuizResults();
+                    return;
+                }
+                const question = currentQuizData.questions[currentQuestionIndex];
+                questionTextEl.textContent = question.questionText;
+                optionsContainerEl.innerHTML = ''; // Clear previous options
+
+                question.options.forEach(optionText => {
+                    const button = document.createElement('button');
+                    button.textContent = optionText;
+                    button.className = 'quiz-option-btn block w-full text-left p-3 bg-white border border-gray-300 rounded-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500';
+                    button.onclick = () => handleAnswer(optionText, question.correctAnswer, button);
+                    optionsContainerEl.appendChild(button);
+                });
+
+                currentQuestionNumberEl.textContent = currentQuestionIndex + 1;
+                totalQuestionsEl.textContent = currentQuizData.questions.length;
+                currentScoreEl.textContent = score;
+            }
+
+            function handleAnswer(selectedAnswer, correctAnswer, buttonEl) {
+                // Disable all option buttons after an answer is selected
+                const optionButtons = optionsContainerEl.querySelectorAll('button');
+                optionButtons.forEach(btn => btn.disabled = true);
+
+                if (selectedAnswer === correctAnswer) {
+                    score++;
+                    buttonEl.classList.add('correct');
+                    displayMessage(quizMessageDiv, 'Correct!', 'success');
+                } else {
+                    buttonEl.classList.add('incorrect');
+                    displayMessage(quizMessageDiv, `Incorrect. The answer was: ${correctAnswer}`, 'danger');
+                    // Optionally highlight the correct answer
+                    optionButtons.forEach(btn => {
+                        if (btn.textContent === correctAnswer) {
+                            btn.classList.add('correct');
+                        }
+                    });
+                }
+                currentScoreEl.textContent = score; // Update score display immediately
+
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    clearMessages(); // Clear correct/incorrect message
+                    displayQuestion();
+                }, 2000); // Wait 2 seconds before next question
+            }
+
+            function showQuizResults() {
+                questionAreaEl.classList.add('hidden');
+                document.getElementById('quizProgressArea').classList.add('hidden');
+                quizResultAreaEl.classList.remove('hidden');
+                finalScoreEl.textContent = score;
+                finalTotalQuestionsEl.textContent = currentQuizData.questions.length;
+            }
+
+            playAgainBtn.addEventListener('click', () => {
+                if (quizIdForRetry) {
+                    startQuiz(quizIdForRetry);
+                }
+            });
+            
+            // --- Quiz Mode Button Listeners ---
+            // For now, all quiz mode buttons will start the same sample quiz
+            const defaultQuizId = 'islamicQuiz1'; // Make sure this quiz exists in your Firebase
+
+            singlePlayerBtn.addEventListener('click', () => startQuiz(defaultQuizId));
+            challengeModeBtn.addEventListener('click', () => startQuiz(defaultQuizId)); // Can be different later
+            islamicQuizBtn.addEventListener('click', () => startQuiz(defaultQuizId));
+
+
+            // --- Navigation Link Event Listeners ---
+            showRegisterPageLink.addEventListener('click', (e) => { e.preventDefault(); showPage('registerPage'); });
+            showLoginPageLink.addEventListener('click', (e) => { e.preventDefault(); showPage('loginPage'); });
+            backToHomeLinks.forEach(link => {
+                link.addEventListener('click', (e) => { e.preventDefault(); showPage('homePage'); });
+            });
+
+            // --- Initial Setup ---
+            loadHakmaSpecials(); // Load specials when the app starts
+            showPage('homePage'); // Default page
         });
-
-  </script>
- </body>
+    </script>
+</body>
 </html>
