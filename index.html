@@ -1,2533 +1,403 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title/> NIMA App</title>
-    <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕌</text></svg>">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>मेरी न्यूज़ ऐप</title> <!-- Your App Title -->
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="News App"> <!-- Short name for iOS -->
+    <meta name="theme-color" content="#3498db"> <!-- Customize status bar color -->
+
+    <!-- Link to manifest file -->
+    <!-- Ensure manifest.json is in the root directory -->
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- Add apple touch icon (replace with your icon in /icons folder) -->
+    <!-- Ensure you have an /icons folder with apple-touch-icon.png -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
     <style>
-        /* iOS-like Color Palette & Variables */
-        :root {
-            --primary-color: #007AFF; /* iOS Blue */
-            --secondary-color: #5856D6; /* iOS Indigo */
-            --accent-color: #FF9500; /* iOS Orange */
-            --light-color: #F2F2F7; /* iOS System Gray 6 */
-            --dark-color: #1C1C1E; /* iOS System Gray 2 (Dark) */
-            --text-color: #000000;
-            --secondary-text-color: #8E8E93; /* iOS System Gray */
-            --bg-color: #FFFFFF;
-            --card-bg: #F2F2F7; /* Light card bg */
-            --header-bg: #F9F9F9; /* Very light header */
-            --header-border: #D1D1D6; /* Separator line */
-            --nav-bg: #F9F9F9;
-            --nav-border: #D1D1D6;
-            --border-color: #E5E5EA; /* iOS System Gray 4 */
-            --active-nav-color: var(--primary-color);
-        }
-
-        .dark-mode {
-            --primary-color: #0A84FF; /* iOS Blue (Dark) */
-            --secondary-color: #BF5AF2; /* iOS Purple (Dark) */
-            --accent-color: #FF9F0A; /* iOS Orange (Dark) */
-            --light-color: #2C2C2E; /* iOS System Gray 5 (Dark) */
-            --dark-color: #E5E5EA; /* iOS System Gray 4 (Dark) - for light text/icons */
-            --text-color: #FFFFFF;
-            --secondary-text-color: #8E8E93; /* iOS System Gray (Dark) - same as light for consistency */
-            --bg-color: #000000; /* Pure Black */
-            --card-bg: #1C1C1E; /* iOS System Gray 2 (Dark) */
-            --header-bg: #1C1C1E;
-            --header-border: #3A3A3C; /* Darker separator */
-            --nav-bg: #1C1C1E;
-            --nav-border: #3A3A3C;
-            --border-color: #3A3A3C;
-            --active-nav-color: var(--primary-color);
-        }
-
-        /* Base Styles */
-        * {
+        /* General Styles */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            /* Use system fonts for iOS feel */
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            max-width: 500px; /* Typical phone width */
-            margin: 0 auto;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative; /* Needed for absolute page positioning */
-            overflow: hidden; /* Hide content overflow during transitions */
-            transition: background-color 0.3s, color 0.3s;
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
         }
 
-        .app-container, .content-page {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-            position: absolute; /* Position absolute for page transitions */
-            top: 0;
-            left: 0;
-            transition: transform 0.3s ease-out;
-            background-color: var(--bg-color); /* Match body background */
-            color: var(--text-color);
-             /* Ensure page content scrolls, not the body */
-             overflow-y: hidden; /* Hide overflow on the container itself */
-        }
-
-        .app-container {
-             z-index: 1;
-             transform: translateX(0); /* Home page is initially visible */
-        }
-
-        .content-page {
-            transform: translateX(100%); /* Initially off-screen to the right */
-            display: none; /* Start hidden */
-            z-index: 2;
-        }
-
-        .content-page.active {
-            transform: translateX(0); /* Slide in */
-            display: flex; /* Make visible */
-        }
-
-        /* Header */
-        header, .page-header {
-            background-color: var(--header-bg);
-            border-bottom: 1px solid var(--header-border);
-            padding: 12px 15px; /* Adjusted padding */
+        h1 {
+            color: #3498db;
             text-align: center;
-            position: relative;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.08); /* Subtle bottom shadow */
-            z-index: 10;
-            flex-shrink: 0;
-             min-height: 44px; /* Standard iOS header height */
-             display: flex;
-             align-items: center;
-             justify-content: space-between;
-        }
-         .dark-mode header, .dark-mode .page-header {
-             box-shadow: 0 1px 0 rgba(255,255,255,0.1);
-         }
-
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
+            margin-bottom: 20px;
+            font-size: 1.8em;
         }
 
-        .header-title {
-            font-size: 1.1rem; /* Slightly smaller title */
-            font-weight: 600; /* Semibold */
-            flex-grow: 1;
-            text-align: center;
-        }
-
-         .page-title {
-             font-size: 1.1rem;
-             font-weight: 600;
-             flex-grow: 1;
-             text-align: center;
-             margin-left: -24px; /* Offset back button space for center text */
-         }
-
-
-        .header-icons {
-            display: flex;
-            gap: 15px;
-            flex-shrink: 0;
-        }
-
-        .header-icons i, .back-button {
-            font-size: 1.3rem; /* Slightly larger icons */
-            cursor: pointer;
-            color: var(--primary-color); /* Accent color for interactive elements */
-        }
-         .dark-mode .header-icons i, .dark-mode .back-button {
-             color: var(--primary-color); /* Accent color in dark mode */
-         }
-
-        .back-button {
-             font-size: 1.3rem;
-             margin-right: 15px;
-             flex-shrink: 0;
-        }
-
-
-        /* Date Display */
-        .current-date {
-            background-color: var(--secondary-color); /* Keep a distinct color */
-            color: white;
-            padding: 8px 15px; /* Add horizontal padding */
-            text-align: center;
-            font-size: 0.9rem;
-            flex-shrink: 0;
-            box-shadow: inset 0 -1px 0 rgba(0,0,0,0.1); /* Subtle inner shadow */
-        }
-
-        .hijri-date {
-            margin-top: 3px;
-            font-size: 0.8rem;
-            opacity: 0.9;
-        }
-
-        /* Main Content Area */
-        .main-content, .page-content {
-            flex: 1;
-            overflow-y: auto; /* Allow content to scroll */
-            padding: 15px;
-            background-color: var(--bg-color);
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-        }
-
-        /* Cards */
-        .prayer-times, .feature-card, .more-option, .content-item,
-        .prayer-times-table, .calendar-day:not(.empty) {
-            background-color: var(--card-bg);
-            border-radius: 10px; /* Rounded corners */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08); /* Subtle shadow */
-            transition: background-color 0.3s, transform 0.2s, box-shadow 0.2s;
-        }
-         .dark-mode .prayer-times, .dark-mode .feature-card, .dark-mode .more-option, .dark-mode .content-item,
-         .dark-mode .prayer-times-table, .dark-mode .calendar-day:not(.empty) {
-             box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-         }
-
-
-        .prayer-times {
-             padding: 15px;
-             margin-bottom: 20px;
-        }
-
-        .prayer-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-             padding-bottom: 10px;
-             border-bottom: 1px solid var(--border-color);
-        }
-
-        .prayer-title {
-            font-size: 1.1rem; /* Adjusted size */
-            color: var(--text-color); /* Use text color, not primary */
-            font-weight: 600; /* Semibold */
-        }
-
-        .location {
-            font-size: 0.9rem;
-            color: var(--secondary-text-color); /* Secondary text color */
-            display: flex;
-            align-items: center;
-        }
-
-        .location i {
-            margin-right: 5px;
-            color: var(--secondary-text-color); /* Secondary color for icon */
-        }
-
-        .prayer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); /* Flexible columns */
-            gap: 10px;
-        }
-
-        .prayer-card {
-            padding: 10px 5px; /* Adjusted padding */
-            text-align: center;
-            font-size: 0.9rem; /* Adjusted font size */
-        }
-
-        .prayer-card.active {
-            background-color: var(--primary-color);
-            color: white;
-            box-shadow: 0 2px 5px rgba(0,122,255,0.3); /* Accent shadow */
-        }
-         .dark-mode .prayer-card.active {
-             box-shadow: 0 2px 5px rgba(10,132,255,0.5);
-         }
-
-        .prayer-card:hover {
-            transform: none; /* No hover effect on mobile feel */
-        }
-
-        .prayer-name {
-            font-weight: 500; /* Medium weight */
-            margin-bottom: 5px;
-             font-size: 0.8rem;
-             color: var(--secondary-text-color);
-        }
-         .dark-mode .prayer-name {
-             color: var(--secondary-text-color);
-         }
-         .prayer-card.active .prayer-name {
-             color: rgba(255,255,255,0.8); /* Slightly muted white */
-         }
-
-
-        .prayer-time {
-            font-size: 1.1rem;
-            font-weight: 600; /* Semibold */
-        }
-
-        .next-prayer {
-            margin-top: 15px;
-            padding: 12px; /* Adjusted padding */
-            background-color: var(--accent-color);
-            color: white;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 600; /* Semibold */
-             font-size: 0.95rem;
-        }
-
-        /* Feature Grid (Home Page) */
-        .features-grid {
-            display: grid;
-             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Flexible columns */
-            gap: 15px;
+        /* News List Styles */
+        .news-list {
+            list-style: none;
+            padding: 0;
             margin-top: 20px;
         }
 
-        .feature-card {
-            padding: 20px 15px;
-            text-align: center;
-            cursor: pointer;
-             border: 1px solid transparent; /* Add border for definition */
+        .news-item {
+            background-color: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
         }
-         .dark-mode .feature-card {
-              border: 1px solid transparent;
-         }
 
-        .feature-card:hover {
-            transform: none; /* No hover effect on mobile */
+        .news-item:hover {
+            transform: translateY(-3px);
         }
 
-        .feature-card:active {
-             transform: scale(0.98); /* Subtle press effect */
-             box-shadow: 0 0px 2px rgba(0,0,0,0.1);
-             background-color: rgba(0,0,0,0.05);
-        }
-         .dark-mode .feature-card:active {
-             box-shadow: 0 0px 2px rgba(255,255,255,0.1);
-              background-color: rgba(255,255,255,0.05);
-         }
-
-
-        .feature-icon {
-            font-size: 2rem;
-            color: var(--primary-color);
+        .news-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 5px;
             margin-bottom: 10px;
         }
 
-        .feature-name {
-            font-weight: 600; /* Semibold */
-            color: var(--text-color);
-             font-size: 0.95rem;
+        .news-item h3 {
+            font-size: 1.2em;
+            color: #34495e;
+            margin: 0 0 5px 0;
         }
 
-        /* Navigation Bar (Tab Bar) */
-        .navigation {
-            display: flex;
-            justify-content: space-around;
-            background-color: var(--nav-bg);
-            padding: 5px 0; /* Adjusted padding */
-            border-top: 1px solid var(--nav-border);
-            box-shadow: 0 -1px 0 rgba(0,0,0,0.08); /* Subtle top shadow */
-            transition: background-color 0.3s;
-            flex-shrink: 0;
-            z-index: 10;
+        .news-item p {
+            font-size: 0.95em;
+            color: #555;
+            margin: 0 0 10px 0;
         }
-         .dark-mode .navigation {
-              box-shadow: 0 -1px 0 rgba(255,255,255,0.1);
-         }
 
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center; /* Center content vertically */
-            color: var(--secondary-text-color); /* Default color */
+        .news-item a {
+            display: inline-block; /* or block */
+            color: #3498db;
             text-decoration: none;
-            font-size: 0.7rem; /* Smaller font size */
-            flex: 1;
-            padding: 5px 0; /* Padding for touch target */
+            font-weight: 500;
+            font-size: 0.9em;
+            align-self: flex-start; /* Align link to the left */
+            transition: color 0.3s ease;
         }
 
-        .nav-item i {
-            font-size: 1.4rem; /* Larger icons */
-            margin-bottom: 3px;
+        .news-item a:hover {
+            color: #2980b9;
+            text-decoration: underline;
         }
 
-        .nav-item.active {
-            color: var(--active-nav-color); /* Accent color when active */
-        }
-
-         .nav-item:active {
-             opacity: 0.7; /* Subtle press effect */
-         }
-
-
-        /* Modal styles (iOS-like) */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.4); /* Slightly less opaque backdrop */
-            z-index: 100;
-            justify-content: center;
-            align-items: flex-end; /* Modals slide up from bottom */
-            padding: 0; /* No padding on modal container */
-            opacity: 0;
-            transition: opacity 0.3s ease-out;
-        }
-
-         .modal.active {
-             display: flex;
-             opacity: 1;
-         }
-
-        .modal-content {
-            background-color: var(--card-bg);
-            width: 100%; /* Full width on mobile */
-            max-width: 500px; /* Max width on larger screens */
-            border-top-left-radius: 10px; /* Rounded top corners */
-            border-top-right-radius: 10px;
-            border-bottom-left-radius: 0; /* No bottom rounding */
-            border-bottom-right-radius: 0;
-            overflow: hidden;
-            max-height: 95vh; /* Don't cover the very top */
-            display: flex;
-            flex-direction: column;
-            transform: translateY(100%); /* Start off-screen below */
-            transition: transform 0.3s ease-out;
-        }
-         .modal.active .modal-content {
-             transform: translateY(0); /* Slide in from bottom */
-         }
-
-
-        .modal-header {
-            background-color: var(--header-bg);
-             border-bottom: 1px solid var(--header-border);
-            color: var(--text-color); /* Header text color */
-            padding: 12px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-shrink: 0;
-             min-height: 44px;
-        }
-
-        .modal-title {
-            font-weight: 600; /* Semibold */
-            font-size: 1.1rem;
-            flex-grow: 1;
-             text-align: center;
-        }
-
-        .close-modal {
-            font-size: 1.5rem; /* Larger size for close button */
-            cursor: pointer;
-            color: var(--primary-color); /* Accent color */
-             margin-left: 15px; /* Spacing */
-        }
-        .dark-mode .close-modal {
-             color: var(--primary-color);
-        }
-
-
-        .modal-body {
-            padding: 15px; /* Adjusted padding */
-            overflow-y: auto;
-            flex: 1;
-            background-color: var(--bg-color); /* Use background color for modal body */
-             -webkit-overflow-scrolling: touch;
-        }
-
-        /* Quran Page */
-        .surah-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .surah-item {
-            padding: 12px 15px; /* Adjusted padding */
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .surah-item:hover {
-             background-color: var(--light-color); /* Subtle hover */
-        }
-         .dark-mode .surah-item:hover {
-              background-color: var(--card-bg);
-         }
-
-        .surah-item:active {
-            background-color: rgba(0,0,0,0.05); /* Press effect */
-        }
-         .dark-mode .surah-item:active {
-             background-color: rgba(255,255,255,0.05);
-         }
-
-
-        .surah-number {
+        /* Loader */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
             width: 30px;
             height: 30px;
-            background-color: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-right: 15px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            flex-shrink: 0;
+            animation: spin 1s linear infinite;
+            margin: 30px auto;
+            display: none; /* Hidden by default */
         }
-
-        .surah-info {
-            flex: 1;
-        }
-
-        .surah-name {
-            font-weight: 600; /* Semibold */
-            margin-bottom: 3px;
-            color: var(--text-color);
-        }
-
-        .surah-details {
-            font-size: 0.8rem;
-            color: var(--secondary-text-color); /* Secondary text color */
-        }
-
-         /* Quran Modal Content */
-         #surah-modal-content p {
-             margin-bottom: 1em;
-             line-height: 1.6;
-         }
-          #surah-modal-content p:last-child {
-              margin-bottom: 0;
-          }
-         #surah-modal-content p[dir="rtl"] { /* Use dir attribute for Arabic */
-             text-align: right;
-             font-size: 1.2rem;
-             font-weight: bold;
-             color: var(--text-color);
-         }
-
-
-        /* Calendar Page */
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding: 0 5px; /* Adjust padding for buttons */
-        }
-
-        .month-nav {
-            display: flex;
-            align-items: center;
-        }
-
-        .month-nav button {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: var(--primary-color);
-            padding: 8px 10px; /* Increased padding for touch */
-             border-radius: 5px;
-        }
-         .month-nav button:active {
-             background-color: rgba(0,0,0,0.05);
-         }
-         .dark-mode .month-nav button:active {
-             background-color: rgba(255,255,255,0.05);
-         }
-
-
-        .current-month {
-            font-weight: 600; /* Semibold */
-            margin: 0 10px;
-             font-size: 1rem;
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
-            text-align: center; /* Center text */
-        }
-
-        .calendar-day-header {
-            text-align: center;
-            font-weight: 600; /* Semibold */
-            font-size: 0.8rem;
-            padding: 5px;
-            color: var(--secondary-text-color); /* Muted color */
-        }
-
-        .calendar-day {
-            background-color: var(--card-bg); /* Ensure background is set */
-            border-radius: 8px; /* Slightly more rounded */
-            padding: 8px 5px;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-            color: var(--text-color);
-            min-height: 45px; /* Minimum height */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .calendar-day.empty {
-            background-color: transparent;
-            cursor: default;
-            box-shadow: none;
-        }
-
-        .calendar-day:not(.empty):hover {
-            background-color: var(--light-color); /* Subtle hover */
-        }
-         .dark-mode .calendar-day:not(.empty):hover {
-              background-color: var(--card-bg);
-         }
-
-         .calendar-day:not(.empty):active {
-             background-color: rgba(0,0,0,0.05); /* Press effect */
-         }
-          .dark-mode .calendar-day:not(.empty):active {
-              background-color: rgba(255,255,255,0.05);
-          }
-
-
-        .calendar-day.active {
-            background-color: var(--primary-color);
-            color: white;
-            box-shadow: 0 2px 5px rgba(0,122,255,0.3); /* Accent shadow */
-        }
-         .dark-mode .calendar-day.active {
-              box-shadow: 0 2px 5px rgba(10,132,255,0.5);
-         }
-
-
-        .day-number {
-            font-weight: 600; /* Semibold */
-             color: inherit; /* Inherit color from parent */
-        }
-
-        .hijri-day {
-            font-size: 0.65rem; /* Smaller */
-            margin-top: 2px;
-            color: var(--secondary-text-color);
-        }
-         .dark-mode .hijri-day {
-             color: var(--secondary-text-color);
-         }
-
-        .calendar-day.active .hijri-day {
-            color: rgba(255,255,255,0.8); /* Slightly muted white */
-        }
-
-         /* Prayer Times Table (Calendar Page) */
-         .prayer-times-table {
-             width: 100%;
-             margin-top: 20px; /* Increased margin */
-             border-collapse: separate; /* For rounded corners */
-             border-spacing: 0; /* For separate borders */
-             background-color: var(--card-bg);
-             border-radius: 10px;
-             overflow: hidden; /* Clip content to border-radius */
-             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-         }
-          .dark-mode .prayer-times-table {
-               box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-          }
-
-
-         .prayer-times-table th, .prayer-times-table td {
-             padding: 12px 15px;
-             border-bottom: 1px solid var(--border-color);
-             color: var(--text-color);
-             text-align: left;
-         }
-
-         .prayer-times-table th {
-             font-weight: 600;
-              background-color: rgba(0,0,0,0.03); /* Subtle header background */
-              color: var(--secondary-text-color);
-               font-size: 0.9rem;
-         }
-          .dark-mode .prayer-times-table th {
-               background-color: rgba(255,255,255,0.05);
-               color: var(--secondary-text-color);
-          }
-
-
-         .prayer-times-table tr:last-child td {
-             border-bottom: none;
-         }
-
-         .prayer-times-table td:last-child {
-             text-align: right;
-             font-weight: 500; /* Medium weight */
-         }
-
-         /* Monthly Prayer Times Page */
-         #monthly-prayer-content .prayer-times-table {
-              margin-top: 0; /* Remove top margin */
-         }
-          #monthly-prayer-content .prayer-times-table td {
-               font-size: 0.9rem; /* Slightly smaller for full month */
-               padding: 10px 12px;
-               text-align: center; /* Center times */
-          }
-           #monthly-prayer-content .prayer-times-table td:first-child {
-                text-align: left; /* Align day number left */
-                 font-weight: 600;
-                 color: var(--secondary-text-color);
-           }
-            #monthly-prayer-content .prayer-times-table td:last-child {
-                 font-weight: 500;
-            }
-
-
-        /* Qibla Finder */
-        .qibla-container {
-            text-align: center;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .compass {
-            width: 250px; /* Larger compass */
-            height: 250px;
-            margin: 20px auto;
-            position: relative;
-            background-color: var(--card-bg);
-            border-radius: 50%;
-            border: 12px solid var(--secondary-color); /* Thicker border */
-            box-shadow: 0 5px 15px rgba(0,0,0,0.15); /* More pronounced shadow */
-             overflow: hidden; /* Clip inner elements */
-        }
-         .dark-mode .compass {
-              box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-         }
-
-
-        .compass-arrow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(0deg); /* Initial rotation */
-            color: #FF3B30; /* iOS Red */
-            font-size: 4rem; /* Larger arrow */
-            transition: transform 0.5s ease-out;
-            transform-origin: 50% 50%;
-            z-index: 2; /* Above markers */
-        }
-
-        .compass-markers {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            transform: rotate(0deg); /* This will be rotated based on device/simulated heading */
-            transition: transform 0.5s ease-out; /* Smooth rotation */
-             z-index: 1; /* Below arrow */
-        }
-
-        .compass-marker {
-            position: absolute;
-            width: 2px;
-            height: 15px;
-            background-color: var(--secondary-text-color); /* Muted color */
-            left: calc(50% - 1px);
-            transform-origin: bottom center;
-            bottom: 50%;
-             pointer-events: none; /* Ignore mouse events */
-        }
-
-        .compass-marker.north { transform: translate(-50%, -50%) rotate(0deg) translateY(-125px); height: 25px; background-color: var(--primary-color); width: 3px; left: auto; top: 0; } /* Positioned differently */
-        .compass-marker.east { transform: rotate(90deg); }
-        .compass-marker.south { transform: rotate(180deg); height: 20px; background-color: var(--accent-color); }
-        .compass-marker.west { transform: rotate(270deg); }
-
-         /* Labels for N, E, S, W */
-         .compass span {
-             position: absolute;
-             top: -10px;
-             left: 50%;
-             transform: translateX(-50%);
-             font-weight: bold;
-             color: var(--primary-color);
-              z-index: 3;
-         }
-          .compass span.e { top: 50%; right: -10px; left: auto; transform: translateY(-50%); color: var(--secondary-text-color); }
-          .compass span.s { bottom: -10px; top: auto; color: var(--accent-color); }
-          .compass span.w { top: 50%; left: -10px; right: auto; transform: translateY(-50%); color: var(--secondary-text-color); }
-
-
-        .qibla-direction {
-            font-size: 1.1rem;
-            margin-top: 20px;
-            font-weight: 600; /* Semibold */
-            color: var(--primary-color);
-        }
-
-        .qibla-distance {
-            margin-top: 8px;
-            color: var(--secondary-text-color);
-             font-size: 0.9rem;
-        }
-
-         #calibrate-btn {
-             margin-top: 20px;
-             padding: 10px 20px;
-             background-color: var(--primary-color);
-             color: white;
-             border: none;
-             border-radius: 8px; /* Rounded button */
-             cursor: pointer;
-             font-size: 1rem;
-             font-weight: 500;
-             transition: opacity 0.2s;
-         }
-          #calibrate-btn:active {
-              opacity: 0.8; /* Press effect */
-          }
-
-
-        /* Settings Modal */
-        .settings-list {
-            list-style: none;
-            padding: 0;
-        }
-        .settings-item {
-            padding: 15px 0;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-         .settings-item:first-child {
-             padding-top: 0; /* No top padding on first item */
-         }
-         .settings-item:last-child {
-             border-bottom: none; /* No bottom border on last item */
-             padding-bottom: 0;
-         }
-
-
-        .settings-label {
-            font-weight: 500; /* Medium weight */
-            color: var(--text-color);
-             font-size: 0.95rem;
-        }
-
-        .settings-value {
-            color: var(--secondary-text-color);
-             font-size: 0.95rem;
-             text-align: right;
-        }
-
-        /* Switch (iOS Style) */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 51px; /* Standard iOS switch width */
-            height: 31px; /* Standard iOS switch height */
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #E5E5EA; /* iOS inactive switch color */
-            transition: .4s;
-            border-radius: 31px; /* Fully rounded */
-        }
-         .dark-mode .slider {
-             background-color: #48484A; /* iOS inactive switch dark */
-         }
-
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 27px; /* Standard iOS knob size */
-            width: 27px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-             box-shadow: 0 1px 3px rgba(0,0,0,0.4); /* Knob shadow */
-        }
-
-        input:checked + .slider {
-            background-color: var(--primary-color); /* iOS active switch color */
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(20px); /* Move knob */
-        }
-
-        /* Content Item (Dua/Hadith) */
-        .content-item {
-            padding: 15px;
-            margin-bottom: 15px;
-             border: 1px solid transparent; /* For definition */
-             background-color: var(--card-bg); /* Ensure background color is set */
-             border-radius: 10px;
-             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-             color: var(--text-color);
-        }
-         .dark-mode .content-item {
-             box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-         }
-
-
-        .content-item h3 {
-            color: var(--primary-color); /* Primary color for titles */
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-
-        .content-item p {
-            margin-bottom: 1em; /* Space out paragraphs */
-            line-height: 1.6;
-             font-size: 0.95rem;
-             color: var(--text-color);
-        }
-
-         .content-item p:last-of-type {
-             margin-bottom: 0; /* No margin after last paragraph */
-         }
-
-
-        .content-item .reference {
-            font-style: normal; /* Not italic */
-            color: var(--secondary-text-color); /* Muted color */
-            font-size: 0.85rem;
-             display: block; /* New line */
-             margin-top: 10px; /* Space from text */
-             font-weight: 500;
-        }
-         .content-item p[dir="rtl"] {
-              font-size: 1.2rem;
-              font-weight: bold;
-              line-height: 2; /* More space for Arabic */
-         }
-
-
-        /* More Options Grid */
-        .more-options-grid {
-            display: grid;
-             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); /* Flexible columns */
-            gap: 15px;
-        }
-
-        .more-option {
-             /* Styles inherited from .feature-card */
-             border: 1px solid transparent; /* For definition */
-        }
-         .dark-mode .more-option {
-              border: 1px solid transparent;
-         }
-
-
-        .more-option:hover {
-            transform: none;
-        }
-         .more-option:active {
-              transform: scale(0.98); /* Subtle press effect */
-              box-shadow: 0 0px 2px rgba(0,0,0,0.1);
-              background-color: rgba(0,0,0,0.05);
-         }
-          .dark-mode .more-option:active {
-              box-shadow: 0 0px 2px rgba(255,255,255,0.1);
-               background-color: rgba(255,255,255,0.05);
-          }
-
-
-        /* Loading Spinner & Messages */
-        .loading-spinner {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100px; /* Default height, can be overridden */
-            width: 100%;
-             /* Ensure spinner is visible */
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--primary-color);
-            animation: spin 1s ease-in-out infinite;
-        }
-         .dark-mode .spinner {
-             border-color: rgba(255, 255, 255, 0.1);
-             border-top-color: var(--primary-color);
-         }
-
-         .error-message, .data-empty-message {
-             text-align: center;
-             padding: 20px;
-             color: var(--secondary-text-color);
-             font-style: italic;
-             width: 100%; /* Ensure it takes full width in flex container */
-         }
-         .error-message {
-             color: #DC3545; /* iOS Red */
-         }
-
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Utility class to hide elements */
-        .hide {
-             display: none !important;
+        /* Message/Error */
+        .message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+            display: none; /* Hidden by default */
         }
+
+        .message.show {
+            display: block;
+        }
+
+         /* Update Notification */
+        #update-notification {
+             position: fixed;
+             bottom: 15px;
+             left: 15px;
+             right: 15px;
+             background-color: #f39c12;
+             color: #fff;
+             padding: 15px;
+             border-radius: 8px;
+             text-align: center;
+             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+             z-index: 1000;
+             display: none; /* Hidden by default */
+             cursor: pointer;
+        }
+         #update-notification:hover {
+             background-color: #e67e22;
+         }
 
     </style>
 </head>
 <body>
-    <div class="app-container" id="home-page">
-        <header>
-            <div class="header-content">
-                 <!-- Left empty for potential back button if needed on home, or keep title centered -->
-                <span style="width: 24px;"></span>
-                <div class="header-title">NIMA App</div>
-                <div class="header-icons">
-                    <!-- <i class="fas fa-search"></i> --> <!-- Removed Search for simplicity -->
-                    <i class="fas fa-cog" id="settings-btn"></i>
-                </div>
-            </div>
-        </header>
 
-        <div class="current-date">
-            <div id="gregorian-date"></div>
-            <div class="hijri-date" id="hijri-date"></div>
-        </div>
+    <div class="container">
+        <h1>ताज़ा खबरें</h1> <!-- Your App Title -->
 
-        <div class="main-content home-main-content">
-            <div class="prayer-times">
-                <div class="prayer-header">
-                    <div class="prayer-title">Prayer Times</div>
-                    <div class="location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span id="current-location">Loading...</span> <!-- Placeholder -->
-                    </div>
-                </div>
+        <div id="newsLoader" class="loader"></div>
+        <div id="newsMessage" class="message">खबरें लोड हो रही हैं...</div> <!-- Initial message -->
 
-                <div class="prayer-grid" id="home-prayer-grid">
-                    <!-- Prayer cards will be populated by JavaScript -->
-                     <div class="loading-spinner"><div class="spinner"></div></div>
-                </div>
-
-                <div class="next-prayer">
-                    Next Prayer: <span id="next-prayer-name">-</span> in <span id="next-prayer-time">-</span>
-                </div>
-            </div>
-
-            <div class="features-grid">
-                <div class="feature-card" data-page="quran-page">
-                    <div class="feature-icon">
-                        <i class="fas fa-book-quran"></i>
-                    </div>
-                    <div class="feature-name">Quran</div>
-                </div>
-                <div class="feature-card" data-page="prayer-page">
-                    <div class="feature-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="feature-name">Prayer Times</div>
-                </div>
-                <div class="feature-card" data-modal="qibla-modal">
-                    <div class="feature-icon">
-                        <i class="fas fa-compass"></i>
-                    </div>
-                    <div class="feature-name">Qibla Finder</div>
-                </div>
-                <div class="feature-card" data-page="calendar-page">
-                     <div class="feature-icon">
-                        <i class="fas fa-calendar-alt"></i>
-                    </div>
-                    <div class="feature-name">Islamic Calendar</div>
-                </div>
-                <div class="feature-card" data-page="dua-page">
-                    <div class="feature-icon">
-                        <i class="fas fa-hands-praying"></i>
-                    </div>
-                    <div class="feature-name">Duas</div>
-                </div>
-                <div class="feature-card" data-page="hadith-page">
-                    <div class="feature-icon">
-                        <i class="fas fa-book-open"></i>
-                    </div>
-                    <div class="feature-name">Hadith</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="navigation">
-            <a href="#" class="nav-item active" data-page="home-page">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="#" class="nav-item" data-page="quran-page">
-                <i class="fas fa-book-quran"></i>
-<a href="google" </a>
-                <span>AAYAT</span>
-            </a>
-            <a href="#" class="nav-item" data-page="prayer-page">
-                <i class="fas fa-mosque"></i>
-                <span>Prayer</span>
-            </a>
-            <a href="#" class="nav-item" data-page="more-page">
-                <i class="fas fa-ellipsis-h"></i>
-                <span>More</span>
-            </a>
-        </div>
+        <ul id="newsList" class="news-list">
+            <!-- News articles will be loaded here -->
+        </ul>
     </div>
 
-    <!-- Content Pages -->
-
-    <!-- Quran Page -->
-    <div class="content-page" id="quran-page">
-        <div class="page-header">
-            <i class="fas fa-arrow-left back-button"></i>
-            <div class="page-title">The Holy Quran</div>
-             <span style="width: 24px;"></span> <!-- Spacer -->
-        </div>
-        <div class="page-content">
-            <ul class="surah-list" id="surah-list">
-                <div class="loading-spinner"><div class="spinner"></div></div>
-            </ul>
-        </div>
+    <!-- Update Notification Bar -->
+    <div id="update-notification" style="display: none;">
+        ऐप अपडेट उपलब्ध है! नया संस्करण प्राप्त करने के लिए यहां टैप करें।
     </div>
 
-     <!-- Calendar Page -->
-    <div class="content-page" id="calendar-page">
-        <div class="page-header">
-            <i class="fas fa-arrow-left back-button"></i>
-            <div class="page-title">Islamic Calendar</div>
-             <span style="width: 24px;"></span> <!-- Spacer -->
-        </div>
-         <div class="page-content">
-            <div class="calendar-header">
-                <div class="month-nav">
-                    <button id="prev-month">&lt;</button>
-                    <div class="current-month" id="calendar-current-month"></div>
-                    <button id="next-month">&gt;</button>
-                </div>
-            </div>
-
-            <div class="calendar-grid" id="calendar-grid">
-                <div class="calendar-day-header">Sun</div>
-                <div class="calendar-day-header">Mon</div>
-                <div class="calendar-day-header">Tue</div>
-                <div class="calendar-day-header">Wed</div>
-                <div class="calendar-day-header">Thu</div>
-                <div class="calendar-day-header">Fri</div>
-                <div class="calendar-day-header">Sat</div>
-                <!-- Calendar days will be populated by JavaScript -->
-            </div>
-
-            <div style="margin-top: 20px;">
-                <h3 style="font-weight: 600; font-size: 1rem; margin-bottom: 10px; color: var(--text-color);">Selected Day's Times</h3>
-                <table class="prayer-times-table" id="calendar-daily-times">
-                    <!-- Times will be populated by JavaScript -->
-                     <tr><td colspan="2" class="loading-spinner"><div class="spinner"></div></td></tr>
-                </table>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- Monthly Prayer Times Page -->
-    <div class="content-page" id="prayer-page">
-        <div class="page-header">
-            <i class="fas fa-arrow-left back-button"></i>
-            <div class="page-title">Monthly Prayer Times</div>
-            <span style="width: 24px;"></span> <!-- Spacer -->
-        </div>
-        <div class="page-content" id="monthly-prayer-content">
-            <div class="loading-spinner"><div class="spinner"></div></div>
-        </div>
-    </div>
-
-
-    <!-- More Options Page -->
-    <div class="content-page" id="more-page">
-        <div class="page-header">
-            <i class="fas fa-arrow-left back-button"></i>
-            <div class="page-title">More Options</div>
-            <span style="width: 24px;"></span> <!-- Spacer -->
-        </div>
-        <div class="page-content">
-            <div class="more-options-grid" id="more-options-grid">
-                <div class="loading-spinner"><div class="spinner"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dua Page -->
-    <div class="content-page" id="dua-page">
-        <div class="page-header">
-            <i class="fas fa-arrow-left back-button"></i>
-            <div class="page-title">Daily Duas</div>
-            <span style="width: 24px;"></span> <!-- Spacer -->
-        </div>
-        <div class="page-content" id="dua-content">
-            <div class="loading-spinner"><div class="spinner"></div></div>
-        </div>
-    </div>
-
-    <!-- Hadith Page -->
-    <div class="content-page" id="hadith-page">
-        <div class="page-header">
-            <i class="fas fa-arrow-left back-button"></i>
-            <div class="page-title">Hadith Collection</div>
-             <span style="width: 24px;"></span> <!-- Spacer -->
-        </div>
-        <div class="page-content" id="hadith-content">
-            <div class="loading-spinner"><div class="spinner"></div></div>
-        </div>
-    </div>
-
-    <!-- Modals -->
-
-    <!-- Quran Modal (for Surah details) -->
-    <div class="modal" id="quran-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="surah-modal-title">Surah Details</div>
-                <div class="close-modal">&times;</div>
-            </div>
-            <div class="modal-body" id="surah-modal-content">
-                <div class="loading-spinner"><div class="spinner"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Qibla Finder Modal -->
-    <div class="modal" id="qibla-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Qibla Finder</div>
-                <div class="close-modal">&times;</div>
-            </div>
-            <div class="modal-body">
-                <div class="qibla-container">
-                    <p style="color: var(--secondary-text-color); font-size: 0.9rem;">Ensure location services are enabled for best accuracy.<br/>(Simulation shown)</p>
-                    <div class="compass">
-                        <div class="compass-markers" id="compass-markers">
-                            <!-- Markers populated by JS -->
-                        </div>
-                        <!-- Arrow initially points North (0deg relative to container) -->
-                        <i class="fas fa-location-arrow compass-arrow" id="compass-arrow" style="transform: translate(-50%, -50%) rotate(0deg);"></i>
-                         <span class="n">N</span><span class="e">E</span><span class="s">S</span><span class="w">W</span>
-                    </div>
-                    <div class="qibla-direction" id="qibla-direction">Qibla: Point phone North</div>
-                     <div class="qibla-distance" id="qibla-distance">Distance: Calculating...</div>
-                    <button id="calibrate-btn">
-                        <i class="fas fa-sync-alt"></i> Simulate Device Rotation
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div class="modal" id="settings-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Settings</div>
-                <div class="close-modal">&times;</div>
-            </div>
-            <div class="modal-body">
-                <div class="settings-list">
-                    <div class="settings-item">
-                        <div class="settings-label">Location</div>
-                        <div class="settings-value" id="setting-location"NIMA OFFICAL APO</div>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">Calculation Method</div>
-                        <div class="settings-value">pravicy policy </div>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">Asr Calculation</div>
-                        <div class="settings-value">Shafi'i (Standard) (Placeholder)</div>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">High Latitude Method</div>
-                        <div class="settings-value">Angle/60th of night (Placeholder)</div>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">Dark Mode</div>
-                        <label class="switch">
-                            <input type="checkbox" id="dark-mode-toggle">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">Notifications</div>
-                        <label class="switch">
-                            <input type="checkbox" id="notifications-toggle" checked>
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label"> Sound</div>
-                        <div class="settings-value">Default (Placeholder)</div>
-                    </div>
-                    <div class="settings-item">
-                        <div class="settings-label">Language</div>
-                        <div class="settings-value">English (Placeholder)</div>
-                    </div>
-                 </div>
-            </div>
-        </div>
-    </div>
 
     <script>
-        // Provided Firebase Configuration
+        // --- Firebase Configuration ---
+        // Use the same configuration as your admin panel
         const firebaseConfig = {
-             apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
-             authDomain: "rn-gfx-tool.firebaseapp.com",
-             databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app",
-             projectId: "rn-gfx-tool",
-             storageBucket: "rn-gfx-tool.firebasestorage.app",
-             messagingSenderId: "163149358541",
-             // appId: "1:163149358541:android:2ef6d22fcd23e77ee09084" // This might be the Android app ID, check Firebase console if needed
+            apiKey: "AIzaSyAY3hXmpCXJUVrBtOaosPY_tsse3sx-O5o", // Your Firebase API key
+            authDomain: "nima-d4d7d.firebaseapp.com", // Your Auth Domain
+            databaseURL: "https://nima-d4d7d-default-rtdb.asia-southeast1.firebasedatabase.app", // Your Database URL
+            projectId: "nima-d4d7d", // Your Project ID
+            storageBucket: "nima-d4d7d.firebasestorage.app", // Your Storage Bucket
+            // appId: "your_web_app_id_here" // Add if you have a web app registered
         };
 
-        // Initialize Firebase
-        let database;
-        try {
-             firebase.initializeApp(firebaseConfig);
-             database = firebase.database();
-             console.log("Firebase initialized successfully for Islamic App.");
-        } catch (error) {
-             console.error("Firebase initialization failed:", error);
-             // Display error message if Firebase fails
-             document.body.innerHTML = '<div style="padding: 20px; text-align: center; color: red;">Error: Failed to connect to Firebase. Check console for details.</div>';
-             // Prevent further script execution for parts depending on Firebase
-             database = null;
-        }
-
-
-        // App state
-        const appState = {
-            currentPage: 'home-page',
-            darkMode: localStorage.getItem('darkMode') === 'true',
-            currentDate: new Date(),
-            prayerTimes: {}, // Placeholder for today's times (will remain simulated for now)
-            monthlyPrayerTimes: {}, // Placeholder for monthly times (will remain simulated for now)
-            compassSimulationInterval: null, // Renamed for clarity
-            simulatedDeviceHeading: 0, // For compass simulation
-            // Simulated Qibla angle (e.g., for New York) - In a real app, calculate this based on location
-            qiblaAngle: 120, // degrees clockwise from North
-            currentCalendarDate: new Date(), // For the calendar view
-            selectedCalendarDate: new Date(), // For the selected day in the calendar view
-
-            // Data loaded from Firebase
-            surahsData: null,
-            duasData: null,
-            hadithsData: null,
-            moreOptionsData: null
-        };
+         // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
 
         // --- DOM Elements ---
-        const pages = {
-            'home-page': document.getElementById('home-page'),
-            'quran-page': document.getElementById('quran-page'),
-            'prayer-page': document.getElementById('prayer-page'),
-             'calendar-page': document.getElementById('calendar-page'),
-            'more-page': document.getElementById('more-page'),
-            'dua-page': document.getElementById('dua-page'),
-            'hadith-page': document.getElementById('hadith-page')
-        };
-
-        const modals = {
-            'quran-modal': document.getElementById('quran-modal'),
-            'qibla-modal': document.getElementById('qibla-modal'),
-            'settings-modal': document.getElementById('settings-modal')
-        };
-
-        const navItems = document.querySelectorAll('.navigation .nav-item');
-        const backButtons = document.querySelectorAll('.content-page .back-button');
-        const closeModalButtons = document.querySelectorAll('.modal .close-modal');
-        const featureCards = document.querySelectorAll('.features-grid .feature-card');
+        const newsList = document.getElementById('newsList');
+        const newsLoader = document.getElementById('newsLoader');
+        const newsMessage = document.getElementById('newsMessage');
+        const updateNotification = document.getElementById('update-notification');
 
 
-        // Home Page Elements
-        const gregorianDateEl = document.getElementById('gregorian-date');
-        const hijriDateEl = document.getElementById('hijri-date');
-        const currentLocationEl = document.getElementById('current-location');
-        const homePrayerGridEl = document.getElementById('home-prayer-grid');
-        const nextPrayerNameEl = document.getElementById('next-prayer-name');
-        const nextPrayerTimeEl = document.getElementById('next-prayer-time');
-        const settingsBtn = document.getElementById('settings-btn');
+        // --- Utility Functions ---
+        function showLoader() {
+            newsLoader.style.display = 'block';
+             newsMessage.style.display = 'none'; // Hide message when loading
+        }
 
-        // Quran Page Elements
-        const surahListEl = document.getElementById('surah-list');
-        const quranModalTitleEl = document.getElementById('surah-modal-title');
-        const surahModalContentEl = document.getElementById('surah-modal-content');
+        function hideLoader() {
+            newsLoader.style.display = 'none';
+        }
 
-        // Calendar Page Elements
-        const calendarCurrentMonthEl = document.getElementById('calendar-current-month');
-        const calendarGridEl = document.getElementById('calendar-grid');
-        const prevMonthBtn = document.getElementById('prev-month');
-        const nextMonthBtn = document.getElementById('next-month');
-        const calendarDailyTimesEl = document.getElementById('calendar-daily-times');
+        function showMessage(msg, isError = false) {
+            newsMessage.textContent = msg;
+            newsMessage.className = 'message show ' + (isError ? '' : 'success'); // Use default error style or success
+            newsMessage.style.display = 'block';
+             hideLoader(); // Hide loader if message is shown
+             // No auto-hide for main news list messages, user should see the status
+        }
 
-         // Monthly Prayer Page Elements
-         const monthlyPrayerContentEl = document.getElementById('monthly-prayer-content');
-
-        // More Options Page Elements
-        const moreOptionGridEl = document.getElementById('more-options-grid');
-
-        // Dua Page Elements
-        const duaContentEl = document.getElementById('dua-content');
-
-        // Hadith Page Elements
-        const hadithContentEl = document.getElementById('hadith-content');
+        function clearMessage() {
+             newsMessage.textContent = '';
+             newsMessage.classList.remove('show');
+             newsMessage.style.display = 'none';
+        }
 
 
-        // Qibla Modal Elements
-        const compassArrowEl = document.getElementById('compass-arrow');
-        const compassMarkersEl = document.getElementById('compass-markers');
-        const qiblaDirectionEl = document.getElementById('qibla-direction');
-        const qiblaDistanceEl = document.getElementById('qibla-distance');
-        const calibrateBtn = document.getElementById('calibrate-btn');
+        // --- Fetch and Display News ---
+        function fetchAndDisplayNews() {
+            showLoader();
+            clearMessage(); // Clear any previous messages
 
-        // Settings Modal Elements
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        const notificationsToggle = document.getElementById('notifications-toggle');
+            const newsRef = database.ref('customNews');
 
+            // Use .on('value') for real-time updates, or .once('value') for single load
+            // .on('value') is better for a news feed
+            newsRef.orderByChild('publishedAt').on('value', (snapshot) => {
+                hideLoader();
+                const news = snapshot.val();
+                newsList.innerHTML = ''; // Clear current list
 
-        // --- Core Functions ---
+                if (news) {
+                    // Convert object to array, sort by publishedAt descending (latest first)
+                    const newsArray = Object.keys(news).map(key => ({ ...news[key], key }));
+                    newsArray.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
 
-        // Function to show a specific page and hide others
-        function showPage(pageId) {
-            if (!pages[pageId]) {
-                console.error("Page not found:", pageId);
-                return;
-            }
+                    newsArray.forEach(article => {
+                        const li = document.createElement('li');
+                        li.classList.add('news-item');
 
-            // Hide all pages and modals
-            Object.values(pages).forEach(page => {
-                 page.classList.remove('active');
-                 // Use display none *after* transition for smooth animation
-                 if (page.id !== pageId) {
-                    page.style.transform = 'translateX(100%)'; // Move off screen
-                    // Delay setting display:none until transition is likely complete
-                     setTimeout(() => { page.style.display = 'none'; }, 350); // Match transition duration
-                 }
-             });
-             Object.values(modals).forEach(modal => modal.classList.remove('active'));
+                        // Add image if available
+                        if (article.urlToImage) {
+                            const img = document.createElement('img');
+                            img.src = article.urlToImage;
+                            img.alt = article.title || 'खबर की छवि';
+                            li.appendChild(img);
+                        }
 
+                        // Add title
+                        const title = document.createElement('h3');
+                        title.textContent = article.title || 'शीर्षक उपलब्ध नहीं';
+                        li.appendChild(title);
 
-            // Show the requested page
-            const targetPage = pages[pageId];
-            targetPage.style.display = 'flex'; // Make it visible immediately for transition
-            // Add active class after a small delay to ensure transition applies
-            setTimeout(() => {
-                 targetPage.style.transform = 'translateX(0)'; // Slide to screen
-                 targetPage.classList.add('active');
-             }, 10); // Small delay
+                        // Add description
+                        const description = document.createElement('p');
+                        description.textContent = article.description || 'विवरण उपलब्ध नहीं।';
+                        li.appendChild(description);
 
+                        // Add source link
+                        if (article.url) {
+                            const link = document.createElement('a');
+                            link.href = article.url;
+                            link.textContent = 'पूरी खबर पढ़ें';
+                            link.target = '_blank'; // Open link in a new tab/browser
+                            link.rel = 'noopener noreferrer'; // Security best practice
+                            li.appendChild(link);
+                        }
 
-            appState.currentPage = pageId;
-
-            // Update navigation active state
-            navItems.forEach(item => {
-                if (item.dataset.page === pageId) {
-                    item.classList.add('active');
+                        newsList.appendChild(li);
+                    });
                 } else {
-                    item.classList.remove('active');
+                    showMessage('अभी कोई खबर उपलब्ध नहीं है।', false); // Info message
                 }
+            }, (error) => {
+                hideLoader();
+                console.error("खबरें लोड करने में त्रुटि:", error);
+                showMessage('खबरें लोड करने में त्रुटि हुई: ' + error.message, true); // Error message
+            });
+        }
+
+        // --- PWA Service Worker Registration ---
+        window.addEventListener('load', () => {
+          if ('serviceWorker' in navigator) {
+              console.log('Registering service worker...');
+            navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('Service Worker registered with scope:', registration.scope);
+
+               // Listen for service worker updates
+               registration.addEventListener('updatefound', () => {
+                   // A new service worker is installing
+                   const installingWorker = registration.installing;
+                   if (installingWorker) {
+                       console.log('New service worker installing');
+                       installingWorker.addEventListener('statechange', () => {
+                           if (installingWorker.state === 'installed') {
+                               if (navigator.serviceWorker.controller) {
+                                   // New content is available, show update notification
+                                   console.log('New content is available, showing update prompt.');
+                                   showUpdateNotification();
+                               } else {
+                                   // Content is cached for offline use (initial install)
+                                   console.log('Content is cached for offline use.');
+                               }
+                           }
+                       });
+                   }
+               });
+                // Check if a new service worker is already waiting
+               if (registration.waiting) {
+                   console.log('New service worker already waiting.');
+                   showUpdateNotification();
+               }
+
+            })
+            .catch(error => {
+              console.error('Service Worker registration failed:', error);
             });
 
-            // Specific actions for pages
-            if (pageId === 'calendar-page') {
-                 renderCalendar(appState.currentCalendarDate.getFullYear(), appState.currentCalendarDate.getMonth());
-            } else if (pageId === 'prayer-page') {
-                 loadMonthlyPrayerTimes(); // Load and display monthly times
-            }
-
-        }
-
-        // Function to open a modal
-        function openModal(modalId) {
-            if (!modals[modalId]) {
-                console.error("Modal not found:", modalId);
-                return;
-            }
-            modals[modalId].classList.add('active');
-            // Specific actions for modals
-             if (modalId === 'qibla-modal') {
-                 // Initial Qibla angle display (simulation)
-                 qiblaDirectionEl.textContent = `Qibla: ${appState.qiblaAngle}° (Relative to North)`;
-                 qiblaDistanceEl.textContent = `Distance: 10,256 km (Simulated)`; // Placeholder distance
-                 setupCompassMarkers(); // Draw markers
-                 startCompassSimulation(); // Start the simulation
-                 // In a real app, you'd request permissions here
-                 // requestDeviceOrientationAndGeolocation();
-             }
-        }
-
-        // Function to close a modal
-        function closeModal(modalId) {
-             if (!modals[modalId]) {
-                 console.error("Modal not found:", modalId);
-                 return;
-             }
-            modals[modalId].classList.remove('active');
-             if (modalId === 'qibla-modal') {
-                 stopCompassSimulation(); // Stop compass simulation
-             }
-        }
-
-        // Add back button functionality
-         backButtons.forEach(button => {
-             button.addEventListener('click', function() {
-                 showPage('home-page'); // Always go back to home for simplicity
-                 // In a more complex app, you might track navigation history
+             // Listen for controllerchange to know when a new service worker takes over
+             navigator.serviceWorker.addEventListener('controllerchange', () => {
+                 console.log('Controller changed, new service worker is active.');
+                 // Optionally reload the page or notify the user that update is active
+                 // window.location.reload(); // Auto-reload is one strategy, but can be jarring
              });
+
+
+          } else {
+              console.warn('Service Workers are not supported in this browser.');
+          }
+        });
+
+        // --- Update Notification Functionality ---
+        function showUpdateNotification() {
+            updateNotification.style.display = 'block';
+        }
+
+        function hideUpdateNotification() {
+             updateNotification.style.display = 'none';
+        }
+
+        // Handle update notification click
+        updateNotification.addEventListener('click', () => {
+            hideUpdateNotification();
+            // Tell the waiting service worker to activate immediately
+            if (navigator.serviceWorker.waiting) {
+                navigator.serviceWorker.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
+            // After skipping waiting, the controllerchange event will fire,
+            // or you can simply reload the page to use the new service worker.
+             // A small delay can help ensure the message is processed
+            setTimeout(() => {
+                window.location.reload();
+            }, 100); // Reload to pick up the new version
+        });
+
+
+         // --- Listen for Firebase App Settings Changes (e.g., API Key, Update Trigger) ---
+         // This is how your app can react to changes made in the Admin Panel's App Updates or API Key tabs
+         database.ref('appSettings').on('value', (snapshot) => {
+             const appSettings = snapshot.val();
+             console.log('App settings updated:', appSettings);
+
+             // Example: React to lastUpdateTimestamp changing
+             // The Admin Panel updates appSettings/lastUpdateTimestamp when "Trigger App Update" is clicked.
+             // Your app can use this to know *when* to check for service worker updates.
+             // However, the service worker registration already handles 'updatefound'.
+             // A more direct use might be if you had dynamic config based on timestamp.
+
+             // Example: Get the external API Key set by the admin
+             if (appSettings && appSettings.externalNewsApiKey) {
+                 const externalApiKey = appSettings.externalNewsApiKey;
+                 console.log('External API Key available:', externalApiKey);
+                 // TODO: Use this externalApiKey in your code to fetch news from an external source
+                 // (This would involve fetching data from the external API using this key and combining
+                 // it with the news from 'customNews' or displaying it separately).
+             } else {
+                 console.log('No external API Key set.');
+             }
+
+             // Example: Check for banned status (requires user authentication in your app)
+             // If your app authenticates users, you could check database.ref('bannedUsers/' + userId).once('value', ...)
+             // and ban the user client-side if the value is true. This requires knowing the logged-in userId.
          });
 
 
-        // --- Date and Time ---
-
-        // Update current date and time
-        function updateDateTime() {
-            const now = new Date();
-            appState.currentDate = now;
-
-            const gregorianOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            gregorianDateEl.textContent = now.toLocaleDateString('en-US', gregorianOptions);
-
-            // Simulate Hijri date (Needs a proper library for accuracy)
-            const hijriDate = simulateHijriDate(now); // Use a helper function
-            hijriDateEl.textContent = hijriDate;
-
-            // Update next prayer time based on *current* times
-            if (Object.keys(appState.prayerTimes).length > 0) {
-                updateNextPrayerTime(now);
-            }
-        }
-
-        // Basic Hijri date simulation (Placeholder - not accurate)
-        function simulateHijriDate(date) {
-             // This is a simplified approximation. A real implementation needs a robust Hijri calendar library.
-             // It attempts to find a close Hijri date based on the Gregorian date, offset slightly.
-             const hijriMonths = ['Muharram', 'Safar', 'Rabi al-Awwal', 'Rabi al-Thani', 'Jumada al-Awwal',
-                                 'Jumada al-Thani', 'Rajab', 'Sha\'ban', 'Ramadan', 'Shawwal',
-                                 'Dhul-Qadah', 'Dhul-Hijjah'];
-             // Estimate Hijri date based on a known conversion point (e.g., 1 Muharram 1445 AH was around July 19, 2023)
-             const knownGregorian = new Date(Date.UTC(2023, 6, 19)); // July is month 6, Use UTC to avoid timezone issues
-             const knownHijriYear = 1445;
-             const knownHijriMonthIndex = 0; // Muharram is index 0
-             const knownHijriDay = 1;
-
-             const msPerDay = 24 * 60 * 60 * 1000;
-             // Calculate difference based on UTC dates
-             const diffDays = Math.floor((Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - knownGregorian.getTime()) / msPerDay);
-
-             // This is a very rough estimation. Hijri months vary in length (29/30).
-             // Averages ~354 days/year vs 365/366.
-             // Need a library for accurate conversion.
-              let estimatedHijriDay = (knownHijriDay + diffDays) % 30; // Simple modulo 30
-              if (estimatedHijriDay <= 0) estimatedHijriDay += 30; // Ensure day is > 0
-
-             let estimatedHijriMonthIndex = knownHijriMonthIndex + Math.floor(diffDays / 30); // Simple month increment
-
-             let estimatedHijriYear = knownHijriYear + Math.floor(estimatedHijriMonthIndex / 12);
-              estimatedHijriMonthIndex %= 12;
-              if (estimatedHijriMonthIndex < 0) estimatedHijriMonthIndex += 12; // Handle negative month index
-
-
-             return `${estimatedHijriDay} ${hijriMonths[estimatedHijriMonthIndex]} ${estimatedHijriYear} AH (Approx)`;
-        }
-
-
-        // Setup prayer times (Simulated for a fixed location/date)
-        function setupPrayerTimes() {
-            // In a real app, use a prayer time API or calculation library (like Prayer Times.js)
-            // based on user's geolocation and calculation method settings.
-            // These times are currently NOT loaded from Firebase.
-
-            appState.prayerTimes = {
-                'Fajr': '05:15', // Use 24-hour format internally for easier comparison
-                'Sunrise': '06:30',
-                'Dhuhr': '13:10',
-                'Asr': '16:35',
-                'Maghrib': '19:05',
-                'Isha': '20:30'
-            };
-
-             // Generate simulated monthly times (can vary slightly by day)
-             appState.monthlyPrayerTimes = generateSimulatedMonthlyPrayerTimes(appState.currentCalendarDate.getFullYear(), appState.currentCalendarDate.getMonth());
-
-
-             // Update the location display (placeholder)
-             currentLocationEl.textContent = 'New York, USA (Simulated)';
-
-
-            // Display times on the home page
-            updatePrayerTimesDisplay(appState.prayerTimes, homePrayerGridEl);
-
-            // Update the next prayer time immediately
-            updateNextPrayerTime(new Date());
-        }
-
-        // Helper to parse time strings (HH:MM) into Date objects for comparison
-        function parseTime(timeStr, date = new Date()) {
-             const [hours, minutes] = timeStr.split(':').map(Number);
-             const dateTime = new Date(date); // Start with the current date
-             dateTime.setHours(hours, minutes, 0, 0);
-             return dateTime;
-        }
-
-         // Helper to format Date object to HH:MM AM/PM
-         function formatTime(date) {
-             return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
-         }
-
-         // Helper to format Date object to HH:MM (24-hour)
-          function formatTime24(date) {
-              return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
-          }
-
-
-        // Update prayer times display on the grid
-        function updatePrayerTimesDisplay(times, containerEl) {
-            containerEl.innerHTML = ''; // Clear existing times
-             if (Object.keys(times).length === 0) {
-                  containerEl.innerHTML = '<div class="data-empty-message">Prayer times not available.</div>';
-                  return;
-             }
-
-            const prayerOrder = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
-            prayerOrder.forEach(name => {
-                const time = times[name];
-                if (!time) return;
-
-                const prayerCard = document.createElement('div');
-                prayerCard.classList.add('prayer-card');
-                 prayerCard.dataset.name = name; // Store name for highlighting
-
-                prayerCard.innerHTML = `
-                    <div class="prayer-name">${name}</div>
-                    <div class="prayer-time">${formatTime(parseTime(time))}</div>
-                `;
-                containerEl.appendChild(prayerCard);
-            });
-             // After adding, update active state and next prayer time
-             updateNextPrayerTime(new Date());
-        }
-
-
-        // Update the next prayer time display
-        function updateNextPrayerTime(now) {
-            const prayerTimes = appState.prayerTimes;
-             if (Object.keys(prayerTimes).length === 0) {
-                 nextPrayerNameEl.textContent = '-';
-                 nextPrayerTimeEl.textContent = '-';
-                 // Also remove active class from prayer cards if no times
-                  document.querySelectorAll('#home-prayer-grid .prayer-card').forEach(card => card.classList.remove('active'));
-                 return;
-             }
-
-            const currentTime = parseTime(formatTime24(now), now); // Current time as Date object today
-            let nextPrayer = null;
-            let nextPrayerTime = null;
-            let foundNext = false;
-
-            const prayerOrder = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
-            // Find the next prayer today
-            for (const name of prayerOrder) {
-                 const prayerTime = parseTime(prayerTimes[name], now); // Prayer time as Date object today
-
-                 // Check if prayerTime is in the future (even if it's the same minute, it's passed)
-                 if (prayerTime > currentTime) {
-                     nextPrayer = name;
-                     nextPrayerTime = prayerTime;
-                     foundNext = true;
-                     break;
-                 }
-            }
-
-            // If no prayer found today, the next prayer is Fajr tomorrow
-            if (!foundNext) {
-                 nextPrayer = 'Fajr';
-                 // Get Fajr time, add one day
-                 const fajrTomorrow = parseTime(prayerTimes['Fajr'], now);
-                 fajrTomorrow.setDate(fajrTomorrow.getDate() + 1);
-                 nextPrayerTime = fajrTomorrow;
-             }
-
-            // Calculate time remaining
-             const diffMs = nextPrayerTime - currentTime;
-             const diffMinutes = Math.round(diffMs / (1000 * 60)); // Difference in minutes
-
-             let timeRemaining = '';
-             if (diffMinutes < 0) { // Should not happen if logic is correct, but safety check
-                 timeRemaining = '...'; // Or handle error
-             } else if (diffMinutes === 0) {
-                 timeRemaining = 'now'; // Or display current prayer
-             }
-             else if (diffMinutes < 60) {
-                 timeRemaining = `${diffMinutes}m`;
-             } else {
-                 const hours = Math.floor(diffMinutes / 60);
-                 const minutes = diffMinutes % 60;
-                 timeRemaining = `${hours}h ${minutes}m`;
-             }
-
-
-            nextPrayerNameEl.textContent = nextPrayer;
-            nextPrayerTimeEl.textContent = timeRemaining;
-
-            // Highlight the current prayer card
-             const currentPrayer = findCurrentPrayer(now, prayerTimes);
-             document.querySelectorAll('#home-prayer-grid .prayer-card').forEach(card => {
-                 if (card.dataset.name === currentPrayer) {
-                     card.classList.add('active');
-                 } else {
-                     card.classList.remove('active');
-                 }
-             });
-        }
-
-        // Helper to find the current prayer based on current time
-         function findCurrentPrayer(now, times) {
-             const currentTime = parseTime(formatTime24(now), now);
-             const prayerOrder = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-             let current = 'Isha'; // Default if before Fajr or after Isha
-
-             for (let i = 0; i < prayerOrder.length; i++) {
-                 const name = prayerOrder[i];
-                 const prayerTime = parseTime(times[name], now);
-
-                 if (currentTime >= prayerTime) {
-                     current = name;
-                 } else {
-                     // If current time is before this prayer, the *previous* one (or Isha if it's before Fajr) is current
-                     break;
-                 }
-             }
-             return current;
-         }
-
-
-        // --- Navigation and Modals Setup ---
-
-        function setupNavigation() {
-             // Add event listeners to navigation items
-             navItems.forEach(item => {
-                 item.addEventListener('click', function(e) {
-                     e.preventDefault();
-                     const pageId = this.dataset.page;
-                     if (pageId && appState.currentPage !== pageId) { // Prevent navigating to current page
-                         showPage(pageId);
-                     }
-                 });
-             });
-
-             // Add event listeners to feature cards (Home page grid)
-            featureCards.forEach(card => {
-                card.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const pageId = this.dataset.page;
-                    const modalId = this.dataset.modal;
-
-                    if (pageId) {
-                        showPage(pageId);
-                    } else if (modalId) {
-                        openModal(modalId);
-                    }
-                });
-            });
-
-            // Add event listener for the settings button in the header
-            settingsBtn.addEventListener('click', function() {
-                 openModal('settings-modal');
-            });
-
-             // Set initial page visibility (home page)
-             Object.values(pages).forEach(page => {
-                 if (page.id !== appState.currentPage) {
-                     page.style.display = 'none';
-                     page.classList.remove('active');
-                     page.style.transform = 'translateX(100%)';
-                 } else {
-                     page.style.display = 'flex';
-                     page.classList.add('active');
-                     page.style.transform = 'translateX(0)';
-                 }
-             });
-        }
-
-        function setupModals() {
-             // Add event listeners to close buttons
-             closeModalButtons.forEach(button => {
-                 button.addEventListener('click', function() {
-                     const modal = button.closest('.modal');
-                     if (modal) {
-                         closeModal(modal.id);
-                     }
-                 });
-             });
-
-             // Close modal when clicking outside the modal content
-             Object.values(modals).forEach(modal => {
-                 modal.addEventListener('click', function(e) {
-                     // Check if the click was directly on the modal overlay, not the content
-                     if (e.target === modal) {
-                         closeModal(modal.id);
-                     }
-                 });
-             });
-        }
-
-        // --- Dark Mode ---
-        function setupDarkModeToggle() {
-             const toggle = document.getElementById('dark-mode-toggle');
-
-             // Set initial state
-             toggle.checked = appState.darkMode;
-             if (appState.darkMode) {
-                 document.body.classList.add('dark-mode');
-             } else {
-                 document.body.classList.remove('dark-mode');
-             }
-
-             // Add event listener
-             toggle.addEventListener('change', function() {
-                 appState.darkMode = this.checked;
-                 if (appState.darkMode) {
-                     document.body.classList.add('dark-mode');
-                 } else {
-                     document.body.classList.remove('dark-mode');
-                 }
-                 // Save preference to local storage
-                 localStorage.setItem('darkMode', appState.darkMode);
-             });
-        }
-
-
-        // --- Data Loading from Firebase ---
-
-        // Load Surahs from Firebase
-        function loadSurahs() {
-            if (!database) {
-                 surahListEl.innerHTML = '<div class="error-message">Firebase not connected. Cannot load Surahs.</div>';
-                 return;
-            }
-             surahListEl.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>'; // Show spinner
-
-             database.ref('surahs').once('value')
-             .then(snapshot => {
-                 const surahsObject = snapshot.val();
-                 appState.surahsData = surahsObject; // Store fetched data
-
-                 surahListEl.innerHTML = ''; // Clear spinner
-
-                 if (!surahsObject) {
-                     surahListEl.innerHTML = '<div class="data-empty-message">No Surahs found in the database.</div>';
-                     return;
-                 }
-
-                 // Convert object of objects to array and sort by number
-                 const surahs = Object.values(surahsObject).sort((a, b) => a.number - b.number);
-
-                 surahs.forEach(surah => {
-                     const surahItem = document.createElement('li');
-                     surahItem.classList.add('surah-item');
-                     surahItem.dataset.surahNumber = surah.number; // Use surah number for lookup
-
-                     surahItem.innerHTML = `
-                         <div class="surah-number">${surah.number || '-'}</div>
-                         <div class="surah-info">
-                             <div class="surah-name">${surah.englishName || '-'}</div>
-                             <div class="surah-details">${surah.revelationType || '-'}, ${surah.numberOfAyahs || 0} Ayahs</div>
-                         </div>
-                         <i class="fas fa-chevron-right" style="color:var(--border-color); margin-left: 15px;"></i>
-                     `;
-                     surahListEl.appendChild(surahItem);
-
-                     // Add click listener to open modal
-                     surahItem.addEventListener('click', function() {
-                         const num = parseInt(this.dataset.surahNumber);
-                         displaySurahDetails(num);
-                         openModal('quran-modal');
-                     });
-                 });
-             })
-             .catch(error => {
-                 console.error("Error loading Surahs:", error);
-                 surahListEl.innerHTML = '<div class="error-message">Error loading Surahs.</div>';
-             });
-        }
-
-        // Display Surah details in the modal (using loaded data)
-         function displaySurahDetails(surahNumber) {
-             surahModalContentEl.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>'; // Show spinner
-             surahModalTitleEl.textContent = 'Loading...';
-
-             // Find the surah from the data stored in appState
-              const surah = appState.surahsData ? Object.values(appState.surahsData).find(s => s.number === surahNumber) : null;
-
-
-             if (!surah) {
-                  surahModalTitleEl.textContent = 'Surah Not Found';
-                  surahModalContentEl.innerHTML = '<div class="data-empty-message">Details for this Surah are not available or data failed to load.</div>';
-                  return;
-             }
-
-             // Simulate async loading for smoother modal opening
-             setTimeout(() => {
-                 surahModalTitleEl.textContent = `${surah.englishName || 'N/A'} (${surah.name || 'N/A'})`;
-                 surahModalContentEl.innerHTML = ''; // Clear spinner
-
-                 let ayahsHtml = '';
-
-                 if (surah.ayahs && Array.isArray(surah.ayahs) && surah.ayahs.length > 0) {
-                     // Display Ayahs if they exist in the data
-                      surah.ayahs.forEach((ayah, index) => {
-                           ayahsHtml += `
-                              <p dir="rtl">${ayah} <span style="font-size:0.8em; vertical-align: top;">(${index + 1})</span></p>
-                           `;
-                      });
-                      // Add Bismillah before Fatiha or other Surahs (optional, handle based on Surah number)
-                      if (surah.number !== 1 && surah.number !== 9) { // Not Fatiha or Tawbah
-                           ayahsHtml = '<p dir="rtl">بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ</p><br/>' + ayahsHtml;
-                      }
-
-                 } else {
-                     // If ayahs array is not available or empty
-                     ayahsHtml = '<div class="data-empty-message">Ayah text is not available for this Surah in the database.</div>';
-                 }
-
-                 surahModalContentEl.innerHTML = ayahsHtml;
-             }, 300); // Simulate a small delay
-         }
-
-
-        // Load More Options from Firebase
-        function loadMoreOptions() {
-             if (!database) {
-                  moreOptionGridEl.innerHTML = '<div class="error-message">Firebase not connected. Cannot load Options.</div>';
-                  return;
-             }
-             moreOptionGridEl.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>'; // Show spinner
-
-             database.ref('moreOptions').once('value')
-             .then(snapshot => {
-                 const optionsObject = snapshot.val();
-                 appState.moreOptionsData = optionsObject; // Store fetched data
-
-                 moreOptionGridEl.innerHTML = ''; // Clear spinner
-
-                 if (!optionsObject) {
-                     moreOptionGridEl.innerHTML = '<div class="data-empty-message">No More Options found in the database.</div>';
-                     return;
-                 }
-
-                 // Convert object of objects to array
-                 const options = Object.values(optionsObject);
-
-                 options.forEach(option => {
-                     const optionCard = document.createElement('div');
-                     optionCard.classList.add('more-option');
-                     optionCard.dataset.optionId = option.id;
-
-                     optionCard.innerHTML = `
-                         <div class="feature-icon">
-                             <i class="${option.icon || 'fas fa-question-circle'}"></i>
-                         </div>
-                         <div class="option-name">${option.name || 'Unnamed Option'}</div>
-                     `;
-                     moreOptionGridEl.appendChild(optionCard);
-
-                      // Add click listener (for now, just logs/alerts the click)
-                      optionCard.addEventListener('click', function() {
-                          const optionId = this.dataset.optionId;
-                          alert(`Clicked on: ${option.name || 'Unnamed Option'} (Functionality for "${optionId}" not implemented)`);
-                          // Here you would add logic to navigate to a specific page/modal for this option
-                      });
-                 });
-             })
-             .catch(error => {
-                 console.error("Error loading More Options:", error);
-                 moreOptionGridEl.innerHTML = '<div class="error-message">Error loading More Options.</div>';
-             });
-        }
-
-
-        // Load Duas from Firebase
-        function loadDuas() {
-             if (!database) {
-                  duaContentEl.innerHTML = '<div class="error-message">Firebase not connected. Cannot load Duas.</div>';
-                  return;
-             }
-             duaContentEl.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>'; // Show spinner
-
-
-             database.ref('duas').once('value')
-             .then(snapshot => {
-                 const duasObject = snapshot.val();
-                 appState.duasData = duasObject; // Store fetched data
-
-                 duaContentEl.innerHTML = ''; // Clear spinner
-
-                 if (!duasObject) {
-                     duaContentEl.innerHTML = '<div class="data-empty-message">No Duas found in the database.</div>';
-                     return;
-                 }
-
-                 // Convert object of objects to array
-                 const duas = Object.values(duasObject);
-
-                 duas.forEach(dua => {
-                     const duaItem = document.createElement('div');
-                     duaItem.classList.add('content-item');
-                     duaItem.innerHTML = `
-                         <h3>${dua.title || 'Unnamed Dua'}</h3>
-                         <p dir="rtl">${dua.arabic || 'No Arabic text available'}</p>
-                         <p>${dua.translation || 'No translation available'}</p>
-                         ${dua.reference ? `<p class="reference">Reference: ${dua.reference}</p>` : ''}
-                     `;
-                     duaContentEl.appendChild(duaItem);
-                 });
-             })
-             .catch(error => {
-                 console.error("Error loading Duas:", error);
-                 duaContentEl.innerHTML = '<div class="error-message">Error loading Duas.</div>';
-             });
-        }
-
-
-        // Load Hadiths from Firebase
-        function loadHadiths() {
-             if (!database) {
-                  hadithContentEl.innerHTML = '<div class="error-message">Firebase not connected. Cannot load Hadiths.</div>';
-                  return;
-             }
-            hadithContentEl.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>'; // Show spinner
-
-
-             database.ref('hadiths').once('value')
-             .then(snapshot => {
-                 const hadithsObject = snapshot.val();
-                 appState.hadithsData = hadithsObject; // Store fetched data
-
-                 hadithContentEl.innerHTML = ''; // Clear spinner
-
-                 if (!hadithsObject) {
-                    hadithContentEl.innerHTML = '<div class="data-empty-message">No Hadiths found in the database.</div>';
-                     return;
-                }
-
-                 // Convert object of objects to array
-                 const hadiths = Object.values(hadithsObject);
-
-                hadiths.forEach(hadith => {
-                    const hadithItem = document.createElement('div');
-                    hadithItem.classList.add('content-item');
-                    hadithItem.innerHTML = `
-                        <h3>${hadith.title || 'Unnamed Hadith'}</h3>
-                        <p>${hadith.text || 'No text available'}</p>
-                        ${hadith.reference ? `<p class="reference">Reference: ${hadith.reference}</p>` : ''}
-                    `;
-                    hadithContentEl.appendChild(hadithItem);
-                });
-             })
-             .catch(error => {
-                 console.error("Error loading Hadiths:", error);
-                 hadithContentEl.innerHTML = '<div class="error-message">Error loading Hadiths.</div>';
-             });
-        }
-
-
-        // --- Calendar ---
-        // Calendar logic remains simulated and does not load dates/prayer times from Firebase directly
-
-        function setupCalendar() {
-             // Add event listeners for month navigation
-             prevMonthBtn.addEventListener('click', function() {
-                 appState.currentCalendarDate.setDate(1); // Go to 1st of current month first
-                 appState.currentCalendarDate.setMonth(appState.currentCalendarDate.getMonth() - 1);
-                 renderCalendar(appState.currentCalendarDate.getFullYear(), appState.currentCalendarDate.getMonth());
-             });
-
-             nextMonthBtn.addEventListener('click', function() {
-                 appState.currentCalendarDate.setDate(1); // Go to 1st of current month first
-                 appState.currentCalendarDate.setMonth(appState.currentCalendarDate.getMonth() + 1);
-                 renderCalendar(appState.currentCalendarDate.getFullYear(), appState.currentCalendarDate.getMonth());
-             });
-        }
-
-        function renderCalendar(year, month) {
-            // Clear previous day elements, keep headers
-             const existingDays = calendarGridEl.querySelectorAll('.calendar-day, .calendar-day.empty');
-             existingDays.forEach(day => day.remove());
-
-
-            const firstDayOfMonth = new Date(year, month, 1);
-            const daysInMonth = new Date(year, month + 1, 0).getDate(); // Last day of month gives total days
-            const startingDayOfWeek = firstDayOfMonth.getDay(); // 0 for Sunday, 1 for Monday...
-
-            // Add empty cells for days before the 1st
-            for (let i = 0; i < startingDayOfWeek; i++) {
-                const emptyDay = document.createElement('div');
-                emptyDay.classList.add('calendar-day', 'empty');
-                calendarGridEl.appendChild(emptyDay);
-            }
-
-            // Add days of the month
-            for (let day = 1; day <= daysInMonth; day++) {
-                const dayEl = document.createElement('div');
-                dayEl.classList.add('calendar-day');
-                dayEl.dataset.day = day;
-                 dayEl.dataset.month = month; // 0-indexed
-                 dayEl.dataset.year = year;
-
-                // Simulate Hijri day (very inaccurate)
-                 const gregorianDate = new Date(year, month, day);
-                 const simulatedHijri = simulateHijriDate(gregorianDate).split(' ')[0]; // Just get the day number
-
-
-                dayEl.innerHTML = `
-                    <div class="day-number">${day}</div>
-                    <div class="hijri-day">${simulatedHijri} Hijri</div> <!-- Placeholder -->
-                `;
-                calendarGridEl.appendChild(dayEl);
-
-                // Mark the current Gregorian day
-                 const today = new Date();
-                 if (today.getDate() === day && today.getMonth() === month && today.getFullYear() === year) {
-                     dayEl.classList.add('active');
-                      // Select today by default when rendering the current month
-                       appState.selectedCalendarDate = new Date(year, month, day);
-                       updateCalendarDailyTimes(appState.selectedCalendarDate);
-                 }
-
-                // Add click listener to select a day
-                 dayEl.addEventListener('click', function() {
-                     document.querySelectorAll('#calendar-grid .calendar-day').forEach(d => d.classList.remove('active'));
-                     this.classList.add('active');
-                      appState.selectedCalendarDate = new Date(parseInt(this.dataset.year), parseInt(this.dataset.month), parseInt(this.dataset.day));
-                      updateCalendarDailyTimes(appState.selectedCalendarDate);
-                 });
-            }
-
-             // Ensure a day is selected and times are shown if the month view includes today
-             const today = new Date();
-              if (today.getFullYear() === year && today.getMonth() === month) {
-                  const todayEl = calendarGridEl.querySelector(`.calendar-day[data-year="${year}"][data-month="${month}"][data-day="${today.getDate()}"]`);
-                   if (todayEl && !todayEl.classList.contains('active')) {
-                        // If today is in the view but not active (e.g., after changing month back), select it
-                        document.querySelectorAll('#calendar-grid .calendar-day').forEach(d => d.classList.remove('active'));
-                        todayEl.classList.add('active');
-                        appState.selectedCalendarDate = new Date(year, month, today.getDate());
-                        updateCalendarDailyTimes(appState.selectedCalendarDate);
-                   }
-              } else {
-                  // If the month is not the current month, select the 1st day by default
-                   const firstRenderedDay = calendarGridEl.querySelector('.calendar-day:not(.empty)');
-                   if (firstRenderedDay) {
-                       firstRenderedDay.classList.add('active');
-                       appState.selectedCalendarDate = new Date(parseInt(firstRenderedDay.dataset.year), parseInt(firstRenderedDay.dataset.month), parseInt(firstRenderedDay.dataset.day));
-                       updateCalendarDailyTimes(appState.selectedCalendarDate);
-                   } else {
-                       // No days in month? Should not happen.
-                       calendarDailyTimesEl.innerHTML = '<tr><td colspan="2" class="data-empty-message">Select a day.</td></tr>';
-                   }
-              }
-
-
-            // Update header month/year display
-            const monthNames = ["January", "February", "March", "April", "May", "June",
-              "July", "August", "September", "October", "November", "December"];
-            calendarCurrentMonthEl.textContent = `${monthNames[month]} ${year}`;
-
-            // Regenerate monthly prayer times simulation if month/year changed
-             appState.monthlyPrayerTimes = generateSimulatedMonthlyPrayerTimes(year, month);
-        }
-
-         // Simulate monthly prayer times data (Placeholder)
-         function generateSimulatedMonthlyPrayerTimes(year, month) {
-             const times = {};
-             const daysInMonth = new Date(year, month + 1, 0).getDate();
-             // const baseDate = new Date(year, month, 1); // Start date for calculation
-
-             // Base times (can be varied slightly) - Use average real times
-             const baseTimes = {
-                 Fajr: 5.25, // 5:15 AM
-                 Sunrise: 6.5, // 6:30 AM
-                 Dhuhr: 13.17, // 1:10 PM
-                 Asr: 16.58, // 4:35 PM
-                 Maghrib: 19.08, // 7:05 PM
-                 Isha: 20.5 // 8:30 PM
-             };
-
-
-             for (let day = 1; day <= daysInMonth; day++) {
-                  const currentDate = new Date(year, month, day);
-                  // Day number in year (0-indexed)
-                  const dayOfYear = Math.floor((currentDate - new Date(year, 0, 1)) / (1000 * 60 * 60 * 24));
-
-                  // Simple variation based on day of year (simulating seasonal change)
-                  // Use cosine for sunrise/set times, less variation for midday
-                  const seasonalOffsetHours = Math.cos((dayOfYear / 365) * 2 * Math.PI) * 0.5; // Max +- 30 mins
-
-
-                 times[day] = {
-                     Fajr: formatTime24(parseTime(`${Math.floor(baseTimes.Fajr - seasonalOffsetHours)}:${Math.round(((baseTimes.Fajr - seasonalOffsetHours) % 1) * 60)}`)),
-                     Sunrise: formatTime24(parseTime(`${Math.floor(baseTimes.Sunrise - seasonalOffsetHours)}:${Math.round(((baseTimes.Sunrise - seasonalOffsetHours) % 1) * 60)}`)),
-                     Dhuhr: formatTime24(parseTime(`${Math.floor(baseTimes.Dhuhr + seasonalOffsetHours * 0.1)}:${Math.round(((baseTimes.Dhuhr + seasonalOffsetHours * 0.1) % 1) * 60)}`)), // Dhuhr varies less
-                     Asr: formatTime24(parseTime(`${Math.floor(baseTimes.Asr + seasonalOffsetHours * 0.7)}:${Math.round(((baseTimes.Asr + seasonalOffsetHours * 0.7) % 1) * 60)}`)), // Asr varies moderately
-                     Maghrib: formatTime24(parseTime(`${Math.floor(baseTimes.Maghrib + seasonalOffsetHours)}:${Math.round(((baseTimes.Maghrib + seasonalOffsetHours) % 1) * 60)}`)),
-                     Isha: formatTime24(parseTime(`${Math.floor(baseTimes.Isha + seasonalOffsetHours * 1.2)}:${Math.round(((baseTimes.Isha + seasonalOffsetHours * 1.2) % 1) * 60)}`)) // Isha varies more
-                 };
-             }
-             return times;
-         }
-
-
-         // Update the daily prayer times display on the calendar page
-         function updateCalendarDailyTimes(date) {
-             const day = date.getDate();
-             const times = appState.monthlyPrayerTimes[day]; // Get times for the selected day
-
-             // Clear previous content while keeping the structure
-             const tbody = calendarDailyTimesEl.querySelector('tbody') || calendarDailyTimesEl;
-             tbody.innerHTML = ''; // Clear just the body
-
-              if (!times) {
-                   tbody.innerHTML = '<tr><td colspan="2" class="data-empty-message">Prayer times not available for this date (Simulated).</td></tr>';
-                   return;
-              }
-
-              // Add header row if not present in the table
-               if (!calendarDailyTimesEl.querySelector('thead')) {
-                   const thead = document.createElement('thead');
-                   thead.innerHTML = '<tr><th>Prayer</th><th>Time</th></tr>';
-                   calendarDailyTimesEl.insertBefore(thead, tbody);
-               }
-
-              // Clear existing data rows from tbody if any
-              const dataRows = tbody.querySelectorAll('tr');
-              dataRows.forEach(row => row.remove());
-
-
-             const prayerOrder = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-
-             prayerOrder.forEach(name => {
-                  const time24 = times[name];
-                   // Handle cases where time might be invalid from simulation (e.g., NaN)
-                   let timeAmPm = '--:--';
-                   try {
-                       const dateObj = parseTime(time24, date);
-                       if (!isNaN(dateObj.getTime())) {
-                            timeAmPm = formatTime(dateObj);
-                       }
-                   } catch (e) {
-                       console.error("Error formatting simulated time:", time24, e);
-                       timeAmPm = 'Err'; // Show error indicator
-                   }
-
-
-                  const row = document.createElement('tr');
-                  row.innerHTML = `
-                      <td>${name}</td>
-                      <td>${timeAmPm}</td>
-                  `;
-                  tbody.appendChild(row);
-             });
-         }
-
-        // Load and display monthly prayer times on the prayer-page
-        function loadMonthlyPrayerTimes() {
-            monthlyPrayerContentEl.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>'; // Show spinner
-
-
-             const year = appState.currentCalendarDate.getFullYear();
-             const month = appState.currentCalendarDate.getMonth();
-             const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-             // Regenerate simulated monthly times if needed (should happen on month change in calendar)
-             // appState.monthlyPrayerTimes = generateSimulatedMonthlyPrayerTimes(year, month);
-
-
-             const table = document.createElement('table');
-             table.classList.add('prayer-times-table');
-             table.style.marginTop = '0'; // Remove top margin if in content area
-
-
-            // Add header row
-             let headerRow = '<thead><tr><th>Day</th>';
-             const prayerOrder = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-             prayerOrder.forEach(p => { headerRow += `<th>${p}</th>`; });
-             headerRow += '</tr></thead><tbody></tbody>';
-             table.innerHTML = headerRow;
-
-             const tbody = table.querySelector('tbody');
-
-
-             // Add data rows
-             for (let day = 1; day <= daysInMonth; day++) {
-                 const times = appState.monthlyPrayerTimes[day]; // Get times for the day
-                 if (!times) continue; // Skip if no data
-
-                 let dataRow = `<tr><td>${day}</td>`;
-                 prayerOrder.forEach(name => {
-                     const time24 = times[name];
-                      // Handle cases where time might be invalid from simulation
-                      let timeAmPm = '--:--';
-                       try {
-                           const dateObj = parseTime(time24);
-                           if (!isNaN(dateObj.getTime())) {
-                                timeAmPm = formatTime(dateObj);
-                           }
-                       } catch (e) {
-                           console.error("Error formatting simulated time:", time24, e);
-                           timeAmPm = 'Err';
-                       }
-
-                     dataRow += `<td>${timeAmPm}</td>`;
-                 });
-                 dataRow += '</tr>';
-                 tbody.innerHTML += dataRow;
-             }
-
-             // Simulate async loading
-             setTimeout(() => {
-                 monthlyPrayerContentEl.innerHTML = ''; // Clear spinner
-                  if (daysInMonth > 0 && Object.keys(appState.monthlyPrayerTimes).length > 0) {
-                       monthlyPrayerContentEl.appendChild(table);
-                   } else {
-                       monthlyPrayerContentEl.innerHTML = '<div class="data-empty-message">Monthly prayer times not available (Simulated).</div>';
-                   }
-             }, 500); // Simulate loading time
-        }
-
-
-        // --- Qibla Finder ---
-        // Qibla logic remains simulated
-
-        function setupCompassMarkers() {
-             const compass = compassMarkersEl; // The element to rotate
-
-             // Remove existing markers except the N, E, S, W labels
-             const existingMarkers = compass.querySelectorAll('.compass-marker-container'); // Select by container class now
-             existingMarkers.forEach(marker => marker.remove());
-
-             const numberOfMarkers = 24; // Every 15 degrees (360/24 = 15)
-
-
-             for (let i = 0; i < numberOfMarkers; i++) {
-                 // Skip N, E, S, W as they are separate elements
-                 if (i * 15 === 0 || i * 15 === 90 || i * 15 === 180 || i * 15 === 270) continue;
-
-                  // Use a container div at the center, rotate it, then position the marker
-                  const markerContainer = document.createElement('div');
-                   markerContainer.classList.add('compass-marker-container'); // Add a class for easy selection later
-                  markerContainer.style.position = 'absolute';
-                  markerContainer.style.width = '100%';
-                  markerContainer.style.height = '100%';
-                  markerContainer.style.top = '0';
-                  markerContainer.style.left = '0';
-                  markerContainer.style.transform = `rotate(${i * 15}deg)`;
-                  markerContainer.style.transformOrigin = 'center center';
-                   markerContainer.style.pointerEvents = 'none'; // Ignore mouse events
-
-                  const smallMarker = document.createElement('div');
-                   smallMarker.classList.add('compass-marker'); // Keep the marker class
-                  smallMarker.style.position = 'absolute';
-                  smallMarker.style.top = '5px'; // Distance from the edge
-                  smallMarker.style.left = 'calc(50% - 1px)'; // Center horizontally
-                  smallMarker.style.width = '2px';
-                  smallMarker.style.height = '10px'; // Smaller marker
-                  smallMarker.style.backgroundColor = 'var(--secondary-text-color)';
-                   smallMarker.style.transform = 'translateX(-50%)'; // Fine tune centering
-
-
-                 markerContainer.appendChild(smallMarker);
-                 compass.appendChild(markerContainer);
-             }
-
-             // Ensure N, E, S, W labels exist (add them if not)
-             if (!compass.querySelector('span.n')) {
-                 const n = document.createElement('span'); n.classList.add('n'); n.textContent = 'N'; compass.appendChild(n);
-                 const e = document.createElement('span'); e.classList.add('e'); e.textContent = 'E'; compass.appendChild(e);
-                 const s = document.createElement('span'); s.classList.add('s'); s.textContent = 'S'; compass.appendChild(s);
-                 const w = document.createElement('span'); w.classList.add('w'); w.textContent = 'W'; compass.appendChild(w);
-             }
-        }
-
-        // Starts the compass simulation (rotating the background markers)
-        function startCompassSimulation() {
-             // In a real app, you would get device orientation here
-             // and update appState.simulatedDeviceHeading with event.alpha
-
-             if (appState.compassSimulationInterval) {
-                 clearInterval(appState.compassSimulationInterval);
-             }
-
-             // Simulate device rotation by changing the simulated heading
-             appState.compassSimulationInterval = setInterval(() => {
-                 // Change simulated heading by a small amount (e.g., 1 degree per interval)
-                 // Add randomness for more natural movement
-                 const rotationSpeed = (Math.random() - 0.5) * 4; // Speed between -2 and 2 degrees
-                 appState.simulatedDeviceHeading = (appState.simulatedDeviceHeading + rotationSpeed + 360) % 360;
-
-                 updateCompassDisplay(appState.simulatedDeviceHeading, appState.qiblaAngle);
-
-             }, 100); // Update every 100ms
-        }
-
-         // Stops the compass simulation
-         function stopCompassSimulation() {
-              if (appState.compassSimulationInterval) {
-                  clearInterval(appState.compassSimulationInterval);
-                  appState.compassSimulationInterval = null;
-              }
-         }
-
-         // Updates the compass display based on current device heading and Qibla angle
-         function updateCompassDisplay(deviceHeading, qiblaAngle) {
-             // The compass markers should rotate *opposite* to the device heading.
-             // If the device rotates 10 deg clockwise (heading 10), the markers should rotate 10 deg counter-clockwise (-10).
-             compassMarkersEl.style.transform = `rotate(${-deviceHeading}deg)`;
-
-             // The Qibla arrow should point towards the Qibla direction (relative to the device's top).
-             // The angle for the arrow is Qibla_Angle - Device_Heading.
-             // If Qibla is 120 and device is North (heading 0), arrow rotates 120.
-             // If Qibla is 120 and device is East (heading 90), arrow rotates 120 - 90 = 30.
-             // If Qibla is 120 and device is pointing at Qibla (heading 120), arrow rotates 120 - 120 = 0 (points up).
-             const arrowRotation = (qiblaAngle - deviceHeading + 360) % 360;
-
-              // Ensure the arrow points *up* when its rotation is 0. Font Awesome arrow points up by default.
-             compassArrowEl.style.transform = `translate(-50%, -50%) rotate(${arrowRotation}deg)`;
-
-             // Update the direction text (relative to True North)
-              qiblaDirectionEl.textContent = `Qibla: ${qiblaAngle}° relative to North`;
-
-         }
-
-
-         // Calibrate button listener (simulates angle change or requests permission)
-          calibrateBtn.addEventListener('click', function() {
-             alert("Simulating device rotation. In a real app, this button might re-request sensor permissions.");
-              // For simulation, just restart the rotation simulation
-               stopCompassSimulation(); // Stop existing simulation
-               // Optionally set a random start heading for simulation:
-               // appState.simulatedDeviceHeading = Math.floor(Math.random() * 360);
-               startCompassSimulation(); // Restart simulation
-          });
-
-
-        // --- Initial App Load ---
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM Loaded. Initializing app.");
-
-            // Set dark mode based on saved preference
-            setupDarkModeToggle();
-
-            // Initialize date and time
-            updateDateTime();
-            // Update time every minute
-            setInterval(updateDateTime, 60000);
-
-            // Setup prayer times (simulated) and display on home
-            setupPrayerTimes();
-            // Next prayer time update interval is handled by updateDateTime calling updateNextPrayerTime
-
-            // Setup navigation and page/modal switching
-            setupNavigation();
-            setupModals();
-
-            // Setup compass markers (for Qibla modal, but do it early)
-            // setupCompassMarkers(); // Now called when modal opens
-
-            // Load content data from Firebase
-             if (database) { // Only attempt to load if Firebase initialized successfully
-                loadSurahs(); // Loads data AND populates UI
-                loadMoreOptions(); // Loads data AND populates UI
-                loadDuas(); // Loads data AND populates UI
-                loadHadiths(); // Loads data AND populates UI
-             } else {
-                 // Display error messages on relevant content areas if Firebase failed
-                 surahListEl.innerHTML = '<div class="error-message">Firebase not connected. Content unavailable.</div>';
-                 moreOptionGridEl.innerHTML = '<div class="error-message">Firebase not connected. Content unavailable.</div>';
-                 duaContentEl.innerHTML = '<div class="error-message">Firebase not connected. Content unavailable.</div>';
-                 hadithContentEl.innerHTML = '<div class="error-message">Firebase not connected. Content unavailable.</div>';
-             }
-
-
-            // Initialize calendar display to current month
-            setupCalendar(); // Setup event listeners
-            renderCalendar(appState.currentCalendarDate.getFullYear(), appState.currentCalendarDate.getMonth()); // Render initial month
-
-
-            console.log("App initialization complete.");
-        });
+        // --- Initial Load ---
+        fetchAndDisplayNews(); // Load news when the page loads
 
     </script>
 </body>
