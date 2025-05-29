@@ -1,403 +1,579 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en"> <!-- Default to English, can be changed by i18n -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>मेरी न्यूज़ ऐप</title> <!-- Your App Title -->
-
-    <!-- PWA Meta Tags -->
-    <meta name="mobile-web-app-capable" content="yes">
+    <title>Islamic Community Hub</title>
+    
+    <link rel="manifest" href="manifest.json"> <!-- Make sure manifest.json exists -->
+    <meta name="theme-color" content="#006400">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="News App"> <!-- Short name for iOS -->
-    <meta name="theme-color" content="#3498db"> <!-- Customize status bar color -->
+    <meta name="apple-mobile-web-app-title" content="Islamic Hub">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png"> <!-- Ensure icon exists -->
 
-    <!-- Link to manifest file -->
-    <!-- Ensure manifest.json is in the root directory -->
-    <link rel="manifest" href="/manifest.json">
-
-    <!-- Add apple touch icon (replace with your icon in /icons folder) -->
-    <!-- Ensure you have an /icons folder with apple-touch-icon.png -->
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
 
     <style>
-        /* General Styles */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f2f5;
-            color: #333;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
+        /* ... (Keep all the CSS from your previous index.html for user app) ... */
+        :root {
+            --primary-color: #006400; --secondary-color: #FFD700; --light-bg: #f0f2f5;
+            --dark-text: #333; --light-text: #fff; --card-bg: #ffffff;
+            --shadow: 0 4px 8px rgba(0, 0, 0, 0.1); --danger-color: #dc3545;
         }
-
-        .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 0 15px;
-        }
-
-        h1 {
-            color: #3498db;
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.8em;
-        }
-
-        /* News List Styles */
-        .news-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 20px;
-        }
-
-        .news-item {
-            background-color: #fff;
-            border: 1px solid #eee;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease;
-        }
-
-        .news-item:hover {
-            transform: translateY(-3px);
-        }
-
-        .news-item img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 5px;
-            margin-bottom: 10px;
-        }
-
-        .news-item h3 {
-            font-size: 1.2em;
-            color: #34495e;
-            margin: 0 0 5px 0;
-        }
-
-        .news-item p {
-            font-size: 0.95em;
-            color: #555;
-            margin: 0 0 10px 0;
-        }
-
-        .news-item a {
-            display: inline-block; /* or block */
-            color: #3498db;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 0.9em;
-            align-self: flex-start; /* Align link to the left */
-            transition: color 0.3s ease;
-        }
-
-        .news-item a:hover {
-            color: #2980b9;
-            text-decoration: underline;
-        }
-
-        /* Loader */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 30px auto;
-            display: none; /* Hidden by default */
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Message/Error */
-        .message {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            text-align: center;
-            display: none; /* Hidden by default */
-        }
-
-        .message.show {
-            display: block;
-        }
-
-         /* Update Notification */
-        #update-notification {
-             position: fixed;
-             bottom: 15px;
-             left: 15px;
-             right: 15px;
-             background-color: #f39c12;
-             color: #fff;
-             padding: 15px;
-             border-radius: 8px;
-             text-align: center;
-             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-             z-index: 1000;
-             display: none; /* Hidden by default */
-             cursor: pointer;
-        }
-         #update-notification:hover {
-             background-color: #e67e22;
-         }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', 'Noto Nastaliq Urdu', sans-serif; }
+        body { background-color: var(--light-bg); color: var(--dark-text); line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 15px; }
+        .screen { display: none; flex-grow: 1; width: 100%; align-items: center; justify-content: center; flex-direction: column; }
+        .screen.active { display: flex; }
+        .loader-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .loader { border: 8px solid var(--light-bg); border-top: 8px solid var(--primary-color); border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #language-selection-screen h2 { color: var(--primary-color); margin-bottom: 1.5rem; }
+        .language-options button { background-color: var(--primary-color); color: var(--light-text); border: none; padding: 12px 25px; margin: 0.5rem; border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: background-color 0.3s ease; }
+        .language-options button:hover { background-color: #004d00; }
+        .auth-container { background: var(--card-bg); padding: 2rem; border-radius: 10px; box-shadow: var(--shadow); width: 100%; max-width: 450px; text-align: center; margin: 1rem; }
+        .auth-container h2 { color: var(--primary-color); margin-bottom: 1.5rem; }
+        .auth-form input { width: 100%; padding: 12px; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 5px; font-size: 1rem; }
+        .auth-form button { width: 100%; background-color: var(--primary-color); color: var(--light-text); border: none; padding: 12px; border-radius: 5px; font-size: 1.1rem; cursor: pointer; transition: background-color 0.3s ease; }
+        .auth-form button:hover { background-color: #004d00; }
+        .auth-toggle { margin-top: 1rem; font-size: 0.9rem; }
+        .auth-toggle a { color: var(--primary-color); text-decoration: none; font-weight: bold; }
+        .auth-toggle a:hover { text-decoration: underline; }
+        .divider { margin: 1.5rem 0; text-align: center; color: #aaa; font-size: 0.9rem; position: relative; }
+        .divider::before, .divider::after { content: ""; display: inline-block; width: 40%; height: 1px; background-color: #ccc; vertical-align: middle; }
+        .divider::before { margin-right: 10px; } .divider::after { margin-left: 10px; }
+        .google-signin-btn { background-color: #fff; color: #757575; border: 1px solid #ccc; padding: 10px 15px; border-radius: 5px; font-size: 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 100%; transition: background-color 0.3s ease; }
+        .google-signin-btn:hover { background-color: #f1f1f1; }
+        .google-signin-btn img { width: 20px; margin-right: 10px; }
+        .message-div { font-size: 0.9rem; margin-bottom: 1rem; text-align: left; padding: 10px; border-radius: 5px;}
+        .error-message { color: var(--danger-color); background-color: #f8d7da; border: 1px solid #f5c6cb;}
+        .success-message { color: var(--success-color); background-color: #d4edda; border: 1px solid #c3e6cb;}
+        #main-app-screen { justify-content: flex-start; }
+        #main-app-screen header { background: linear-gradient(135deg, var(--primary-color), #008000); color: var(--light-text); padding: 1.5rem 0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; }
+        #main-app-screen header h1 { font-size: 2.2rem; margin-bottom: 0.3rem; letter-spacing: 1px; }
+        #main-app-screen header .user-greeting { font-size: 0.9rem; opacity: 0.8; margin-bottom: 0.5rem; }
+        #main-app-screen header p { font-size: 1.1rem; opacity: 0.9; }
+        #logout-button { background-color: var(--secondary-color); color: var(--primary-color); border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 0.5rem; font-size: 0.9rem; }
+        #logout-button:hover { background-color: #e6c300; }
+        .main-content { padding: 2rem 0; width: 100%; }
+        .hero-section { background: var(--card-bg); border-radius: 10px; padding: 2rem; text-align: center; margin-bottom: 2rem; box-shadow: var(--shadow); }
+        .hero-section h2 { color: var(--primary-color); font-size: 2rem; margin-bottom: 0.5rem; }
+        .hero-section .date-time { font-size: 1.2rem; color: #555; margin-bottom: 1rem; }
+        .hero-section .next-prayer { font-weight: bold; color: var(--primary-color); }
+        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
+        .feature-card { background-color: var(--card-bg); border-radius: 10px; padding: 1.5rem; text-align: center; box-shadow: var(--shadow); transition: transform 0.3s ease, box-shadow 0.3s ease; cursor: pointer; }
+        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.15); }
+        .feature-card .icon { font-size: 3rem; color: var(--primary-color); margin-bottom: 1rem; }
+        .feature-card .icon.gold { color: var(--secondary-color); }
+        .feature-card h3 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--dark-text); }
+        .feature-card p { font-size: 0.9rem; color: #666; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background-color: var(--primary-color); color: var(--light-text); display: flex; justify-content: space-around; padding: 0.8rem 0; box-shadow: 0 -2px 5px rgba(0,0,0,0.1); z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--light-text); font-size: 0.8rem; opacity: 0.8; flex-grow:1; /* Distribute space */ }
+        .nav-item i { font-size: 1.5rem; margin-bottom: 0.2rem; }
+        .nav-item.active, .nav-item:hover { opacity: 1; color: var(--secondary-color); }
+        footer { text-align: center; padding: 2rem 0; margin-top: auto; background-color: #333; color: #f4f4f4; font-size: 0.9rem; width: 100%; }
+        @media (max-width: 768px) { #main-app-screen header h1 { font-size: 1.8rem; } .hero-section h2 { font-size: 1.8rem; } .features-grid { grid-template-columns: 1fr; } .auth-container { margin: 1rem; padding: 1.5rem; } body.main-app-active { padding-bottom: 70px; } }
+        /* Styles for dynamic content views */
+        .content-view { padding: 1.5rem; background: var(--card-bg); margin: 1rem auto; border-radius: 8px; box-shadow: var(--shadow); max-width: 900px; }
+        .content-view h2 { color: var(--primary-color); margin-bottom: 1rem; }
     </style>
 </head>
 <body>
+    <div id="loader" class="loader-container" style="display:none;"><div class="loader"></div></div>
 
-    <div class="container">
-        <h1>ताज़ा खबरें</h1> <!-- Your App Title -->
-
-        <div id="newsLoader" class="loader"></div>
-        <div id="newsMessage" class="message">खबरें लोड हो रही हैं...</div> <!-- Initial message -->
-
-        <ul id="newsList" class="news-list">
-            <!-- News articles will be loaded here -->
-        </ul>
+    <!-- Screen 1: Language Selection -->
+    <div id="language-selection-screen" class="screen">
+        <!-- ... (Language selection content same as before) ... -->
+        <div class="container">
+            <h2 data-lang-key="choose_language">Choose Your Language</h2>
+            <div class="language-options">
+                <button onclick="selectLanguage('en')">English</button>
+                <button onclick="selectLanguage('ur')">اردو</button>
+                <button onclick="selectLanguage('hi')">हिन्दी</button>
+            </div>
+        </div>
     </div>
 
-    <!-- Update Notification Bar -->
-    <div id="update-notification" style="display: none;">
-        ऐप अपडेट उपलब्ध है! नया संस्करण प्राप्त करने के लिए यहां टैप करें।
+    <!-- Screen 2: Authentication (Login/Signup) -->
+    <div id="auth-screen" class="screen">
+        <!-- ... (Auth content same as before) ... -->
+         <div class="auth-container">
+            <div id="login-form-container"> <h2 data-lang-key="login_title">Login</h2> <div id="login-message" class="message-div" style="display:none;"></div> <form id="login-form" class="auth-form" onsubmit="handleLogin(event)"> <input type="email" id="login-email" placeholder="Email" required> <input type="password" id="login-password" placeholder="Password" required> <button type="submit" data-lang-key="login_btn">Login</button> </form> <p class="auth-toggle"><span data-lang-key="no_account">Don't have an account?</span> <a href="#" onclick="toggleAuthForms()" data-lang-key="signup_link">Sign Up</a></p> </div>
+            <div id="signup-form-container" style="display:none;"> <h2 data-lang-key="signup_title">Sign Up</h2> <div id="signup-message" class="message-div" style="display:none;"></div> <form id="signup-form" class="auth-form" onsubmit="handleSignup(event)"> <input type="text" id="signup-name" placeholder="Name" required> <input type="email" id="signup-email" placeholder="Email" required> <input type="password" id="signup-password" placeholder="Password (min. 6 characters)" required> <input type="password" id="signup-confirm-password" placeholder="Confirm Password" required> <button type="submit" data-lang-key="signup_btn">Sign Up</button> </form> <p class="auth-toggle"><span data-lang-key="has_account">Already have an account?</span> <a href="#" onclick="toggleAuthForms()" data-lang-key="login_link">Login</a></p> </div>
+            <div class="divider" data-lang-key="or_divider">OR</div>
+            <button class="google-signin-btn" onclick="handleGoogleSignIn()"> <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo"> <span data-lang-key="google_signin_btn">Sign in with Google</span> </button>
+        </div>
     </div>
 
+    <!-- Screen 3: Main Application Area -->
+    <div id="main-app-screen" class="screen">
+        <header>
+            <div class="container">
+                <h1 id="app-title"><i class="fas fa-moon"></i> Islamic Community Hub</h1>
+                <div id="user-greeting" class="user-greeting"></div>
+                <p id="app-tagline" data-lang-key="app_tagline">Your Spiritual Companion</p>
+                <button id="logout-button" onclick="handleLogout()" data-lang-key="logout_button">Logout</button>
+            </div>
+        </header>
+
+        <!-- This container will hold the dynamic content views (Home, Prayer Times, etc.) -->
+        <div id="app-content-container" class="container" style="flex-grow:1; padding-top:1rem; padding-bottom: 1rem;">
+            <!-- Home View (Default) -->
+            <div id="home-view" class="content-view active">
+                <section class="hero-section">
+                    <h2 id="welcome-message" data-lang-key="welcome_message">Assalamu Alaikum</h2>
+                    <p class="date-time" id="currentHijriDate">Loading date...</p>
+                    <p><span data-lang-key="next_prayer_label">Next Prayer:</span> <span class="next-prayer" id="nextPrayerTime">Loading...</span></p>
+                </section>
+                <section class="features-grid">
+                    <!-- Feature cards can be static or dynamic based on your needs -->
+                    <div class="feature-card" onclick="showAppView('prayer-times-view')">
+                        <div class="icon"><i class="fas fa-mosque"></i></div>
+                        <h3 data-lang-key="prayer_times_title">Prayer Times</h3>
+                        <p data-lang-key="prayer_times_desc">Find accurate prayer times for your city.</p>
+                    </div>
+                     <div class="feature-card" onclick="showAppView('quran-view')">
+                        <div class="icon gold"><i class="fas fa-book-quran"></i></div>
+                        <h3 data-lang-key="quran_title">Quran Majeed</h3>
+                        <p data-lang-key="quran_desc">Read the Holy Quran.</p>
+                    </div>
+                    <!-- Add more static feature cards here if needed -->
+                </section>
+            </div>
+
+            <!-- Placeholder for other dynamic views -->
+            <div id="prayer-times-view" class="content-view" style="display:none;">
+                <h2 data-lang-key="prayer_times_title">Prayer Times</h2>
+                <p>Prayer times functionality will be implemented here.</p>
+                <p id="prayer-times-data">Loading prayer times...</p>
+            </div>
+            <div id="quran-view" class="content-view" style="display:none;">
+                <h2 data-lang-key="quran_title">Quran Majeed</h2>
+                <p>Quran reader functionality will be implemented here.</p>
+            </div>
+            <div id="settings-view" class="content-view" style="display:none;">
+                 <h2 data-lang-key="nav_settings">Settings</h2>
+                 <div class="form-group">
+                     <label for="user-app-language-select" data-lang-key="choose_language">App Language:</label>
+                     <select id="user-app-language-select" onchange="changeAppLanguage(this.value)">
+                         <option value="en">English</option>
+                         <option value="ur">اردو</option>
+                         <option value="hi">हिन्दी</option>
+                     </select>
+                 </div>
+                 <p>More app settings here...</p>
+            </div>
+            <!-- Add more divs for other views as defined in your dynamic nav -->
+
+        </div>
+
+        <nav class="bottom-nav" id="app-bottom-navigation">
+            <!-- Navigation items will be dynamically inserted here by JavaScript -->
+            <!-- Fallback static nav if Firebase fails or loads slow -->
+            <a href="#" onclick="showAppView('home-view'); return false;" class="nav-item active">
+                <i class="fas fa-home"></i> <span data-lang-key="nav_home_static">Home</span>
+            </a>
+            <a href="#" onclick="showAppView('settings-view'); return false;" class="nav-item">
+                <i class="fas fa-cog"></i> <span data-lang-key="nav_settings_static">Settings</span>
+            </a>
+        </nav>
+    </div> 
+    
+    <footer id="app-footer">
+        <div class="container">
+            <p>© <span id="currentYear"></span> Islamic Community Hub. <span data-lang-key="footer_rights">All rights reserved.</span></p>
+        </div>
+    </footer>
 
     <script>
-        // --- Firebase Configuration ---
-        // Use the same configuration as your admin panel
+        // --- Firebase Configuration (Same as admin.html) ---
         const firebaseConfig = {
-            apiKey: "AIzaSyAY3hXmpCXJUVrBtOaosPY_tsse3sx-O5o", // Your Firebase API key
-            authDomain: "nima-d4d7d.firebaseapp.com", // Your Auth Domain
-            databaseURL: "https://nima-d4d7d-default-rtdb.asia-southeast1.firebasedatabase.app", // Your Database URL
-            projectId: "nima-d4d7d", // Your Project ID
-            storageBucket: "nima-d4d7d.firebasestorage.app", // Your Storage Bucket
-            // appId: "your_web_app_id_here" // Add if you have a web app registered
+            apiKey: "AIzaSyAY3hXmpCXJUVrBtOaosPY_tsse3sx-O5o", 
+            authDomain: "nima-d4d7d.firebaseapp.com",          
+            databaseURL: "https://nima-d4d7d-default-rtdb.asia-southeast1.firebasedatabase.app", 
+            projectId: "nima-d4d7d",                           
+            storageBucket: "nima-d4d7d.appspot.com",         
+            messagingSenderId: "919311840182",             
+            appId: "GET_YOUR_WEB_APP_ID_FROM_FIREBASE_CONSOLE_FOR_NIMA_PROJECT", // ****** GET THIS FROM FIREBASE CONSOLE ******
         };
 
-         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+        const auth = firebase.auth();
+        const db = firebase.database();
+        const loader = document.getElementById('loader');
 
-        // --- DOM Elements ---
-        const newsList = document.getElementById('newsList');
-        const newsLoader = document.getElementById('newsLoader');
-        const newsMessage = document.getElementById('newsMessage');
-        const updateNotification = document.getElementById('update-notification');
+        function showLoader(show) { loader.style.display = show ? 'flex' : 'none'; }
+
+        // --- i18n Translations (Same as your previous user app version) ---
+        const translations = { /* ... Keep your existing translations object ... */ 
+             en: {
+                choose_language: "Choose Your Language", login_title: "Login", login_btn: "Login",
+                no_account: "Don't have an account?", signup_link: "Sign Up", signup_title: "Sign Up",
+                signup_btn: "Sign Up", has_account: "Already have an account?", login_link: "Login",
+                or_divider: "OR", google_signin_btn: "Sign in with Google",
+                app_title: "Islamic Community Hub", app_tagline: "Your Spiritual Companion",
+                logout_button: "Logout", welcome_message: "Assalamu Alaikum",
+                user_greeting_prefix: "Welcome, ", next_prayer_label: "Next Prayer:",
+                prayer_times_title: "Prayer Times", prayer_times_desc: "Find accurate prayer times for your city.",
+                quran_title: "Quran Majeed", quran_desc: "Read the Holy Quran.",
+                nav_home_static: "Home", nav_settings_static: "Settings", nav_settings: "Settings", // Ensure nav_settings is here
+                footer_rights: "All rights reserved.",
+                error_passwords_mismatch: "Passwords do not match.", error_invalid_email_password: "Error: Invalid email or password.",
+                error_weak_password: "Password should be at least 6 characters.", error_email_in_use: "This email address is already in use.",
+                error_google_signin_failed: "Google Sign-In failed. Please try again.",
+                success_signup: "Signup successful! Welcome.", success_login: "Login successful! Welcome back."
+            },
+            ur: { /* Add Urdu translations if needed, similar to English structure */
+                choose_language: "زبان منتخب کریں", login_title: "لاگ ان", login_btn: "لاگ ان",
+                user_greeting_prefix: "خوش آمدید, ", nav_settings: "سیٹنگز",
+            },
+            hi: { /* Add Hindi translations if needed */
+                choose_language: "भाषा चुने", login_title: "लॉग इन करें",
+                user_greeting_prefix: "स्वागत है, ", nav_settings: "सेटिंग्स",
+            }
+        };
+        let currentLanguage = 'en'; 
+
+        // --- DOM Elements & Screen Management (mostly same as before) ---
+        const screens = { language: document.getElementById('language-selection-screen'), auth: document.getElementById('auth-screen'), main: document.getElementById('main-app-screen') };
+        const loginFormContainer = document.getElementById('login-form-container');
+        const signupFormContainer = document.getElementById('signup-form-container');
+        const loginMessageDiv = document.getElementById('login-message');
+        const signupMessageDiv = document.getElementById('signup-message');
+        const userGreetingDiv = document.getElementById('user-greeting');
+        const bottomNavContainer = document.getElementById('app-bottom-navigation');
+        const appContentContainer = document.getElementById('app-content-container');
 
 
-        // --- Utility Functions ---
-        function showLoader() {
-            newsLoader.style.display = 'block';
-             newsMessage.style.display = 'none'; // Hide message when loading
+        function showUserScreen(screenName) { /* ... same ... */ 
+            document.body.classList.remove('main-app-active');
+            for (const key in screens) { screens[key].classList.remove('active'); }
+            if (screens[screenName]) {
+                screens[screenName].classList.add('active');
+                if (screenName === 'main') document.body.classList.add('main-app-active');
+            }
+            document.getElementById('app-footer').style.display = (screenName === 'loader') ? 'none' : 'block';
+        }
+        
+        function displayMessage(element, message, type = 'error') { /* ... same ... */
+            element.textContent = message;
+            element.className = 'message-div ' + (type === 'error' ? 'error-message' : 'success-message');
+            element.style.display = 'block';
+        }
+        function clearMessages() { /* ... same ... */ 
+            loginMessageDiv.style.display = 'none'; signupMessageDiv.style.display = 'none';
         }
 
-        function hideLoader() {
-            newsLoader.style.display = 'none';
+        function applyTranslations(lang) { /* ... same, ensure it updates dynamic nav items if needed ... */
+            currentLanguage = lang;
+            localStorage.setItem('userLanguage', lang);
+            document.documentElement.lang = lang;
+            document.body.dir = (lang === 'ur') ? 'rtl' : 'ltr';
+            const langPack = translations[lang] || translations.en;
+            document.querySelectorAll('[data-lang-key]').forEach(el => {
+                const key = el.getAttribute('data-lang-key');
+                if (langPack[key]) el.textContent = langPack[key];
+            });
+            document.getElementById('app-title').innerHTML = `<i class="fas fa-moon"></i> ${langPack.app_title || translations.en.app_title}`;
+             // Update placeholders
+            document.getElementById('login-email').placeholder = langPack.login_email_placeholder || "Email";
+            // ... other placeholders ...
+            const currentUser = auth.currentUser; if (currentUser) { updateUserGreeting(currentUser); }
+            // Potentially re-render nav if its text is language-dependent and stored as keys
+            loadAndRenderNavigation(); // Re-render nav on language change
         }
 
-        function showMessage(msg, isError = false) {
-            newsMessage.textContent = msg;
-            newsMessage.className = 'message show ' + (isError ? '' : 'success'); // Use default error style or success
-            newsMessage.style.display = 'block';
-             hideLoader(); // Hide loader if message is shown
-             // No auto-hide for main news list messages, user should see the status
+        function selectLanguage(lang) { /* ... same ... */ 
+            applyTranslations(lang); showUserScreen('auth');
         }
-
-        function clearMessage() {
-             newsMessage.textContent = '';
-             newsMessage.classList.remove('show');
-             newsMessage.style.display = 'none';
+        function changeAppLanguage(lang) { // For settings screen
+            applyTranslations(lang);
+            // Optionally, save preference to user's Firebase profile if you want it to persist across devices
         }
 
 
-        // --- Fetch and Display News ---
-        function fetchAndDisplayNews() {
-            showLoader();
-            clearMessage(); // Clear any previous messages
+        // --- Auth Logic (Firebase) ---
+        function toggleAuthForms() { /* ... same ... */ 
+             clearMessages();
+            if (loginFormContainer.style.display === 'none') {
+                loginFormContainer.style.display = 'block'; signupFormContainer.style.display = 'none';
+            } else {
+                loginFormContainer.style.display = 'none'; signupFormContainer.style.display = 'block';
+            }
+        }
 
-            const newsRef = database.ref('customNews');
+        function handleSignup(event) { /* ... same ... but ADD saving user to /users in DB ... */ 
+            event.preventDefault(); clearMessages(); showLoader(true);
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            if (password !== confirmPassword) { displayMessage(signupMessageDiv, (translations[currentLanguage] || translations.en).error_passwords_mismatch); showLoader(false); return; }
 
-            // Use .on('value') for real-time updates, or .once('value') for single load
-            // .on('value') is better for a news feed
-            newsRef.orderByChild('publishedAt').on('value', (snapshot) => {
-                hideLoader();
-                const news = snapshot.val();
-                newsList.innerHTML = ''; // Clear current list
-
-                if (news) {
-                    // Convert object to array, sort by publishedAt descending (latest first)
-                    const newsArray = Object.keys(news).map(key => ({ ...news[key], key }));
-                    newsArray.sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt));
-
-                    newsArray.forEach(article => {
-                        const li = document.createElement('li');
-                        li.classList.add('news-item');
-
-                        // Add image if available
-                        if (article.urlToImage) {
-                            const img = document.createElement('img');
-                            img.src = article.urlToImage;
-                            img.alt = article.title || 'खबर की छवि';
-                            li.appendChild(img);
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    return user.updateProfile({ displayName: name })
+                        .then(() => {
+                            // Save user to Realtime Database
+                            const userData = {
+                                uid: user.uid,
+                                displayName: name,
+                                email: user.email,
+                                createdAt: firebase.database.ServerValue.TIMESTAMP,
+                                metadata: user.metadata, // Includes creationTime, lastSignInTime
+                                providerData: user.providerData.map(p => ({providerId:p.providerId})) // Store provider
+                            };
+                            return db.ref('users/' + user.uid).set(userData);
+                        })
+                        .then(() => { /* onAuthStateChanged handles UI */ });
+                })
+                .catch((error) => { /* ... same error handling ... */ 
+                     let message = error.message;
+                    if (error.code === 'auth/weak-password') message = (translations[currentLanguage] || translations.en).error_weak_password;
+                    if (error.code === 'auth/email-already-in-use') message = (translations[currentLanguage] || translations.en).error_email_in_use;
+                    displayMessage(signupMessageDiv, message);
+                })
+                .finally(() => showLoader(false));
+        }
+        function handleLogin(event) { /* ... same ... but ensure user data is in /users on login if missing */
+            event.preventDefault(); clearMessages(); showLoader(true);
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    // Check and save/update user data in RTDB
+                    const userRef = db.ref('users/' + user.uid);
+                    return userRef.once('value').then(snapshot => {
+                        if (!snapshot.exists()) { // If user not in DB (e.g., old user)
+                            const userData = {
+                                uid: user.uid, displayName: user.displayName, email: user.email,
+                                createdAt: user.metadata.creationTime || firebase.database.ServerValue.TIMESTAMP, // Fallback if metadata.creationTime is null
+                                metadata: user.metadata, providerData: user.providerData.map(p => ({providerId:p.providerId}))
+                            };
+                            return userRef.set(userData);
+                        } else { // Optionally update last login or other fields
+                            return userRef.update({ 'metadata/lastSignInTime': user.metadata.lastSignInTime });
                         }
+                    });
+                })
+                .catch((error) => { /* ... same error handling ... */ 
+                    displayMessage(loginMessageDiv, (translations[currentLanguage] || translations.en).error_invalid_email_password);
+                })
+                .finally(() => showLoader(false));
+        }
+        function handleGoogleSignIn() { /* ... same ... but ADD saving user to /users in DB ... */
+             clearMessages(); showLoader(true);
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    const user = result.user;
+                    const userRef = db.ref('users/' + user.uid);
+                    return userRef.once('value').then(snapshot => {
+                        // Save or update user in RTDB, especially if it's a new Google sign-in
+                        const userData = {
+                            uid: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL,
+                            createdAt: user.metadata.creationTime || firebase.database.ServerValue.TIMESTAMP,
+                            metadata: user.metadata, providerData: user.providerData.map(p => ({providerId:p.providerId, photoURL: p.photoURL})) // Store photoURL from provider
+                        };
+                        return userRef.set(userData); // Overwrite or set, as Google profile is source of truth here
+                    });
+                })
+                .catch((error) => { /* ... same error handling ... */ 
+                    console.error("Google Sign-In Error:", error);
+                    displayMessage(loginMessageDiv, (translations[currentLanguage] || translations.en).error_google_signin_failed + ` (${error.message})`);
+                })
+                .finally(() => showLoader(false));
+        }
+        
+        function updateUserGreeting(user) { /* ... same ... */ 
+            const langPack = translations[currentLanguage] || translations.en;
+            if (user && user.displayName) {
+                userGreetingDiv.textContent = (langPack.user_greeting_prefix || "Welcome, ") + user.displayName;
+            } else if (user) {
+                 userGreetingDiv.textContent = (langPack.user_greeting_prefix || "Welcome, ") + (langPack.user_placeholder || "User");
+            } else {
+                userGreetingDiv.textContent = '';
+            }
+        }
+        function handleLogout() { /* ... same ... */ 
+            showLoader(true); auth.signOut().finally(() => showLoader(false));
+        }
+        
+        // --- Dynamic Navigation Rendering ---
+        async function loadAndRenderNavigation() {
+            showLoader(true);
+            bottomNavContainer.innerHTML = '<!-- Loading Nav -->'; // Placeholder
+            try {
+                const snapshot = await db.ref('appNavigation').orderByChild('order').once('value');
+                bottomNavContainer.innerHTML = ''; // Clear placeholder/old nav
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnapshot, index) => {
+                        const item = childSnapshot.val();
+                        const navLink = document.createElement('a');
+                        navLink.href = '#'; // Prevent page reload
+                        navLink.classList.add('nav-item');
+                        // Use item.target to decide what view to show.
+                        // For simplicity, we assume item.target matches the ID of a .content-view div
+                        navLink.onclick = (e) => { e.preventDefault(); showAppView(item.target); setActiveNav(navLink); };
+                        
+                        const iconEl = document.createElement('i');
+                        iconEl.className = item.icon; // e.g., "fas fa-home"
+                        
+                        const spanEl = document.createElement('span');
+                        // For multi-language nav labels, you'd store a key like "nav_home" in Firebase
+                        // and use translations[currentLanguage][item.labelKey]
+                        // For now, directly using item.label
+                        spanEl.textContent = item.label; 
+                        // Example for i18n nav labels:
+                        // const langPack = translations[currentLanguage] || translations.en;
+                        // spanEl.textContent = langPack[item.label] || item.label; // Fallback to item.label if key not found
+                        // Make sure your translations object has keys like "nav_home", "nav_quran" etc.
+                        // And in admin panel, you'd save 'nav_home' as the label.
 
-                        // Add title
-                        const title = document.createElement('h3');
-                        title.textContent = article.title || 'शीर्षक उपलब्ध नहीं';
-                        li.appendChild(title);
+                        navLink.appendChild(iconEl);
+                        navLink.appendChild(spanEl);
+                        bottomNavContainer.appendChild(navLink);
 
-                        // Add description
-                        const description = document.createElement('p');
-                        description.textContent = article.description || 'विवरण उपलब्ध नहीं।';
-                        li.appendChild(description);
-
-                        // Add source link
-                        if (article.url) {
-                            const link = document.createElement('a');
-                            link.href = article.url;
-                            link.textContent = 'पूरी खबर पढ़ें';
-                            link.target = '_blank'; // Open link in a new tab/browser
-                            link.rel = 'noopener noreferrer'; // Security best practice
-                            li.appendChild(link);
+                        if (index === 0) { // Make the first item active by default
+                           navLink.classList.add('active');
+                           showAppView(item.target); // Show the view for the first nav item
                         }
-
-                        newsList.appendChild(li);
                     });
                 } else {
-                    showMessage('अभी कोई खबर उपलब्ध नहीं है।', false); // Info message
+                    // Fallback to static nav if nothing in Firebase
+                    bottomNavContainer.innerHTML = `
+                        <a href="#" onclick="showAppView('home-view'); return false;" class="nav-item active">
+                            <i class="fas fa-home"></i> <span data-lang-key="nav_home_static">Home</span>
+                        </a>
+                        <a href="#" onclick="showAppView('settings-view'); return false;" class="nav-item">
+                            <i class="fas fa-cog"></i> <span data-lang-key="nav_settings_static">Settings</span>
+                        </a>`;
+                    applyTranslations(currentLanguage); // Apply lang to static nav
+                    showAppView('home-view');
                 }
-            }, (error) => {
-                hideLoader();
-                console.error("खबरें लोड करने में त्रुटि:", error);
-                showMessage('खबरें लोड करने में त्रुटि हुई: ' + error.message, true); // Error message
-            });
-        }
-
-        // --- PWA Service Worker Registration ---
-        window.addEventListener('load', () => {
-          if ('serviceWorker' in navigator) {
-              console.log('Registering service worker...');
-            navigator.serviceWorker.register('/service-worker.js')
-            .then(registration => {
-              console.log('Service Worker registered with scope:', registration.scope);
-
-               // Listen for service worker updates
-               registration.addEventListener('updatefound', () => {
-                   // A new service worker is installing
-                   const installingWorker = registration.installing;
-                   if (installingWorker) {
-                       console.log('New service worker installing');
-                       installingWorker.addEventListener('statechange', () => {
-                           if (installingWorker.state === 'installed') {
-                               if (navigator.serviceWorker.controller) {
-                                   // New content is available, show update notification
-                                   console.log('New content is available, showing update prompt.');
-                                   showUpdateNotification();
-                               } else {
-                                   // Content is cached for offline use (initial install)
-                                   console.log('Content is cached for offline use.');
-                               }
-                           }
-                       });
-                   }
-               });
-                // Check if a new service worker is already waiting
-               if (registration.waiting) {
-                   console.log('New service worker already waiting.');
-                   showUpdateNotification();
-               }
-
-            })
-            .catch(error => {
-              console.error('Service Worker registration failed:', error);
-            });
-
-             // Listen for controllerchange to know when a new service worker takes over
-             navigator.serviceWorker.addEventListener('controllerchange', () => {
-                 console.log('Controller changed, new service worker is active.');
-                 // Optionally reload the page or notify the user that update is active
-                 // window.location.reload(); // Auto-reload is one strategy, but can be jarring
-             });
-
-
-          } else {
-              console.warn('Service Workers are not supported in this browser.');
-          }
-        });
-
-        // --- Update Notification Functionality ---
-        function showUpdateNotification() {
-            updateNotification.style.display = 'block';
-        }
-
-        function hideUpdateNotification() {
-             updateNotification.style.display = 'none';
-        }
-
-        // Handle update notification click
-        updateNotification.addEventListener('click', () => {
-            hideUpdateNotification();
-            // Tell the waiting service worker to activate immediately
-            if (navigator.serviceWorker.waiting) {
-                navigator.serviceWorker.waiting.postMessage({ type: 'SKIP_WAITING' });
+            } catch (error) {
+                console.error("Error loading navigation:", error);
+                bottomNavContainer.innerHTML = '<p style="color:white; text-align:center;">Error loading navigation.</p>';
+            } finally {
+                showLoader(false);
             }
-            // After skipping waiting, the controllerchange event will fire,
-            // or you can simply reload the page to use the new service worker.
-             // A small delay can help ensure the message is processed
-            setTimeout(() => {
-                window.location.reload();
-            }, 100); // Reload to pick up the new version
+        }
+
+        function setActiveNav(activeLink) {
+            document.querySelectorAll('.bottom-nav .nav-item').forEach(link => link.classList.remove('active'));
+            if(activeLink) activeLink.classList.add('active');
+        }
+
+        // --- App Content View Management ---
+        function showAppView(viewId) {
+            // Hide all .content-view elements
+            appContentContainer.querySelectorAll('.content-view').forEach(view => {
+                view.style.display = 'none';
+                view.classList.remove('active');
+            });
+            // Show the target view
+            const targetView = document.getElementById(viewId);
+            if (targetView) {
+                targetView.style.display = 'block';
+                targetView.classList.add('active');
+
+                // Update corresponding nav item to active
+                const navItems = bottomNavContainer.querySelectorAll('.nav-item');
+                navItems.forEach(navItem => {
+                    // This matching logic depends on how item.target is stored and used in onclick
+                    // A more robust way might be to add a data-view-id attribute to nav items
+                    if (navItem.onclick && navItem.onclick.toString().includes(`showAppView('${viewId}')`)) {
+                        setActiveNav(navItem);
+                    }
+                });
+
+                // Load specific data if needed for the view
+                if (viewId === 'prayer-times-view') {
+                    fetchPrayerTimes(); // Example function call
+                }
+            } else {
+                console.warn(`View with ID '${viewId}' not found.`);
+                // Show home view as a fallback if target view doesn't exist
+                document.getElementById('home-view').style.display = 'block';
+                document.getElementById('home-view').classList.add('active');
+                setActiveNav(bottomNavContainer.querySelector('.nav-item')); // Activate first nav item
+            }
+        }
+        
+        async function fetchPrayerTimes() { // Example async data fetching for a view
+            const prayerTimesDataEl = document.getElementById('prayer-times-data');
+            prayerTimesDataEl.textContent = 'Fetching prayer times...';
+            try {
+                // const response = await fetch('YOUR_PRAYER_TIMES_API_ENDPOINT');
+                // const data = await response.json();
+                // prayerTimesDataEl.textContent = JSON.stringify(data, null, 2); // Display fetched data
+                setTimeout(() => { // Simulate API call
+                     prayerTimesDataEl.textContent = "Fajr: 5:00 AM, Dhuhr: 1:15 PM, Asr: 4:45 PM, Maghrib: 6:30 PM, Isha: 8:00 PM (Sample Data)";
+                }, 1000);
+            } catch (error) {
+                prayerTimesDataEl.textContent = 'Failed to load prayer times.';
+                console.error("Error fetching prayer times:", error);
+            }
+        }
+
+
+        // --- Auth State Listener ---
+        auth.onAuthStateChanged(user => {
+            showLoader(false); 
+            if (user) {
+                updateUserGreeting(user);
+                showUserScreen('main');
+                loadAndRenderNavigation(); // Load dynamic nav when user logs in
+                 // Ensure user data is in RTDB
+                const userRef = db.ref('users/' + user.uid);
+                userRef.once('value').then(snapshot => {
+                    if (!snapshot.exists()) {
+                        const userData = {
+                            uid: user.uid, displayName: user.displayName, email: user.email,
+                            createdAt: user.metadata.creationTime || firebase.database.ServerValue.TIMESTAMP,
+                            metadata: user.metadata, providerData: user.providerData.map(p => ({providerId:p.providerId}))
+                        };
+                        userRef.set(userData);
+                    }
+                });
+            } else {
+                updateUserGreeting(null);
+                bottomNavContainer.innerHTML = ''; // Clear dynamic nav on logout
+                if (localStorage.getItem('userLanguage')) { showUserScreen('auth'); } 
+                else { showUserScreen('language'); }
+            }
         });
 
-
-         // --- Listen for Firebase App Settings Changes (e.g., API Key, Update Trigger) ---
-         // This is how your app can react to changes made in the Admin Panel's App Updates or API Key tabs
-         database.ref('appSettings').on('value', (snapshot) => {
-             const appSettings = snapshot.val();
-             console.log('App settings updated:', appSettings);
-
-             // Example: React to lastUpdateTimestamp changing
-             // The Admin Panel updates appSettings/lastUpdateTimestamp when "Trigger App Update" is clicked.
-             // Your app can use this to know *when* to check for service worker updates.
-             // However, the service worker registration already handles 'updatefound'.
-             // A more direct use might be if you had dynamic config based on timestamp.
-
-             // Example: Get the external API Key set by the admin
-             if (appSettings && appSettings.externalNewsApiKey) {
-                 const externalApiKey = appSettings.externalNewsApiKey;
-                 console.log('External API Key available:', externalApiKey);
-                 // TODO: Use this externalApiKey in your code to fetch news from an external source
-                 // (This would involve fetching data from the external API using this key and combining
-                 // it with the news from 'customNews' or displaying it separately).
-             } else {
-                 console.log('No external API Key set.');
-             }
-
-             // Example: Check for banned status (requires user authentication in your app)
-             // If your app authenticates users, you could check database.ref('bannedUsers/' + userId).once('value', ...)
-             // and ban the user client-side if the value is true. This requires knowing the logged-in userId.
-         });
-
-
-        // --- Initial Load ---
-        fetchAndDisplayNews(); // Load news when the page loads
+        // --- General App Functions ---
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+        // --- PWA Service Worker ---
+        if ('serviceWorker' in navigator) { /* ... same ... */ 
+             window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js') // Ensure sw.js is present
+                    .then(reg => console.log('ServiceWorker registered.', reg))
+                    .catch(err => console.log('ServiceWorker registration failed: ', err));
+            });
+        }
+        
+        // --- Initial Load Logic ---
+        window.onload = () => {
+            showLoader(true);
+            const storedLanguage = localStorage.getItem('userLanguage');
+            if (storedLanguage) { applyTranslations(storedLanguage); } 
+            else { applyTranslations('en'); }
+            document.getElementById('user-app-language-select').value = currentLanguage; // Set settings lang dropdown
+            // onAuthStateChanged will handle initial screen and nav loading
+        };
 
     </script>
 </body>
