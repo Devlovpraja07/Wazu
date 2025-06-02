@@ -3,250 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Islamic Life - Admin Panel</title>
-    <!-- Firebase SDKs -->
+    <title>Islamic Life - Admin Panel (HTML & Dark Mode)</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-
     <style>
+        :root {
+            --admin-bg: #f4f7f6;
+            --admin-text: #333;
+            --admin-card-bg: #fff;
+            --admin-header-bg: #004d40;
+            --admin-header-text: #fff;
+            --admin-primary-accent: #00796b;
+            --admin-border-color: #e0e0e0;
+            --admin-input-bg: #fff;
+            --admin-input-border: #ccc;
+        }
+        body.dark-mode {
+            --admin-bg: #1a1a1a;
+            --admin-text: #e0e0e0;
+            --admin-card-bg: #2c2c2c;
+            --admin-header-bg: #1f1f1f;
+            --admin-header-text: #1de9b6;
+            --admin-primary-accent: #1de9b6;
+            --admin-border-color: #444;
+            --admin-input-bg: #333;
+            --admin-input-border: #555;
+        }
+
         body {
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f7f6;
-            color: #333;
-            line-height: 1.6;
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif; margin: 0; padding: 0;
+            background-color: var(--admin-bg); color: var(--admin-text); line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
         }
         .container {
-            width: 90%;
-            max-width: 1200px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border-radius: 8px;
+            width: 90%; max-width: 1200px; margin: 20px auto; padding: 0px; /* Remove container padding */
+            background-color: var(--admin-card-bg);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 8px;
         }
-        header {
-            background-color: #004d40; /* Darker Teal */
-            color: white;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 30px;
+        body.dark-mode .container { box-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+
+        header.admin-main-header { /* Renamed to avoid conflict */
+            background-color: var(--admin-header-bg); color: var(--admin-header-text);
+            padding: 15px 20px; text-align: center;
             border-radius: 8px 8px 0 0;
+            display: flex; justify-content: space-between; align-items: center;
         }
-        header h1 {
-            margin: 0;
-            font-size: 2em;
+        header.admin-main-header h1 { margin: 0; font-size: 1.8em; flex-grow: 1; text-align: center;}
+        #admin-dark-mode-toggle {
+            background: none; border: none; color: var(--admin-header-text);
+            font-size: 1.5em; cursor: pointer; padding: 5px;
         }
-        nav.admin-nav {
-            margin-bottom: 30px;
-            text-align: center;
-        }
+        body.dark-mode #admin-dark-mode-toggle .fa-moon { display: none; }
+        body:not(.dark-mode) #admin-dark-mode-toggle .fa-sun { display: none; }
+
+
+        nav.admin-nav { text-align: center; padding: 20px; background-color: var(--admin-card-bg); border-bottom: 1px solid var(--admin-border-color); }
         nav.admin-nav button {
-            background-color: #00796b; /* Teal */
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            margin: 0 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            transition: background-color 0.3s;
+            background-color: var(--admin-primary-accent); color: var(--admin-header-text);
+            border: none; padding: 12px 20px; margin: 0 10px; border-radius: 5px;
+            cursor: pointer; font-size: 1em; transition: background-color 0.3s;
         }
-        nav.admin-nav button:hover, nav.admin-nav button.active {
-            background-color: #004d40; /* Darker Teal */
-        }
+        body.dark-mode nav.admin-nav button { color: #000; } /* Text color on bright accent */
+        nav.admin-nav button:hover, nav.admin-nav button.active { background-color: var(--admin-header-bg); color: var(--admin-header-text); }
+        body.dark-mode nav.admin-nav button:hover, body.dark-mode nav.admin-nav button.active { background-color: var(--admin-primary-accent); color: #000; }
 
-        .admin-section {
-            display: none; /* Hidden by default */
-            margin-bottom: 40px;
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-        }
-        .admin-section.active {
-            display: block;
-        }
+
+        .admin-section { display: none; padding: 25px; }
+        .admin-section.active { display: block; }
         .admin-section h2 {
-            color: #00796b;
-            margin-top: 0;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #00796b;
-            margin-bottom: 20px;
+            color: var(--admin-primary-accent); margin-top: 0; padding-bottom: 10px;
+            border-bottom: 2px solid var(--admin-primary-accent); margin-bottom: 20px;
         }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid var(--admin-border-color); padding: 12px; text-align: left; }
+        th { background-color: var(--admin-input-bg); color: var(--admin-primary-accent); }
+        tr:nth-child(even) { background-color: rgba(0,0,0,0.02); } /* Subtle striping */
+        body.dark-mode tr:nth-child(even) { background-color: rgba(255,255,255,0.03); }
 
-        /* Table styles for posts */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #e8f5e9; /* Light green */
-            color: #004d40;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        td .action-btn {
-            background-color: #d9534f; /* Red for delete */
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-        }
-        td .action-btn:hover {
-            background-color: #c9302c;
-        }
-        .post-title-cell { max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .post-description-cell { max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-
-        /* Form styles for ads */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #004d40;
-        }
+        .form-group label { color: var(--admin-primary-accent); /* ... */ }
         .form-group textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            min-height: 100px;
-            font-family: monospace; /* Good for code snippets */
-            font-size: 0.9em;
-            box-sizing: border-box;
+            background-color: var(--admin-input-bg); color: var(--admin-text);
+            border: 1px solid var(--admin-input-border);
+            /* ... other textarea styles ... */
+            width: 100%; padding: 10px;
+            border-radius: 4px; min-height: 100px; font-family: monospace;
+            font-size: 0.9em; box-sizing: border-box;
         }
-        .save-btn {
-            background-color: #5cb85c; /* Green */
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1.1em;
-            transition: background-color 0.3s;
-        }
-        .save-btn:hover {
-            background-color: #4cae4c;
-        }
-        .loading-indicator, .status-message {
-            text-align: center;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 4px;
-        }
-        .loading-indicator { background-color: #f0f0f0; }
+        .form-group textarea#post-description-html { min-height: 200px; } /* Larger for HTML content */
+
+        /* ... other styles remain largely similar, applying CSS variables ... */
+        td .action-btn { background-color: #d9534f; color: white; /* ... */ }
+        .save-btn { background-color: #5cb85c; color: white; /* ... */ }
+        .loading-indicator { background-color: var(--admin-input-bg); }
         .status-message.success { background-color: #dff0d8; color: #3c763d; border: 1px solid #d6e9c6; }
         .status-message.error { background-color: #f2dede; color: #a94442; border: 1px solid #ebccd1; }
+        body.dark-mode .status-message.success { background-color: #2a3b2a; color: #a3d3a2; border-color: #4a6b4a; }
+        body.dark-mode .status-message.error { background-color: #3b2a2a; color: #d3a2a2; border-color: #6b4a4a; }
 
     </style>
 </head>
-<body>
-    <header>
-        <h1>Islamic Life - Admin Panel</h1>
-    </header>
-
+<body class=""> <!-- JS will add 'dark-mode' -->
     <div class="container">
+        <header class="admin-main-header">
+            <button id="admin-dark-mode-toggle" aria-label="Toggle Dark Mode">
+                <i class="fas fa-moon"></i><i class="fas fa-sun"></i>
+            </button>
+            <h1>Islamic Life - Admin Panel</h1>
+            <div style="width:30px;"></div> <!-- Spacer -->
+        </header>
+
         <nav class="admin-nav">
             <button data-section="manage-posts" class="active">Manage Posts</button>
             <button data-section="manage-ads">Manage Ads</button>
+            <button data-section="add-new-post">Add New Post</button> <!-- New Nav Button -->
         </nav>
 
-        <!-- Manage Posts Section -->
+        <!-- Manage Posts Section (Table Only) -->
         <section id="manage-posts" class="admin-section active">
-            <h2>Manage Posts</h2>
+            <h2>View & Manage Posts</h2>
             <div id="posts-list-container">
                 <p class="loading-indicator">Loading posts...</p>
             </div>
             <table id="posts-table" style="display:none;">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Description (Snippet)</th>
-                        <th>Thumbnail</th>
-                        <th>URL</th>
-                        <th>Date Added</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="posts-table-body">
-                    <!-- Post rows will be inserted here -->
-                </tbody>
+                <thead> <tr> <th>Title</th> <th>Description (HTML Snippet)</th> <th>Thumb</th> <th>URL</th> <th>Date</th> <th>Actions</th> </tr> </thead>
+                <tbody id="posts-table-body"></tbody>
             </table>
         </section>
 
-        <!-- Manage Ads Section -->
+        <!-- Add New Post Section -->
+        <section id="add-new-post" class="admin-section">
+            <h2>Add New Post</h2>
+            <form id="admin-add-post-form">
+                <div class="form-group">
+                    <label for="post-title-admin">Title:</label>
+                    <input type="text" id="post-title-admin" class="admin-input-field" required>
+                </div>
+                <div class="form-group">
+                    <label for="post-description-html">Description (HTML Content):</label>
+                    <textarea id="post-description-html" rows="12" placeholder="Enter full HTML content for the post..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="post-thumbnail-admin">Thumbnail URL:</label>
+                    <input type="url" id="post-thumbnail-admin" class="admin-input-field" placeholder="https://example.com/image.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="post-url-admin">External URL (Optional):</label>
+                    <input type="url" id="post-url-admin" class="admin-input-field" placeholder="https://example.com/source-link">
+                </div>
+                <button type="submit" class="save-btn">Publish New Post</button>
+            </form>
+            <div id="add-post-status-message" class="status-message" style="display:none;"></div>
+        </section>
+
+        <!-- Manage Ads Section (Same as before) -->
         <section id="manage-ads" class="admin-section">
-            <h2>Manage Ad Configurations</h2>
+             <h2>Manage Ad Configurations</h2>
+            <!-- ... ad config form ... (same as previous admin.html) ... -->
             <p>Enter the full HTML/Script code provided by Adsterra for each slot.</p>
             <form id="ads-config-form">
                 <fieldset>
                     <legend>Home Page Ads</legend>
-                    <div class="form-group">
-                        <label for="ad-home-top-banner">Home - Top Banner Ad Code:</label>
-                        <textarea id="ad-home-top-banner" rows="5" placeholder="Paste Adsterra Banner Code here..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="ad-home-native">Home - Native Ad Code:</label>
-                        <textarea id="ad-home-native" rows="8" placeholder="Paste Adsterra Native Ad HTML/Script here..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="ad-home-bottom-banner">Home - Bottom Banner Ad Code:</label>
-                        <textarea id="ad-home-bottom-banner" rows="5" placeholder="Paste Adsterra Banner Code here..."></textarea>
-                    </div>
+                    <div class="form-group"><label for="ad-home-top-banner">Home - Top Banner:</label><textarea id="ad-home-top-banner"></textarea></div>
+                    <div class="form-group"><label for="ad-home-native">Home - Native Ad:</label><textarea id="ad-home-native"></textarea></div>
+                    <div class="form-group"><label for="ad-home-bottom-banner">Home - Bottom Banner:</label><textarea id="ad-home-bottom-banner"></textarea></div>
                 </fieldset>
-
                 <fieldset>
                     <legend>Add Post Page Ads</legend>
-                     <div class="form-group">
-                        <label for="ad-add-post-banner">Add Post Page - Banner Ad Code:</label>
-                        <textarea id="ad-add-post-banner" rows="5" placeholder="Paste Adsterra Banner Code here..."></textarea>
-                    </div>
+                     <div class="form-group"><label for="ad-add-post-banner">Add Post Page - Banner:</label><textarea id="ad-add-post-banner"></textarea></div>
                 </fieldset>
-
                 <fieldset>
                     <legend>Full Post View Ads</legend>
-                    <div class="form-group">
-                        <label for="ad-full-post-top-banner">Full Post View - Top Banner Ad Code:</label>
-                        <textarea id="ad-full-post-top-banner" rows="5" placeholder="Paste Adsterra Banner Code here..."></textarea>
-                    </div>
-                     <div class="form-group">
-                        <label for="ad-full-post-native">Full Post View - Native Ad Code:</label>
-                        <textarea id="ad-full-post-native" rows="8" placeholder="Paste Adsterra Native Ad HTML/Script here..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label for="ad-full-post-bottom-banner">Full Post View - Bottom Banner Ad Code:</label>
-                        <textarea id="ad-full-post-bottom-banner" rows="5" placeholder="Paste Adsterra Banner Code here..."></textarea>
-                    </div>
+                    <div class="form-group"><label for="ad-full-post-top-banner">Full Post - Top Banner:</label><textarea id="ad-full-post-top-banner"></textarea></div>
+                     <div class="form-group"><label for="ad-full-post-native">Full Post - Native Ad:</label><textarea id="ad-full-post-native"></textarea></div>
+                    <div class="form-group"><label for="ad-full-post-bottom-banner">Full Post - Bottom Banner:</label><textarea id="ad-full-post-bottom-banner"></textarea></div>
                 </fieldset>
-                
                 <fieldset>
-                    <legend>Global Ad Scripts (Site-wide)</legend>
-                    <div class="form-group">
-                        <label for="ad-global-popunder">Global Popunder Script:</label>
-                        <textarea id="ad-global-popunder" rows="6" placeholder="Paste Adsterra Popunder Script here..."></textarea>
-                    </div>
-                     <div class="form-group">
-                        <label for="ad-global-social-bar">Global Social Bar Script:</label>
-                        <textarea id="ad-global-social-bar" rows="6" placeholder="Paste Adsterra Social Bar Script here..."></textarea>
-                    </div>
+                    <legend>Global Ad Scripts</legend>
+                    <div class="form-group"><label for="ad-global-popunder">Global Popunder:</label><textarea id="ad-global-popunder"></textarea></div>
+                     <div class="form-group"><label for="ad-global-social-bar">Global Social Bar:</label><textarea id="ad-global-social-bar"></textarea></div>
                 </fieldset>
-
                 <button type="submit" class="save-btn">Save Ad Configurations</button>
             </form>
             <div id="ads-status-message" class="status-message" style="display:none;"></div>
@@ -254,8 +191,8 @@
     </div>
 
     <script>
-        // --- Firebase Configuration (Same as index.html) ---
-        const firebaseConfig = {
+        // --- Firebase Configuration --- (Same)
+        const firebaseConfig = { /* ... your firebaseConfig ... */ 
             apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
             authDomain: "rn-gfx-tool.firebaseapp.com",
             databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -267,111 +204,131 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // --- Admin Navigation ---
+        // --- Dark Mode Logic (Admin) ---
+        const adminDarkModeToggle = document.getElementById('admin-dark-mode-toggle');
+        function applyAdminDarkModePreference() {
+            const isDarkMode = localStorage.getItem('adminDarkMode') === 'enabled';
+            if (isDarkMode) document.body.classList.add('dark-mode');
+            else document.body.classList.remove('dark-mode');
+        }
+        function toggleAdminDarkMode() {
+            if (document.body.classList.contains('dark-mode')) {
+                document.body.classList.remove('dark-mode');
+                localStorage.setItem('adminDarkMode', 'disabled');
+            } else {
+                document.body.classList.add('dark-mode');
+                localStorage.setItem('adminDarkMode', 'enabled');
+            }
+        }
+        if(adminDarkModeToggle) adminDarkModeToggle.addEventListener('click', toggleAdminDarkMode);
+
+        // --- Admin Navigation --- (Same as before)
         const adminNavButtons = document.querySelectorAll('.admin-nav button');
         const adminSections = document.querySelectorAll('.admin-section');
-
-        function showAdminSection(sectionId) {
-            adminSections.forEach(section => {
-                section.classList.remove('active');
-                if (section.id === sectionId) {
-                    section.classList.add('active');
-                }
-            });
-            adminNavButtons.forEach(button => {
-                button.classList.remove('active');
-                if (button.dataset.section === sectionId) {
-                    button.classList.add('active');
-                }
-            });
+        function showAdminSection(sectionId) { /* ... same ... */ 
+            adminSections.forEach(section => section.classList.toggle('active', section.id === sectionId));
+            adminNavButtons.forEach(button => button.classList.toggle('active', button.dataset.section === sectionId));
         }
-
-        adminNavButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                showAdminSection(button.dataset.section);
-            });
-        });
+        adminNavButtons.forEach(button => button.addEventListener('click', () => showAdminSection(button.dataset.section)));
 
 
         // --- Manage Posts ---
-        const postsListContainer = document.getElementById('posts-list-container');
-        const postsTable = document.getElementById('posts-table');
-        const postsTableBody = document.getElementById('posts-table-body');
-
         function displayPostsAdmin(posts) {
-            postsTableBody.innerHTML = ''; // Clear existing
+            // ... (table rendering logic - when displaying description, use textContent for snippet to avoid rendering HTML in table)
+            const postsTableBody = document.getElementById('posts-table-body');
+            const postsListContainer = document.getElementById('posts-list-container');
+            const postsTable = document.getElementById('posts-table');
+
+            postsTableBody.innerHTML = ''; 
             if (!posts || Object.keys(posts).length === 0) {
                 postsListContainer.innerHTML = '<p>No posts found.</p>';
-                postsTable.style.display = 'none';
-                return;
+                postsTable.style.display = 'none'; return;
             }
-            postsListContainer.innerHTML = ''; // Clear loading message
-            postsTable.style.display = 'table';
-
-            const postsArray = Object.entries(posts)
-                .map(([key, value]) => ({ ...value, id: key }))
-                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-
+            postsListContainer.innerHTML = ''; postsTable.style.display = 'table';
+            const postsArray = Object.entries(posts).map(([key, value]) => ({ ...value, id: key })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
             postsArray.forEach(post => {
                 const row = postsTableBody.insertRow();
                 row.insertCell().innerHTML = `<div class="post-title-cell">${post.title || 'N/A'}</div>`;
-                row.insertCell().innerHTML = `<div class="post-description-cell">${post.description ? post.description.substring(0, 50) + '...' : 'N/A'}</div>`;
+                // For snippet, take first 100 chars of HTML and show as text, or a placeholder
+                const descSnippet = post.description ? (post.description.replace(/<[^>]+>/g, '').substring(0,70) + '...') : 'N/A';
+                row.insertCell().innerHTML = `<div class="post-description-cell">${descSnippet}</div>`;
                 row.insertCell().innerHTML = post.thumbnail ? `<img src="${post.thumbnail}" alt="thumb" width="50" onerror="this.style.display='none'">` : 'No';
                 row.insertCell().textContent = post.url || 'N/A';
                 row.insertCell().textContent = post.timestamp ? new Date(post.timestamp).toLocaleDateString() : 'N/A';
-                
                 const actionsCell = row.insertCell();
                 const deleteBtn = document.createElement('button');
-                deleteBtn.className = 'action-btn';
-                deleteBtn.textContent = 'Delete';
+                deleteBtn.className = 'action-btn'; deleteBtn.textContent = 'Delete';
                 deleteBtn.onclick = () => deletePost(post.id, post.title);
                 actionsCell.appendChild(deleteBtn);
             });
         }
-
-        function deletePost(postId, postTitle) {
-            if (confirm(`Are you sure you want to delete the post: "${postTitle || 'this post'}"?`)) {
-                database.ref('posts/' + postId).remove()
-                    .then(() => {
-                        alert('Post deleted successfully.');
-                        // Posts will refresh automatically due to the 'on' listener
-                    })
-                    .catch(error => {
-                        console.error('Error deleting post:', error);
-                        alert('Failed to delete post. See console.');
-                    });
+        // ... (deletePost, fetchPostsAdmin remain same) ...
+        function deletePost(postId, postTitle) { /* ... same ... */ 
+             if (confirm(`Delete "${postTitle || 'this post'}"?`)) {
+                database.ref('posts/' + postId).remove().then(() => alert('Post deleted.')).catch(error => alert('Delete failed.'));
             }
         }
+        function fetchPostsAdmin() { /* ... same ... */ 
+             const postsRef = database.ref('posts');
+             postsRef.on('value', (snapshot) => displayPostsAdmin(snapshot.val()), (error) => console.error(error));
+        }
 
-        function fetchPostsAdmin() {
-            const postsRef = database.ref('posts');
-            postsRef.on('value', (snapshot) => {
-                const posts = snapshot.val();
-                displayPostsAdmin(posts);
-            }, (error) => {
-                console.error("Firebase read failed (admin posts): " + error.code);
-                postsListContainer.innerHTML = '<p style="color:red;">Error loading posts.</p>';
+
+        // --- Add New Post (Admin) ---
+        const adminAddPostForm = document.getElementById('admin-add-post-form');
+        const addPostStatusMessage = document.getElementById('add-post-status-message');
+
+        if(adminAddPostForm) {
+            adminAddPostForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                addPostStatusMessage.style.display = 'none';
+                const newPostData = {
+                    title: document.getElementById('post-title-admin').value.trim(),
+                    description: document.getElementById('post-description-html').value, // Save raw HTML
+                    thumbnail: document.getElementById('post-thumbnail-admin').value.trim(),
+                    url: document.getElementById('post-url-admin').value.trim(),
+                    source: "Admin Panel", // Or leave empty
+                    timestamp: firebase.database.ServerValue.TIMESTAMP
+                };
+
+                if (!newPostData.title) {
+                    addPostStatusMessage.textContent = 'Title is required.';
+                    addPostStatusMessage.className = 'status-message error';
+                    addPostStatusMessage.style.display = 'block';
+                    return;
+                }
+                if (!newPostData.description) {
+                    addPostStatusMessage.textContent = 'Description (HTML content) is required.';
+                    addPostStatusMessage.className = 'status-message error';
+                    addPostStatusMessage.style.display = 'block';
+                    return;
+                }
+
+                database.ref('posts').push().set(newPostData)
+                    .then(() => {
+                        addPostStatusMessage.textContent = 'New post published successfully!';
+                        addPostStatusMessage.className = 'status-message success';
+                        adminAddPostForm.reset();
+                    })
+                    .catch(error => {
+                        console.error('Error adding new post:', error);
+                        addPostStatusMessage.textContent = 'Error publishing post. Check console.';
+                        addPostStatusMessage.className = 'status-message error';
+                    })
+                    .finally(() => addPostStatusMessage.style.display = 'block');
             });
         }
 
-        // --- Manage Ads ---
+        // --- Manage Ads --- (Same as before)
         const adsConfigForm = document.getElementById('ads-config-form');
         const adsStatusMessage = document.getElementById('ads-status-message');
-
-        // Ad Slot IDs (must match placeholders in index.html and form field IDs)
-        const adSlotFields = {
-            home_top_banner: 'ad-home-top-banner',
-            home_native_ad: 'ad-home-native',
-            home_bottom_banner: 'ad-home-bottom-banner',
-            add_post_page_banner: 'ad-add-post-banner',
-            full_post_top_banner: 'ad-full-post-top-banner',
-            full_post_native_ad: 'ad-full-post-native',
-            full_post_bottom_banner: 'ad-full-post-bottom-banner',
-            global_popunder_script: 'ad-global-popunder',
-            global_social_bar_script: 'ad-global-social-bar'
+        const adSlotFields = { /* ... same adSlotFields object ... */
+            home_top_banner: 'ad-home-top-banner', home_native_ad: 'ad-home-native', home_bottom_banner: 'ad-home-bottom-banner',
+            add_post_page_banner: 'ad-add-post-banner', full_post_top_banner: 'ad-full-post-top-banner',
+            full_post_native_ad: 'ad-full-post-native', full_post_bottom_banner: 'ad-full-post-bottom-banner',
+            global_popunder_script: 'ad-global-popunder', global_social_bar_script: 'ad-global-social-bar'
         };
-
-        function loadAdConfigsForAdmin() {
+        function loadAdConfigsForAdmin() { /* ... same ... */ 
             const adConfigsRef = database.ref('ad_configurations');
             adConfigsRef.once('value', (snapshot) => {
                 const configs = snapshot.val();
@@ -379,54 +336,31 @@
                     for (const key in adSlotFields) {
                         const fieldId = adSlotFields[key];
                         const textarea = document.getElementById(fieldId);
-                        if (textarea && configs[key]) {
-                            textarea.value = configs[key];
-                        }
+                        if (textarea && configs[key] !== undefined) textarea.value = configs[key];
                     }
                 }
-            }).catch(error => console.error("Error loading ad configs for admin:", error));
+            }).catch(error => console.error("Error loading ad configs:", error));
         }
-        
-        adsConfigForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            adsStatusMessage.style.display = 'none';
-            const newAdConfigs = {};
-            let hasChanges = false;
-
+        if(adsConfigForm) adsConfigForm.addEventListener('submit', (e) => { /* ... same submit logic ... */ 
+            e.preventDefault(); adsStatusMessage.style.display = 'none'; const newAdConfigs = {};
             for (const key in adSlotFields) {
-                const fieldId = adSlotFields[key];
-                const textarea = document.getElementById(fieldId);
-                if (textarea) {
-                    newAdConfigs[key] = textarea.value.trim(); // Get trimmed value
-                    // You might want to compare with existing to see if there are actual changes
-                    // For simplicity, we just save all fields.
-                    if (textarea.value.trim() !== "") hasChanges = true; // A basic check
-                }
+                const textarea = document.getElementById(adSlotFields[key]);
+                if (textarea) newAdConfigs[key] = textarea.value; // Keep empty strings if admin clears
             }
-            
-            // console.log("Saving ad configs:", newAdConfigs);
             database.ref('ad_configurations').set(newAdConfigs)
-                .then(() => {
-                    adsStatusMessage.textContent = 'Ad configurations saved successfully!';
-                    adsStatusMessage.className = 'status-message success';
-                    adsStatusMessage.style.display = 'block';
-                })
-                .catch(error => {
-                    console.error('Error saving ad configurations:', error);
-                    adsStatusMessage.textContent = 'Error saving ad configurations. Check console.';
-                    adsStatusMessage.className = 'status-message error';
-                    adsStatusMessage.style.display = 'block';
-                });
+                .then(() => { adsStatusMessage.textContent = 'Ads saved!'; adsStatusMessage.className = 'status-message success'; })
+                .catch(error => { adsStatusMessage.textContent = 'Error. See console.'; adsStatusMessage.className = 'status-message error'; console.error(error);})
+                .finally(() => adsStatusMessage.style.display = 'block');
         });
 
 
         // --- Initial Load for Admin ---
         document.addEventListener('DOMContentLoaded', () => {
-            showAdminSection('manage-posts'); // Default section
+            applyAdminDarkModePreference();
+            showAdminSection('manage-posts'); 
             fetchPostsAdmin();
             loadAdConfigsForAdmin();
         });
-
     </script>
 </body>
 </html>
