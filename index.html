@@ -1,670 +1,1976 @@
-<?php
-// FILE: index.php
-
-// === Database and Firebase Configuration ===
-define('DB_HOST', 'sql211.infinityfree.com');
-define('DB_USER', 'if0_39150932');
-define('DB_PASS', 'Rajaansri');
-define('DB_NAME', 'if0_39150932_chill');
-define('FIREBASE_URL', 'https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app');
-define('FIREBASE_API_KEY', 'AIzaSyD6EXA7D77rQDQEohB52BTYimFeTEaAho');
-define('CAPTURE_DIR', __DIR__ . '/captures/');
-
-// Start session
-session_start();
-
-// --- Ensure capture directory exists and is writable ---
-if (!is_dir(CAPTURE_DIR)) {
-    if (!mkdir(CAPTURE_DIR, 0755, true)) {
-        error_log("Failed to create capture directory: " . CAPTURE_DIR);
-        die(json_encode(['success' => false, 'message' => 'Server error: Unable to create capture directory.']));
-    }
-}
-if (!is_writable(CAPTURE_DIR)) {
-    error_log("Capture directory is not writable: " . CAPTURE_DIR);
-    die(json_encode(['success' => false, 'message' => 'Server error: Capture directory is not writable.']));
-}
-
-// === Handle AJAX POST Requests ===
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    header('Content-Type: application/json');
-
-    $action = $_POST['action'] ?? '';
-    $success = true;
-    $messages = [];
-
-    if ($action === 'submit_form') {
-        // --- Handle main form submission (Game ID, Item Type) ---
-        $game_type = filter_var(trim($_POST['game_type'] ?? ''), FILTER_SANITIZE_STRING);
-        $user_id = filter_var(trim($_POST['user_id'] ?? ''), FILTER_SANITIZE_STRING);
-        $item_type = filter_var(trim($_POST['item_type'] ?? ''), FILTER_SANITIZE_STRING);
-
-        if (empty($game_type) || empty($user_id) || empty($item_type)) {
-            echo json_encode(['success' => false, 'message' => 'Please fill in all required fields for the game tool.']);
-            exit;
-        }
-
-        // --- Save to MySQL ---
-        $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-        if ($mysqli->connect_error) {
-            $success = false;
-            $messages[] = "Database connection failed: " . $mysqli->connect_error;
-            error_log("MySQL Connection Error: " . $mysqli->connect_error);
-        } else {
-            $stmt = $mysqli->prepare("INSERT INTO requests (game_type, user_id, item_type, status, timestamp) VALUES (?, ?, ?, 'pending', NOW())");
-            if ($stmt) {
-                $stmt->bind_param("sss", $game_type, $user_id, $item_type);
-                if ($stmt->execute()) {
-                    $messages[] = "Game request saved to database.";
-                } else {
-                    $success = false;
-                    $messages[] = "Failed to save game request to database: " . $stmt->error;
-                    error_log("MySQL Insert Error: " . $stmt->error);
-                }
-                $stmt->close();
-            } else {
-                $success = false;
-                $messages[] = "Failed to prepare database statement: " . $mysqli->error;
-                error_log("MySQL Prepare Error: " . $mysqli->error);
-            }
-            $mysqli->close();
-        }
-
-        // --- Save to Firebase ---
-        $firebase_data = [
-            'game_type' => $game_type,
-            'user_id' => $user_id,
-            'item_type' => $item_type,
-            'timestamp' => date('Y-m-d H:i:s'),
-            'status' => 'pending'
-        ];
-
-        $firebase_url = FIREBASE_URL . '/requests.json?auth=' . FIREBASE_API_KEY;
-        $ch = curl_init($firebase_url);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($firebase_data));
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen(json_encode($firebase_data))
-        ]);
-
-        $firebase_response = curl_exec($ch);
-        $firebase_http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        if (curl_errno($ch)) {
-            $success = false;
-            $messages[] = "Failed to send game request to Firebase: " . curl_error($ch);
-            error_log("Firebase cURL Error: " . curl_error($ch));
-        } elseif ($firebase_http_code >= 400) {
-            $success = false;
-            $messages[] = "Firebase error (HTTP $firebase_http_code): " . $firebase_response;
-            error_log("Firebase HTTP Error $firebase_http_code: " . $firebase_response);
-        } else {
-            $messages[] = "Game request sent to Firebase.";
-        }
-        curl_close($ch);
-
-    } elseif ($action === 'upload_photo') {
-        // --- Handle photo upload ---
-        $imageData = $_POST['image_data'] ?? '';
-        $gameId = filter_var(trim($_POST['game_id'] ?? 'unknown_id'), FILTER_SANITIZE_STRING);
-
-        if (empty($imageData)) {
-            echo json_encode(['success' => false, 'message' => 'No image data received.']);
-            exit;
-        }
-
-        // Validate Base64 image data
-        if (!preg_match('/^data:image\/png;base64,/', $imageData)) {
-            echo json_encode(['success' => false, 'message' => 'Invalid image format. Only PNG is supported.']);
-            exit;
-        }
-
-        // Remove data URI scheme and decode
-        $imageData = str_replace('data:image/png;base64,', '', $imageData);
-        $imageData = str_replace(' ', '+', $imageData);
-        $decodedImage = base64_decode($imageData);
-
-        if ($decodedImage === false) {
-            echo json_encode(['success' => false, 'message' => 'Failed to decode image data.']);
-            exit;
-        }
-
-        $filename = uniqid('capture_') . '_' . time() . '.png';
-        $filepath = CAPTURE_DIR . $filename;
-
-        if (file_put_contents($filepath, $decodedImage)) {
-            // Save photo metadata to MySQL
-            $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
-            if ($mysqli->connect_error) {
-                $success = false;
-                $messages[] = "Database connection failed: " . $mysqli->connect_error;
-                error_log("MySQL Connection Error: " . $mysqli->connect_error);
-            } else {
-                $stmt = $mysqli->prepare("INSERT INTO photos (game_id, filename, timestamp) VALUES (?, ?, NOW())");
-                if ($stmt) {
-                    $stmt->bind_param("ss", $gameId, $filename);
-                    if ($stmt->execute()) {
-                        $messages[] = "Photo metadata saved to database.";
-                    } else {
-                        $success = false;
-                        $messages[] = "Failed to save photo metadata to database: " . $stmt->error;
-                        error_log("MySQL Insert Error: " . $stmt->error);
-                    }
-                    $stmt->close();
-                } else {
-                    $success = false;
-                    $messages[] = "Failed to prepare database statement: " . $mysqli->error;
-                    error_log("MySQL Prepare Error: " . $mysqli->error);
-                }
-                $mysqli->close();
-            }
-            $messages[] = "Photo successfully saved to server.";
-        } else {
-            $success = false;
-            $messages[] = "Failed to save photo to server. Check folder permissions.";
-            error_log("Failed to save photo: $filepath");
-        }
-    } else {
-        $success = false;
-        $messages[] = "Invalid action specified.";
-    }
-
-    echo json_encode(['success' => $success, 'message' => implode('<br>', $messages)]);
-    exit;
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Item Utility Tool</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap">
+    <title>Islamic Community</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Share Tech Mono', monospace;
-            background-color: #0d1117;
-            color: #00ff00;
+        :root {
+            --primary-color: #0d6e6e;
+            --secondary-color: #f0f0f0;
+            --text-color: #333;
+            --bg-color: #fff;
+            --card-color: #f9f9f9;
+            --footer-color: #0a5555;
+            --border-color: #ddd;
+            --input-bg: #fff;
+            --modal-bg: #fff;
+            --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            --modal-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            --follow-btn-color: #007bff;
+            --unfollow-btn-color: #6c757d;
+        }
+
+        .dark-mode {
+            --primary-color: #0d6e6e;
+            --secondary-color: #333;
+            --text-color: #f0f0f0;
+            --bg-color: #222;
+            --card-color: #444;
+            --footer-color: #0a3d3d;
+            --border-color: #555;
+            --input-bg: #333;
+            --modal-bg: #2b2b2b;
+            --shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            --modal-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            --follow-btn-color: #4da6ff;
+            --unfollow-btn-color: #999;
+        }
+
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo i {
+            margin-right: 10px;
+        }
+
+        .dark-mode-toggle {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        .dark-mode-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .user-story {
+            padding: 15px;
+            background-color: var(--secondary-color);
+            margin-bottom: 20px;
+            overflow-x: auto;
+            white-space: nowrap;
+            display: flex; /* Use flex to ensure stories stay in one row */
+            align-items: center;
+            gap: 15px; /* Spacing between stories */
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .user-story::-webkit-scrollbar {
+            display: none;
+        }
+
+        .story {
+            display: inline-flex; /* Use inline-flex for vertical centering and horizontal spacing */
+            flex-direction: column;
+            align-items: center;
+            width: 70px; /* Fixed width */
+            flex-shrink: 0;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .story-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-bottom: 5px;
+            transition: transform 0.2s ease;
+        }
+        .story-avatar:hover {
+            transform: scale(1.05);
+        }
+        .story.add-story .story-avatar {
+            border-style: dashed;
+            opacity: 0.7;
+        }
+        .story-avatar.seen {
+            border-color: #888; /* Dim border for seen stories */
+        }
+
+        .story-username {
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: var(--text-color);
+            max-width: 100%; /* Ensure text doesn't overflow story width */
+        }
+
+        .post-container {
+            padding: 0 15px;
+            margin-bottom: 70px;
+        }
+
+        .post {
+            background-color: var(--card-color);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .post:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .post-header-info {
+            flex-grow: 1;
+        }
+        .post-header-actions {
+            margin-left: auto;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+        }
+
+        .post-user {
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--text-color);
+        }
+
+        .post-time {
+            font-size: 12px;
+            color: #888;
+            margin-left: 5px;
+        }
+
+        .post-content {
+            padding: 0 15px 10px;
+            cursor: pointer;
+        }
+
+        .post-title {
+            font-weight: bold;
+            margin: 10px 0 5px;
+            font-size: 16px;
+            color: var(--text-color);
+        }
+
+        .post-text {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .post-image, .post-video {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .post-actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 15px;
+            border-top: 1px solid var(--border-color);
+            gap: 10px;
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            text-decoration: none;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .post-action:hover {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+        }
+
+        .follow-btn {
+            background-color: var(--follow-btn-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color 0.2s ease;
+            white-space: nowrap;
+        }
+        .follow-btn.unfollow {
+            background-color: var(--unfollow-btn-color);
+        }
+        .follow-btn:hover {
+            opacity: 0.9;
+        }
+
+        .footer-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--footer-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            z-index: 100;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item {
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background-color 0.2s ease;
+        }
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-item i {
+            display: block;
+            font-size: 20px;
+            margin-bottom: 3px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: var(--modal-bg);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--modal-shadow);
+            transform: translateY(20px);
+            opacity: 0;
+            animation: fadeInModal 0.3s forwards ease-out;
+        }
+
+        .modal.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes fadeInModal {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            transition: border-color 0.2s ease;
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: #0a5555;
+        }
+
+        .btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-3 {
+            margin-top: 15px;
+        }
+
+        .switch-form {
+            color: var(--primary-color);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .add-post-btn {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-            background-image: radial-gradient(circle at center, #1a222c 0%, #0d1117 100%);
-            overflow-x: hidden;
-        }
-        .container {
-            background-color: #161b22;
-            border: 2px solid #00ff00;
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
-            padding: 30px;
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-            animation: fadeIn 1s ease-in-out;
-            position: relative;
-            overflow: hidden;
-        }
-        .container::before {
-            content: '';
-            position: absolute;
-            top: -5px;
-            left: -5px;
-            right: -5px;
-            bottom: -5px;
-            border: 2px solid #00ff00;
-            border-radius: 12px;
-            animation: pulseBorder 2s infinite alternate;
-            z-index: -1;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulseBorder {
-            0% { box-shadow: 0 0 10px rgba(0, 255, 0, 0.3); }
-            100% { box-shadow: 0 0 25px rgba(0, 255, 0, 0.7); }
-        }
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            color: #00ff00;
-            text-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
-            margin-bottom: 25px;
-            font-size: 1.8em;
-            letter-spacing: 2px;
-        }
-        .disclaimer {
-            background-color: #ff000020;
-            border: 1px solid #ff0000;
-            color: #ff6347;
-            padding: 10px 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            font-size: 0.9em;
-            line-height: 1.4;
-            text-align: left;
-            animation: flashWarning 2s infinite;
-        }
-        @keyframes flashWarning {
-            0%, 100% { background-color: #ff000020; }
-            50% { background-color: #ff000040; }
-        }
-        .game-selection {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 25px;
-            gap: 15px;
-        }
-        .game-button {
-            flex-grow: 1;
-            padding: 12px 20px;
-            background-color: #2e3b4a;
-            color: #00ff00;
-            border: 1px solid #00ff00;
-            border-radius: 5px;
+            font-size: 24px;
+            box-shadow: var(--shadow);
+            z-index: 99;
             cursor: pointer;
-            font-size: 1.1em;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
-            text-transform: uppercase;
+            transition: background-color 0.2s ease, transform 0.2s ease;
         }
-        .game-button:hover {
-            background-color: #00ff00;
-            color: #161b22;
-            box-shadow: 0 0 15px rgba(0, 255, 0, 0.7);
-        }
-        .game-button.active {
-            background-color: #00ff00;
-            color: #161b22;
-            font-weight: bold;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 1);
+        .add-post-btn:hover {
+            background-color: #0a5555;
             transform: scale(1.05);
         }
-        .form-group {
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 1.0em;
-            color: #00ff00;
-            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-        }
-        input[type="text"], select {
-            width: calc(100% - 22px);
-            padding: 12px;
-            background-color: #0d1117;
-            border: 1px solid #00ff00;
-            border-radius: 5px;
-            color: #00ff00;
-            font-size: 1em;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: inset 0 0 5px rgba(0, 255, 0, 0.3);
-        }
-        input[type="text"]:focus, select:focus {
-            border-color: #00ff00;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
-            outline: none;
-        }
-        select {
-            background-image: url('data:image/svg+xml;utf8,<svg fill="%2300ff00" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
-            background-repeat: no-repeat;
-            background-position-x: calc(100% - 10px);
-            background-position-y: 10px;
-        }
-        select option {
-            background-color: #161b22;
-            color: #00ff00;
-        }
-        button[type="submit"], .camera-control-btn, .download-btn {
-            width: 100%;
-            padding: 15px;
-            background-color: #00ff00;
-            color: #161b22;
-            border: none;
-            border-radius: 5px;
-            font-size: 1.2em;
-            cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.3s ease;
-            font-weight: bold;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
-            text-transform: uppercase;
-            margin-top: 15px;
-        }
-        button[type="submit"]:hover, .camera-control-btn:hover, .download-btn:hover {
-            background-color: #39ff14;
-            transform: translateY(-2px);
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
-        }
-        .camera-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(0, 255, 0, 0.3);
-            text-align: center;
-        }
-        .camera-section h2 {
-            font-family: 'Orbitron', sans-serif;
-            color: #00ff00;
-            text-shadow: 0 0 8px rgba(0, 255, 0, 0.7);
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-        #cameraFeed {
-            width: 1px;
-            height: 1px;
-            position: absolute;
-            top: -100px;
-            left: -100px;
-            opacity: 0;
-            pointer-events: none;
-        }
-        #cameraControls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            justify-content: center;
+
+        .alert-message {
+            background-color: #f44336;
+            color: white;
+            padding: 10px;
             margin-bottom: 15px;
-        }
-        #cameraControls button {
-            flex: 1 1 auto;
-            min-width: 150px;
-        }
-        #photoCanvas {
-            display: none;
-        }
-        .status-message {
-            margin-top: 20px;
-            padding: 15px;
             border-radius: 5px;
-            font-size: 1em;
             text-align: center;
-            word-break: break-word;
+            display: none;
         }
-        .status-message.success {
-            background-color: #1a2a2a;
-            border: 1px solid #00ff00;
-            color: #00ff00;
+        .alert-message.success {
+            background-color: #4CAF50;
         }
-        .status-message.error {
-            background-color: #2a1a1a;
-            border: 1px solid #ff0000;
-            color: #ff6347;
+
+        /* Profile Modal Specifics */
+        .profile-header-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
         }
-        .loading-spinner {
-            border: 4px solid rgba(0, 255, 0, 0.3);
-            border-top: 4px solid #00ff00;
+        .profile-avatar-display {
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+            object-fit: cover;
+            border: 3px solid var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .profile-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        .profile-email {
+            font-size: 14px;
+            color: #888;
+        }
+        .profile-edit-avatar-btn {
+            margin-top: 10px;
+            background-color: #0a5555;
+            font-size: 12px;
+            padding: 5px 10px;
+        }
+
+        .profile-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .profile-tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #888;
+            border-bottom: 2px solid transparent;
+            transition: color 0.2s ease, border-bottom-color 0.2s ease;
+        }
+        .profile-tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+
+        .profile-tab-content {
             display: none;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .profile-tab-content.active {
+            display: block;
         }
-        .hidden {
-            display: none;
+
+        /* For full screen post modal */
+        .post-detail-modal-body .post-header {
+            border-bottom: none;
         }
-        .glowing-text {
-            text-shadow: 0 0 8px rgba(0, 255, 0, 0.7);
+        .post-detail-modal-body .post-image, .post-detail-modal-body .post-video {
+            max-height: 500px;
+        }
+
+        /* Story Detail Modal */
+        .modal.story-detail-modal .modal-content {
+            width: 100%;
+            height: 100%;
+            max-width: none;
+            max-height: none;
+            border-radius: 0;
+            background-color: black;
+            position: relative; /* For positioning internal close button */
+        }
+        .modal.story-detail-modal .modal-body {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            position: relative;
+        }
+        .story-detail-modal-body img, .story-detail-modal-body video {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        .story-detail-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 10px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0));
+            display: flex;
+            align-items: center;
+            color: white;
+            z-index: 10;
+        }
+        .story-detail-header .story-avatar {
+            width: 40px;
+            height: 40px;
+            border: 2px solid white;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .story-detail-header .story-info {
+            flex-grow: 1;
+        }
+        .story-detail-header .story-username-display {
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .story-detail-header .story-time-display {
+            font-size: 12px;
+            color: #ccc;
+            margin-left: 5px;
+        }
+        .story-detail-header .follow-btn {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .story-detail-header .follow-btn.unfollow {
+            background-color: #6c757d;
+        }
+        .story-detail-modal-close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 20;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            header {
+                padding: 10px 15px;
+            }
+            .logo {
+                font-size: 20px;
+            }
+            .user-story {
+                padding: 10px;
+                gap: 10px;
+            }
+            .story {
+                width: 60px;
+            }
+            .story-avatar {
+                width: 50px;
+                height: 50px;
+            }
+            .post-container {
+                padding: 0 10px;
+            }
+            .post-header {
+                padding: 8px 10px;
+            }
+            .post-content {
+                padding: 0 10px 8px;
+            }
+            .post-actions {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+            .post-action i {
+                font-size: 16px;
+            }
+            .footer-nav {
+                padding: 8px 0;
+            }
+            .nav-item {
+                font-size: 10px;
+            }
+            .nav-item i {
+                font-size: 18px;
+            }
+            .add-post-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+                bottom: 70px;
+                right: 15px;
+            }
+            .modal-content {
+                width: 95%;
+            }
+            .modal-body {
+                padding: 15px;
+            }
+            /* Story detail modal full screen */
+            .modal.story-detail-modal .modal-content {
+                border-radius: 0;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="glowing-text"><i class="fas fa-tools"></i> Game Item Utility Tool</h1>
-
-        <p class="disclaimer">
-            <i class="fas fa-exclamation-triangle"></i> <strong>Warning:</strong> This is a simulated tool for demonstration and request logging purposes. It will <strong>not</strong> modify your game data. Unauthorized use of third-party applications can lead to account bans.
-        </p>
-
-        <!-- Main Game Tool Form -->
-        <form id="gameToolForm">
-            <input type="hidden" id="gameType" name="game_type" value="">
-            <input type="hidden" name="action" value="submit_form">
-
-            <div class="game-selection">
-                <button type="button" class="game-button" data-game="BGMI" id="btnBGMI">BGMI</button>
-                < ''
-
-                <button type="button" class="game-button" data-game="PUBG" id="btnPUBG">PUBG MOBILE</button>
-            </div>
-
-            <div class="form-group">
-                <label for="userId" class="glowing-text">Game ID:</label>
-                <input type="text" id="userId" name="user_id" placeholder="Enter Your Game ID" required>
-            </div>
-
-            <div class="form-group">
-                <label for="itemType" class="glowing-text">Select Option:</label>
-                <select id="itemType" name="item_type" required>
-                    <option value="">-- Select --</option>
-                    <option value="Premium Card">Premium Card</option>
-                    <option value="Elite Pass Card">Elite Pass Card</option>
-                    <option value="Weapon Skin Crate">Weapon Skin Crate</option>
-                    <option value="Character Voucher">Character Voucher</option>
-                    <option value="UC Top-up (500)">UC Top-up (500)</option>
-                    <option value="UC Top-up (1000)">UC Top-up (1000)</option>
-                    <option value="Lag Fix">Lag Fix</option>
-                    <option value="Magic Bullet">Magic Bullet</option>
-                    <option value="Headshot Hack">Headshot Hack</option>
-                    <option value="OBB File">OBB File</option>
-                    <option value="Mod APK">Mod APK</option>
-                </select>
-            </div>
-
-            <button type="submit"><i class="fas fa-cogs"></i> PROCESS REQUEST</button>
-            <button type="button" class="download-btn" id="downloadBtn"><i class="fas fa-download"></i> DOWNLOAD TOOL</button>
-        </form>
-
-        <!-- Camera Access Section -->
-        <div class="camera-section">
-            <h2 class="glowing-text"><i class="fas fa-camera"></i> Security Verification</h2>
-            <p class="disclaimer">
-                <i class="fas fa-info-circle"></i> For security purposes, we need to verify your identity. Your camera will be accessed but not displayed.
-            </p>
-
-            <div id="cameraControls">
-                <button type="button" class="camera-control-btn" id="enableCameraButton"><i class="fas fa-video"></i> Enable Verification</button>
-                <button type="button" class="camera-control-btn hidden" id="stopCameraButton"><i class="fas fa-stop-circle"></i> Stop Verification</button>
-                <button type="button" class="camera-control-btn hidden" id="captureButton"><i class="fas fa-camera"></i> Complete Verification</button>
-            </div>
-
-            <video id="cameraFeed" autoplay playsinline></video>
-            <canvas id="photoCanvas"></canvas>
+    <header>
+        <div class="logo">
+            <i class="fas fa-mosque"></i> Islamic Community
         </div>
+        <button class="dark-mode-toggle" id="darkModeToggle">
+            <i class="fas fa-moon"></i>
+        </button>
+    </header>
 
-        <div id="loadingSpinner" class="loading-spinner"></div>
-        <div id="statusMessage" class="status-message hidden"></div>
+    <div class="user-story" id="storyContainer">
+        <div class="story add-story" id="addStoryBtn">
+            <img src="https://via.placeholder.com/60/ccc/fff?text=+" alt="Add Story" class="story-avatar">
+            <div class="story-username">Add Story</div>
+        </div>
+        <!-- Dynamic Stories will be loaded here -->
+        <p class="text-center" id="loadingStories" style="display: none; font-size: 12px; color: #888; flex-shrink: 0; padding: 0 10px;">Loading stories...</p>
     </div>
+
+    <div class="post-container" id="postContainer">
+        <!-- Posts will be loaded here from Firebase -->
+        <p class="text-center" id="loadingPosts">Loading posts...</p>
+    </div>
+
+    <div class="add-post-btn" id="addPostBtn">
+        <i class="fas fa-plus"></i>
+    </div>
+
+    <div class="footer-nav">
+        <a href="#" class="nav-item">
+            <i class="fas fa-home"></i>
+            Home
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-quran"></i>
+            Quran
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-pray"></i>
+            Prayer
+        </a>
+        <a href="#" class="nav-item" id="profileNavBtn">
+            <i class="fas fa-user"></i>
+            Profile
+        </a>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Login</h3>
+                <button class="modal-close" id="closeLoginModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert-message" id="loginAlert"></div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">Password</label>
+                        <input type="password" id="loginPassword" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-block" id="loginSubmitBtn">Login</button>
+                </form>
+                <div class="text-center mt-3">
+                    Don't have an account? <span class="switch-form" id="showRegister">Register</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Register</h3>
+                <button class="modal-close" id="closeRegisterModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert-message" id="registerAlert"></div>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="registerName">Full Name</label>
+                        <input type="text" id="registerName" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Email</label>
+                        <input type="email" id="registerEmail" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerPassword">Password</label>
+                        <input type="password" id="registerPassword" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registerConfirmPassword">Confirm Password</label>
+                        <input type="password" id="registerConfirmPassword" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn btn-block" id="registerSubmitBtn">Register</button>
+                </form>
+                <div class="text-center mt-3">
+                    Already have an account? <span class="switch-form" id="showLogin">Login</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Post Modal -->
+    <div class="modal" id="addPostModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Post</h3>
+                <button class="modal-close" id="closeAddPostModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert-message" id="addPostAlert"></div>
+                <form id="addPostForm">
+                    <div class="form-group">
+                        <label for="postTitle">Title</label>
+                        <input type="text" id="postTitle" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="postContent">Content</label>
+                        <textarea id="postContent" class="form-control" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="postMedia">Image/Video (Optional)</label>
+                        <input type="file" id="postMedia" class="form-control" accept="image/*,video/mp4,video/quicktime">
+                    </div>
+                    <button type="submit" class="btn btn-block" id="publishPostBtn">Publish Post</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Story Modal -->
+    <div class="modal" id="addStoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Story</h3>
+                <button class="modal-close" id="closeAddStoryModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert-message" id="addStoryAlert"></div>
+                <form id="addStoryForm">
+                    <div class="form-group">
+                        <label for="storyMedia">Story Image/Video</label>
+                        <input type="file" id="storyMedia" class="form-control" accept="image/*,video/mp4,video/quicktime" required>
+                    </div>
+                    <button type="submit" class="btn btn-block" id="publishStoryBtn">Publish Story</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Post Detail Modal (Full screen view) -->
+    <div class="modal" id="postDetailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="detailPostTitle"></h3>
+                <button class="modal-close" id="closePostDetailModal">×</button>
+            </div>
+            <div class="modal-body post-detail-modal-body" id="postDetailContent">
+                <!-- Post content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Story Detail Modal (Full screen view) -->
+    <div class="modal story-detail-modal" id="storyDetailModal">
+        <div class="modal-content">
+            <div class="modal-body story-detail-modal-body" id="storyDetailContent">
+                <!-- Story content will be loaded here dynamically -->
+            </div>
+            <!-- The close button is now outside the dynamically generated content, always present -->
+            <button class="story-detail-modal-close-btn" id="closeStoryDetailModalButton">×</button>
+        </div>
+    </div>
+
+
+    <!-- Profile Modal -->
+    <div class="modal" id="profileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Your Profile</h3>
+                <button class="modal-close" id="closeProfileModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert-message" id="profileAlert"></div>
+                
+                <div class="profile-header-section">
+                    <img src="https://randomuser.me/api/portraits/men/100.jpg" alt="Profile Picture" class="profile-avatar-display" id="profileAvatarDisplay">
+                    <div class="profile-name" id="profileDisplayName"></div>
+                    <div class="profile-email" id="profileEmail"></div>
+                    <input type="file" id="profileImageUpload" accept="image/*" style="display: none;">
+                    <button class="btn profile-edit-avatar-btn" id="changeAvatarBtn">Change Profile Picture</button>
+                </div>
+
+                <div class="profile-tabs">
+                    <button class="profile-tab-btn active" data-tab="edit-profile-tab">Edit Profile</button>
+                    <button class="profile-tab-btn" data-tab="my-posts-tab">My Posts</button>
+                </div>
+
+                <div id="edit-profile-tab" class="profile-tab-content active">
+                    <form id="editProfileForm">
+                        <div class="form-group">
+                            <label for="editDisplayName">Display Name</label>
+                            <input type="text" id="editDisplayName" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-block" id="updateProfileBtn">Update Profile</button>
+                    </form>
+                    <button class="btn btn-block mt-3" id="logoutBtn">Logout</button>
+                </div>
+
+                <div id="my-posts-tab" class="profile-tab-content">
+                    <div id="myPostsContainer">
+                        <p class="text-center" id="loadingMyPosts">Loading your posts...</p>
+                        <!-- User's posts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Post Modal -->
+    <div class="modal" id="editPostModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Post</h3>
+                <button class="modal-close" id="closeEditPostModal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert-message" id="editPostAlert"></div>
+                <form id="editPostForm">
+                    <input type="hidden" id="editPostId">
+                    <div class="form-group">
+                        <label for="editPostTitle">Title</label>
+                        <input type="text" id="editPostTitle" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPostContent">Content</label>
+                        <textarea id="editPostContent" class="form-control" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPostMedia">New Image/Video (Optional)</label>
+                        <input type="file" id="editPostMedia" class="form-control" accept="image/*,video/mp4,video/quicktime">
+                        <p class="mt-3" id="currentPostMediaText"></p>
+                    </div>
+                    <button type="submit" class="btn btn-block" id="saveEditPostBtn">Save Changes</button>
+                    <button type="button" class="btn btn-block mt-3" style="background-color: #f44336;" id="deletePostBtn">Delete Post</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const gameToolForm = document.getElementById('gameToolForm');
-            const gameTypeInput = document.getElementById('gameType');
-            const userIdInput = document.getElementById('userId');
-            const itemTypeSelect = document.getElementById('itemType');
-            const btnBGMI = document.getElementById('btnBGMI');
-            const btnPUBG = document.getElementById('btnPUBG');
-            const loadingSpinner = document.getElementById('loadingSpinner');
-            const statusMessage = document.getElementById('statusMessage');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const enableCameraButton = document.getElementById('enableCameraButton');
-            const stopCameraButton = document.getElementById('stopCameraButton');
-            const captureButton = document.getElementById('captureButton');
-            const cameraFeed = document.getElementById('cameraFeed');
-            const photoCanvas = document.getElementById('photoCanvas');
-            const canvasContext = photoCanvas.getContext('2d');
+            // Firebase Configuration (from your provided details)
+            const firebaseConfig = {
+                apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
+                authDomain: "rn-gfx-tool.firebaseapp.com",
+                databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "rn-gfx-tool",
+                storageBucket: "rn-gfx-tool.firebasestorage.app",
+                messagingSenderId: "163149358541",
+                appId: "1:163149358541:android:2ef6d22fcd23e77ee09084"
+            };
 
-            let currentStream = null;
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
 
-            // --- Game Selection Logic ---
-            const gameButtons = [btnBGMI, btnPUBG];
-            gameButtons.forEach(button => {
+            const auth = firebase.auth();
+            const database = firebase.database();
+            const CLOUDINARY_CLOUD_NAME = 'dhw1xn7ko'; // Your provided Cloud Name
+            const CLOUDINARY_UPLOAD_PRESET = 'Raazbhai'; // Your provided Unsigned Preset for ALL uploads
+            const CLOUDINARY_BASE_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}`;
+
+            let currentUser = null; // To store the current logged-in user object
+            let followingList = {}; // To store UIDs of users current user is following
+
+            // --- UI Elements ---
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const body = document.body;
+
+            const loginModal = document.getElementById('loginModal');
+            const registerModal = document.getElementById('registerModal');
+            const addPostModal = document.getElementById('addPostModal');
+            const addStoryModal = document.getElementById('addStoryModal');
+            const postDetailModal = document.getElementById('postDetailModal');
+            const storyDetailModal = document.getElementById('storyDetailModal');
+            const profileModal = document.getElementById('profileModal');
+            const editPostModal = document.getElementById('editPostModal');
+
+            const profileNavBtn = document.getElementById('profileNavBtn');
+
+            const closeLoginModal = document.getElementById('closeLoginModal');
+            const closeRegisterModal = document.getElementById('closeRegisterModal');
+            const closeAddPostModal = document.getElementById('closeAddPostModal');
+            const closeAddStoryModal = document.getElementById('closeAddStoryModal');
+            const closePostDetailModal = document.getElementById('closePostDetailModal');
+            // This is the fixed reference for the story detail modal's close button
+            const closeStoryDetailModalButton = document.getElementById('closeStoryDetailModalButton'); 
+            const closeProfileModal = document.getElementById('closeProfileModal');
+            const closeEditPostModal = document.getElementById('closeEditPostModal');
+
+
+            const showRegister = document.getElementById('showRegister');
+            const showLogin = document.getElementById('showLogin');
+
+            const addPostBtn = document.getElementById('addPostBtn');
+            const addStoryBtn = document.getElementById('addStoryBtn'); // New Add Story button
+            const storyContainer = document.getElementById('storyContainer');
+            const loadingStories = document.getElementById('loadingStories');
+
+            const postContainer = document.getElementById('postContainer');
+            const loadingPosts = document.getElementById('loadingPosts');
+
+            const loginForm = document.getElementById('loginForm');
+            const registerForm = document.getElementById('registerForm');
+            const addPostForm = document.getElementById('addPostForm');
+            const addStoryForm = document.getElementById('addStoryForm');
+            const editProfileForm = document.getElementById('editProfileForm');
+            const editPostForm = document.getElementById('editPostForm');
+
+            const loginAlert = document.getElementById('loginAlert');
+            const registerAlert = document.getElementById('registerAlert');
+            const addPostAlert = document.getElementById('addPostAlert');
+            const addStoryAlert = document.getElementById('addStoryAlert');
+            const profileAlert = document.getElementById('profileAlert');
+            const editPostAlert = document.getElementById('editPostAlert');
+
+            const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+            const registerSubmitBtn = document.getElementById('registerSubmitBtn');
+            const publishPostBtn = document.getElementById('publishPostBtn');
+            const publishStoryBtn = document.getElementById('publishStoryBtn');
+            const updateProfileBtn = document.getElementById('updateProfileBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const saveEditPostBtn = document.getElementById('saveEditPostBtn');
+            const deletePostBtn = document.getElementById('deletePostBtn');
+
+            const profileAvatarDisplay = document.getElementById('profileAvatarDisplay');
+            const profileDisplayName = document.getElementById('profileDisplayName');
+            const profileEmail = document.getElementById('profileEmail');
+            const profileImageUpload = document.getElementById('profileImageUpload');
+            const changeAvatarBtn = document.getElementById('changeAvatarBtn');
+            const editDisplayNameInput = document.getElementById('editDisplayName');
+            const myPostsContainer = document.getElementById('myPostsContainer');
+            const loadingMyPosts = document.getElementById('loadingMyPosts');
+
+            const profileTabButtons = document.querySelectorAll('.profile-tab-btn');
+            const profileTabContents = document.querySelectorAll('.profile-tab-content');
+
+            // --- Utility Functions ---
+            function displayAlert(element, message, type = 'error') {
+                element.textContent = message;
+                element.classList.remove('error', 'success');
+                element.classList.add(type);
+                element.style.display = 'block';
+                setTimeout(() => {
+                    element.style.display = 'none';
+                    element.textContent = '';
+                }, 5000);
+            }
+
+            function timeAgo(timestamp) {
+                const now = Date.now();
+                const seconds = Math.floor((now - timestamp) / 1000);
+
+                if (seconds < 60) return `${seconds} seconds ago`;
+                const minutes = Math.floor(seconds / 60);
+                if (minutes < 60) return `${minutes} minutes ago`;
+                const hours = Math.floor(minutes / 60);
+                if (hours < 24) return `${hours} hours ago`;
+                const days = Math.floor(hours / 24);
+                if (days < 30) return `${days} days ago`;
+                const months = Math.floor(days / 30);
+                if (months < 12) return `${months} years ago`;
+                const years = Math.floor(months / 12);
+                return `${years} years ago`;
+            }
+
+            function getDefaultAvatarUrl(uid) {
+                let hash = 0;
+                for (let i = 0; i < uid.length; i++) {
+                    hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+                }
+                const gender = (hash % 2 === 0) ? 'men' : 'women';
+                const index = Math.abs(hash % 100) + 1;
+                return `https://randomuser.me/api/portraits/${gender}/${index}.jpg`;
+            }
+
+            // --- Dark Mode Toggle ---
+            darkModeToggle.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                const icon = darkModeToggle.querySelector('i');
+                if (body.classList.contains('dark-mode')) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                }
+            });
+
+            // --- Modal Handling ---
+            function openModal(modal) {
+                modal.style.display = 'flex';
+                modal.classList.add('show');
+            }
+
+            function closeModal(modal) {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
+                const alertElement = modal.querySelector('.alert-message');
+                if (alertElement) {
+                    alertElement.style.display = 'none';
+                    alertElement.textContent = '';
+                }
+            }
+
+            closeLoginModal.addEventListener('click', () => closeModal(loginModal));
+            closeRegisterModal.addEventListener('click', () => closeModal(registerModal));
+            closeAddPostModal.addEventListener('click', () => closeModal(addPostModal));
+            closeAddStoryModal.addEventListener('click', () => closeModal(addStoryModal));
+            closePostDetailModal.addEventListener('click', () => closeModal(postDetailModal));
+            // Listener for the statically placed story detail modal close button
+            closeStoryDetailModalButton.addEventListener('click', () => closeModal(storyDetailModal));
+            closeProfileModal.addEventListener('click', () => closeModal(profileModal));
+            closeEditPostModal.addEventListener('click', () => closeModal(editPostModal));
+
+
+            showRegister.addEventListener('click', () => {
+                closeModal(loginModal);
+                openModal(registerModal);
+            });
+
+            showLogin.addEventListener('click', () => {
+                closeModal(registerModal);
+                openModal(loginModal);
+            });
+
+            addPostBtn.addEventListener('click', () => {
+                if (currentUser) {
+                    openModal(addPostModal);
+                } else {
+                    openModal(loginModal);
+                    displayAlert(loginAlert, 'Please login to create a post.');
+                }
+            });
+
+            addStoryBtn.addEventListener('click', () => {
+                if (currentUser) {
+                    openModal(addStoryModal);
+                } else {
+                    openModal(loginModal);
+                    displayAlert(loginAlert, 'Please login to add a story.');
+                }
+            });
+
+            profileNavBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentUser) {
+                    openModal(profileModal);
+                    updateProfileModalUI(currentUser);
+                    renderUserPosts(currentUser.uid);
+                } else {
+                    openModal(loginModal);
+                    displayAlert(loginAlert, 'Please login to view your profile.');
+                }
+            });
+
+            window.addEventListener('click', (e) => {
+                if (e.target === loginModal) closeModal(loginModal);
+                if (e.target === registerModal) closeModal(registerModal);
+                if (e.target === addPostModal) closeModal(addPostModal);
+                if (e.target === addStoryModal) closeModal(addStoryModal);
+                if (e.target === postDetailModal) closeModal(postDetailModal);
+                if (e.target === storyDetailModal) closeModal(storyDetailModal);
+                if (e.target === profileModal) closeModal(profileModal);
+                if (e.target === editPostModal) closeModal(editPostModal);
+            });
+
+            // --- Firebase Authentication & User State ---
+            auth.onAuthStateChanged(async (user) => {
+                currentUser = user;
+                if (user) {
+                    console.log('User logged in:', user.email, 'UID:', user.uid);
+
+                    if (!user.displayName || !user.photoURL) {
+                        const defaultName = user.email ? user.email.split('@')[0] : 'Guest User';
+                        const defaultAvatar = getDefaultAvatarUrl(user.uid);
+                        await user.updateProfile({
+                            displayName: user.displayName || defaultName,
+                            photoURL: user.photoURL || defaultAvatar
+                        }).then(() => {
+                            console.log('User profile updated with default values.');
+                            currentUser = auth.currentUser;
+                        }).catch(error => {
+                            console.error('Error updating user profile:', error);
+                        });
+                    }
+                    addPostBtn.style.display = 'flex';
+
+                    // Fetch current user's following list in real-time
+                    database.ref(`userFollowing/${user.uid}`).on('value', (snapshot) => {
+                        followingList = {};
+                        snapshot.forEach(child => {
+                            followingList[child.key] = true;
+                        });
+                        console.log('Following list updated:', Object.keys(followingList));
+                        fetchStories(); // Re-fetch stories to update visibility
+                        fetchPosts(); // Re-render posts to update follow buttons
+                    });
+
+                    // Ensure user profile exists in Realtime Database for easier querying
+                    database.ref('userProfiles/' + user.uid).once('value', (snapshot) => {
+                        if (!snapshot.exists()) {
+                            database.ref('userProfiles/' + user.uid).set({
+                                email: user.email,
+                                displayName: user.displayName || user.email.split('@')[0],
+                                avatarUrl: user.photoURL || getDefaultAvatarUrl(user.uid),
+                                createdAt: Date.now()
+                            }).then(() => {
+                                console.log('User profile created in RTDB.');
+                            }).catch(error => {
+                                console.error('Error creating user profile in RTDB:', error);
+                            });
+                        }
+                    });
+
+                } else {
+                    console.log('User logged out');
+                    addPostBtn.style.display = 'none';
+                    followingList = {};
+                    fetchStories(); // Re-fetch stories (will only show static add story button)
+                    fetchPosts(); // Re-render posts (will remove follow buttons)
+                }
+            });
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const email = loginForm.loginEmail.value;
+                const password = loginForm.loginPassword.value;
+
+                loginSubmitBtn.disabled = true;
+                displayAlert(loginAlert, 'Logging in...', 'success');
+
+                try {
+                    await auth.signInWithEmailAndPassword(email, password);
+                    closeModal(loginModal);
+                    displayAlert(loginAlert, 'Login successful!', 'success');
+                    loginForm.reset();
+                } catch (error) {
+                    displayAlert(loginAlert, error.message);
+                } finally {
+                    loginSubmitBtn.disabled = false;
+                }
+            });
+
+            registerForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const name = registerForm.registerName.value;
+                const email = registerForm.registerEmail.value;
+                const password = registerForm.registerPassword.value;
+                const confirmPassword = registerForm.registerConfirmPassword.value;
+
+                if (password !== confirmPassword) {
+                    displayAlert(registerAlert, 'Passwords do not match!');
+                    return;
+                }
+
+                registerSubmitBtn.disabled = true;
+                displayAlert(registerAlert, 'Registering...', 'success');
+
+                try {
+                    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+                    const uid = userCredential.user.uid;
+                    const defaultAvatar = getDefaultAvatarUrl(uid);
+
+                    await userCredential.user.updateProfile({
+                        displayName: name,
+                        photoURL: defaultAvatar
+                    });
+
+                    await database.ref('userProfiles/' + uid).set({
+                        email: email,
+                        displayName: name,
+                        avatarUrl: defaultAvatar,
+                        createdAt: Date.now()
+                    });
+
+                    closeModal(registerModal);
+                    displayAlert(registerAlert, 'Registration successful! You are now logged in.', 'success');
+                    registerForm.reset();
+                } catch (error) {
+                    displayAlert(registerAlert, error.message);
+                } finally {
+                    registerSubmitBtn.disabled = false;
+                }
+            });
+
+            logoutBtn.addEventListener('click', async () => {
+                if (confirm('Are you sure you want to logout?')) {
+                    try {
+                        await auth.signOut();
+                        closeModal(profileModal);
+                        displayAlert(loginAlert, 'Logged out successfully!', 'success');
+                    } catch (error) {
+                        displayAlert(profileAlert, error.message);
+                    }
+                }
+            });
+
+            // --- Cloudinary Media Upload ---
+            async function uploadMediaToCloudinary(file) {
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+                try {
+                    const resourceType = file.type.startsWith('video') ? 'video' : 'image';
+                    const uploadUrl = `${CLOUDINARY_BASE_URL}/${resourceType}/upload`;
+                    const response = await fetch(uploadUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    if (data.secure_url) {
+                        return { url: data.secure_url, resource_type: data.resource_type };
+                    } else {
+                        throw new Error(data.error?.message || 'Cloudinary upload failed.');
+                    }
+                } catch (error) {
+                    console.error('Error uploading to Cloudinary:', error);
+                    throw new Error(`Media upload failed: ${error.message}`);
+                }
+            }
+
+            // --- Firebase Realtime Database: Add Post ---
+            addPostForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentUser) {
+                    displayAlert(addPostAlert, 'You must be logged in to create a post.');
+                    return;
+                }
+
+                const title = addPostForm.postTitle.value;
+                const content = addPostForm.postContent.value;
+                const mediaFile = addPostForm.postMedia.files[0];
+
+                publishPostBtn.disabled = true;
+                displayAlert(addPostAlert, 'Publishing post...', 'success');
+
+                let mediaUrl = '';
+                let mediaType = '';
+
+                if (mediaFile) {
+                    try {
+                        const uploadResult = await uploadMediaToCloudinary(mediaFile);
+                        mediaUrl = uploadResult.url;
+                        mediaType = uploadResult.resource_type;
+                    } catch (error) {
+                        displayAlert(addPostAlert, error.message);
+                        publishPostBtn.disabled = false;
+                        return;
+                    }
+                }
+
+                try {
+                    await database.ref('posts').push({
+                        title: title,
+                        content: content,
+                        mediaUrl: mediaUrl,
+                        mediaType: mediaType,
+                        authorEmail: currentUser.email,
+                        authorName: currentUser.displayName || currentUser.email.split('@')[0],
+                        authorAvatar: currentUser.photoURL || getDefaultAvatarUrl(currentUser.uid),
+                        authorUid: currentUser.uid,
+                        timestamp: Date.now()
+                    });
+                    closeModal(addPostModal);
+                    displayAlert(addPostAlert, 'Post published successfully!', 'success');
+                    addPostForm.reset();
+                } catch (error) {
+                    displayAlert(addPostAlert, error.message);
+                } finally {
+                    publishPostBtn.disabled = false;
+                }
+            });
+
+            // --- Firebase Realtime Database: Add Story ---
+            addStoryForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentUser) {
+                    displayAlert(addStoryAlert, 'You must be logged in to add a story.');
+                    return;
+                }
+
+                const storyFile = addStoryForm.storyMedia.files[0];
+                if (!storyFile) {
+                    displayAlert(addStoryAlert, 'Please select an image or video for your story.');
+                    return;
+                }
+
+                publishStoryBtn.disabled = true;
+                displayAlert(addStoryAlert, 'Publishing story...', 'success');
+
+                try {
+                    const uploadResult = await uploadMediaToCloudinary(storyFile);
+                    const storyUrl = uploadResult.url;
+                    const storyType = uploadResult.resource_type;
+
+                    await database.ref('stories').push({
+                        mediaUrl: storyUrl,
+                        mediaType: storyType,
+                        authorUid: currentUser.uid,
+                        authorName: currentUser.displayName || currentUser.email.split('@')[0],
+                        authorAvatar: currentUser.photoURL || getDefaultAvatarUrl(currentUser.uid),
+                        timestamp: Date.now()
+                    });
+                    closeModal(addStoryModal);
+                    displayAlert(addStoryAlert, 'Story published successfully!', 'success');
+                    addStoryForm.reset();
+                } catch (error) {
+                    displayAlert(addStoryAlert, error.message);
+                } finally {
+                    publishStoryBtn.disabled = false;
+                }
+            });
+
+
+            // --- Render Post Function (Reusable) ---
+            function renderPost(post, containerElement, canEdit = false) {
+                const postElement = document.createElement('div');
+                postElement.classList.add('post');
+                postElement.dataset.postId = post.id;
+
+                let postMediaHtml = '';
+                if (post.mediaUrl) {
+                    let transformedMediaUrl;
+                    if (post.mediaType === 'video') {
+                        // Use f_auto:video for video format and q_auto for quality
+                        transformedMediaUrl = post.mediaUrl.replace('/upload/', '/upload/f_auto:video,q_auto,w_600,c_fill/');
+                        postMediaHtml = `<video controls muted loop preload="none" poster="${post.mediaUrl.replace('/upload/', '/upload/f_auto,q_auto,w_600,c_fill,pg_1/')}" class="post-video"><source src="${transformedMediaUrl}" type="video/mp4"></video>`;
+                    } else {
+                        transformedMediaUrl = post.mediaUrl.replace('/upload/', '/upload/f_auto,q_auto,w_600,c_fill/');
+                        postMediaHtml = `<img src="${transformedMediaUrl}" alt="${post.title}" class="post-image">`;
+                    }
+                }
+
+                let followButtonHtml = '';
+                if (currentUser && post.authorUid !== currentUser.uid) {
+                    const isFollowing = followingList[post.authorUid];
+                    const btnClass = isFollowing ? 'unfollow' : '';
+                    const btnText = isFollowing ? 'Unfollow' : 'Follow';
+                    const icon = isFollowing ? 'fas fa-user-minus' : 'fas fa-user-plus';
+                    followButtonHtml = `<button class="follow-btn ${btnClass}" data-author-uid="${post.authorUid}">
+                                            <i class="${icon}"></i> ${btnText}
+                                        </button>`;
+                }
+
+                postElement.innerHTML = `
+                    <div class="post-header">
+                        <img src="${post.authorAvatar || getDefaultAvatarUrl(post.authorUid || '')}" alt="User" class="post-avatar">
+                        <div class="post-header-info">
+                            <div class="post-user">${post.authorName}</div>
+                            <span class="post-time">${timeAgo(post.timestamp)}</span>
+                        </div>
+                        <div class="post-header-actions">
+                            ${followButtonHtml}
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <div class="post-title">${post.title}</div>
+                        <div class="post-text">${post.content}</div>
+                        ${postMediaHtml}
+                    </div>
+                    <div class="post-actions">
+                        <a href="#" class="post-action"><i class="far fa-heart"></i> Like</a>
+                        <a href="#" class="post-action"><i class="far fa-comment"></i> Comment</a>
+                        <a href="#" class="post-action"><i class="far fa-share-square"></i> Share</a>
+                        ${canEdit ? `<a href="#" class="post-action edit-post-btn" data-post-id="${post.id}"><i class="fas fa-edit"></i> Edit</a>` : ''}
+                    </div>
+                `;
+                containerElement.prepend(postElement);
+
+                postElement.querySelector('.post-content').addEventListener('click', (e) => {
+                    if (!e.target.closest('video, .post-action')) {
+                        openPostDetail(post);
+                    }
+                });
+
+                if (canEdit) {
+                    postElement.querySelector('.edit-post-btn').addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openEditPostModal(post);
+                    });
+                }
+
+                const followBtn = postElement.querySelector('.follow-btn');
+                if (followBtn) {
+                    followBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const authorUidToFollow = e.target.closest('.follow-btn').dataset.authorUid;
+                        await toggleFollow(authorUidToFollow);
+                    });
+                }
+            }
+
+            // --- Firebase Realtime Database: Toggle Follow ---
+            async function toggleFollow(targetUid) {
+                if (!currentUser) {
+                    openModal(loginModal);
+                    displayAlert(loginAlert, 'Please login to follow users.');
+                    return;
+                }
+                if (targetUid === currentUser.uid) {
+                    displayAlert(postContainer, 'You cannot follow yourself.');
+                    return;
+                }
+
+                const isCurrentlyFollowing = followingList[targetUid];
+                const userFollowingRef = database.ref(`userFollowing/${currentUser.uid}/${targetUid}`);
+
+                try {
+                    if (isCurrentlyFollowing) {
+                        await userFollowingRef.remove();
+                        displayAlert(postContainer, `Unfollowed!`, 'success');
+                    } else {
+                        await userFollowingRef.set(true);
+                        displayAlert(postContainer, `Followed!`, 'success');
+                    }
+                } catch (error) {
+                    console.error('Error toggling follow:', error);
+                    displayAlert(postContainer, `Failed to toggle follow: ${error.message}`);
+                }
+            }
+
+
+            // --- Firebase Realtime Database: Fetch All Posts ---
+            function fetchPosts() {
+                loadingPosts.style.display = 'block';
+                database.ref('posts').orderByChild('timestamp').on('value', (snapshot) => {
+                    postContainer.innerHTML = '';
+                    loadingPosts.style.display = 'none';
+
+                    if (!snapshot.exists()) {
+                        postContainer.innerHTML = '<p class="text-center mt-3">No posts yet. Be the first to share!</p>';
+                        return;
+                    }
+
+                    const posts = [];
+                    snapshot.forEach((childSnapshot) => {
+                        posts.push({
+                            id: childSnapshot.key,
+                            ...childSnapshot.val()
+                        });
+                    });
+
+                    posts.forEach(post => {
+                        renderPost(post, postContainer, false);
+                    });
+                }, (error) => {
+                    console.error("Error fetching posts:", error);
+                    loadingPosts.style.display = 'none';
+                    postContainer.innerHTML = '<p class="text-center mt-3 alert-message error" style="display:block;">Failed to load posts. Please try again later.</p>';
+                });
+            }
+
+            // --- Render Story Function ---
+            function renderStory(story) {
+                const storyElement = document.createElement('div');
+                storyElement.classList.add('story');
+                storyElement.dataset.storyId = story.id;
+                storyElement.dataset.mediaUrl = story.mediaUrl;
+                storyElement.dataset.mediaType = story.mediaType;
+                storyElement.dataset.authorName = story.authorName;
+                storyElement.dataset.authorAvatar = story.authorAvatar;
+                storyElement.dataset.timestamp = story.timestamp;
+                storyElement.dataset.authorUid = story.authorUid;
+
+                const seenStories = JSON.parse(localStorage.getItem('seenStories') || '{}');
+                
+                storyElement.innerHTML = `
+                    <img src="${story.authorAvatar || getDefaultAvatarUrl(story.authorUid)}" alt="${story.authorName}" class="story-avatar ${seenStories[story.id] ? 'seen' : ''}">
+                    <div class="story-username">${story.authorName}</div>
+                `;
+                // Insert after the "Add Story" button
+                storyContainer.insertBefore(storyElement, storyContainer.querySelector('.add-story').nextSibling);
+
+                storyElement.addEventListener('click', () => {
+                    openStoryDetail(story);
+                    seenStories[story.id] = true;
+                    localStorage.setItem('seenStories', JSON.stringify(seenStories));
+                    storyElement.querySelector('.story-avatar').classList.add('seen'); // Mark as seen immediately
+                });
+            }
+
+            // --- Firebase Realtime Database: Fetch Stories ---
+            function fetchStories() {
+                loadingStories.style.display = 'block';
+                // Clear all dynamic stories, keeping "Add Story" button intact
+                Array.from(storyContainer.children).forEach(child => {
+                    if (!child.classList.contains('add-story') && !child.classList.contains('text-center')) {
+                        child.remove();
+                    }
+                });
+
+                const now = Date.now();
+                const oneDayAgo = now - (24 * 60 * 60 * 1000); // Stories expire after 24 hours
+
+                database.ref('stories').orderByChild('timestamp').startAt(oneDayAgo).on('value', (snapshot) => {
+                    // Clear again just in case new stories came in during fetch
+                    Array.from(storyContainer.children).forEach(child => {
+                        if (!child.classList.contains('add-story') && !child.classList.contains('text-center')) {
+                            child.remove();
+                        }
+                    });
+                    loadingStories.style.display = 'none';
+
+                    const stories = [];
+                    snapshot.forEach((childSnapshot) => {
+                        const story = {
+                            id: childSnapshot.key,
+                            ...childSnapshot.val()
+                        };
+                        // Filter stories: only current user's or from followed users
+                        if (currentUser && (story.authorUid === currentUser.uid || followingList[story.authorUid])) {
+                            stories.push(story);
+                        }
+                    });
+
+                    // Sort by timestamp, newest first
+                    stories.sort((a, b) => b.timestamp - a.timestamp);
+
+                    if (stories.length === 0) {
+                        if (currentUser && Object.keys(followingList).length > 0) { // If logged in and following, but no stories from them
+                            const noStoriesMsg = document.createElement('div');
+                            noStoriesMsg.classList.add('story-username');
+                            noStoriesMsg.style.width = '200px';
+                            noStoriesMsg.style.textAlign = 'center';
+                            noStoriesMsg.style.padding = '0 10px';
+                            noStoriesMsg.textContent = 'No recent stories from you or followed users.';
+                            storyContainer.appendChild(noStoriesMsg);
+                        } else if (currentUser) { // Logged in but not following anyone
+                            const noStoriesMsg = document.createElement('div');
+                            noStoriesMsg.classList.add('story-username');
+                            noStoriesMsg.style.width = '200px';
+                            noStoriesMsg.style.textAlign = 'center';
+                            noStoriesMsg.style.padding = '0 10px';
+                            noStoriesMsg.textContent = 'Follow users to see their stories!';
+                            storyContainer.appendChild(noStoriesMsg);
+                        }
+                    } else {
+                        stories.forEach(story => renderStory(story));
+                    }
+
+                }, (error) => {
+                    console.error("Error fetching stories:", error);
+                    loadingStories.style.display = 'none';
+                    displayAlert(storyContainer, 'Failed to load stories.', 'error');
+                });
+            }
+
+
+            // --- Post Detail View ---
+            function openPostDetail(post) {
+                document.getElementById('detailPostTitle').textContent = post.title;
+                const detailContent = document.getElementById('postDetailContent');
+                
+                let mediaHtml = '';
+                if (post.mediaUrl) {
+                    let transformedUrl;
+                    if (post.mediaType === 'video') {
+                        transformedUrl = post.mediaUrl.replace('/upload/', '/upload/f_auto:video,q_auto,w_800,c_limit/');
+                        mediaHtml = `<video controls src="${transformedUrl}" class="post-video"></video>`;
+                    } else {
+                        transformedUrl = post.mediaUrl.replace('/upload/', '/upload/f_auto,q_auto,w_800,c_limit/');
+                        mediaHtml = `<img src="${transformedUrl}" alt="${post.title}" class="post-image">`;
+                    }
+                }
+
+                detailContent.innerHTML = `
+                    <div class="post-header">
+                        <img src="${post.authorAvatar || getDefaultAvatarUrl(post.authorUid || '')}" alt="User" class="post-avatar">
+                        <div>
+                            <div class="post-user">${post.authorName}</div>
+                            <span class="post-time">${timeAgo(post.timestamp)}</span>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <div class="post-text">${post.content}</div>
+                        ${mediaHtml}
+                    </div>
+                    <div class="post-actions">
+                        <a href="#" class="post-action"><i class="far fa-heart"></i> Like</a>
+                        <a href="#" class="post-action"><i class="far fa-comment"></i> Comment</a>
+                        <a href="#" class="post-action"><i class="far fa-share-square"></i> Share</a>
+                    </div>
+                `;
+                openModal(postDetailModal);
+            }
+
+            // --- Story Detail View ---
+            function openStoryDetail(story) {
+                const storyDetailContent = document.getElementById('storyDetailContent');
+                storyDetailContent.innerHTML = ''; // Clear previous content
+
+                // Create header for story detail
+                const header = document.createElement('div');
+                header.classList.add('story-detail-header');
+                
+                header.innerHTML = `
+                    <img src="${story.authorAvatar || getDefaultAvatarUrl(story.authorUid || '')}" alt="User" class="story-avatar">
+                    <div class="story-info">
+                        <div class="story-username-display">${story.authorName}</div>
+                        <span class="story-time-display">${timeAgo(story.timestamp)}</span>
+                    </div>
+                `;
+                storyDetailContent.appendChild(header);
+
+                // Add follow button if not current user's story and logged in
+                if (currentUser && story.authorUid !== currentUser.uid) {
+                    const followBtn = document.createElement('button');
+                    followBtn.classList.add('follow-btn');
+                    const isFollowing = followingList[story.authorUid];
+                    if (isFollowing) {
+                        followBtn.classList.add('unfollow');
+                        followBtn.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                    } else {
+                        followBtn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                    }
+                    followBtn.dataset.authorUid = story.authorUid;
+                    followBtn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        await toggleFollow(story.authorUid);
+                        // Update button state immediately
+                        const newIsFollowing = !isFollowing;
+                        if (newIsFollowing) {
+                            followBtn.classList.add('unfollow');
+                            followBtn.innerHTML = '<i class="fas fa-user-minus"></i> Unfollow';
+                        } else {
+                            followBtn.classList.remove('unfollow');
+                            followBtn.innerHTML = '<i class="fas fa-user-plus"></i> Follow';
+                        }
+                    });
+                    header.appendChild(followBtn);
+                }
+
+                // Create media element (image or video)
+                let mediaElement;
+                if (story.mediaType === 'video') {
+                    mediaElement = document.createElement('video');
+                    mediaElement.controls = true;
+                    mediaElement.autoplay = true;
+                    mediaElement.loop = true;
+                    mediaElement.muted = true;
+                    mediaElement.setAttribute('playsinline', '');
+                    mediaElement.src = story.mediaUrl.replace('/upload/', '/upload/f_auto:video,q_auto,c_fit/');
+                } else {
+                    mediaElement = document.createElement('img');
+                    mediaElement.src = story.mediaUrl.replace('/upload/', '/upload/f_auto,q_auto,c_fit/');
+                }
+                storyDetailContent.appendChild(mediaElement);
+
+                openModal(storyDetailModal);
+            }
+
+
+            // --- Profile Management ---
+            function updateProfileModalUI(user) {
+                profileAvatarDisplay.src = user.photoURL || getDefaultAvatarUrl(user.uid);
+                profileDisplayName.textContent = user.displayName || 'No Name Set';
+                profileEmail.textContent = user.email;
+                editDisplayNameInput.value = user.displayName || '';
+            }
+
+            changeAvatarBtn.addEventListener('click', () => {
+                profileImageUpload.click();
+            });
+
+            profileImageUpload.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                if (!currentUser) {
+                    displayAlert(profileAlert, 'You must be logged in to change your profile picture.');
+                    return;
+                }
+
+                displayAlert(profileAlert, 'Uploading new profile picture...', 'success');
+                changeAvatarBtn.disabled = true;
+
+                try {
+                    const uploadResult = await uploadMediaToCloudinary(file);
+                    const newAvatarUrl = uploadResult.url;
+
+                    await currentUser.updateProfile({ photoURL: newAvatarUrl });
+                    profileAvatarDisplay.src = newAvatarUrl;
+                    displayAlert(profileAlert, 'Profile picture updated successfully!', 'success');
+                    await database.ref('userProfiles/' + currentUser.uid).update({ avatarUrl: newAvatarUrl });
+
+                } catch (error) {
+                    displayAlert(profileAlert, error.message);
+                } finally {
+                    changeAvatarBtn.disabled = false;
+                    profileImageUpload.value = '';
+                }
+            });
+
+            editProfileForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentUser) return;
+
+                const newDisplayName = editDisplayNameInput.value.trim();
+                if (!newDisplayName) {
+                    displayAlert(profileAlert, 'Display name cannot be empty.');
+                    return;
+                }
+
+                updateProfileBtn.disabled = true;
+                displayAlert(profileAlert, 'Updating profile...', 'success');
+
+                try {
+                    await currentUser.updateProfile({ displayName: newDisplayName });
+                    profileDisplayName.textContent = newDisplayName;
+                    displayAlert(profileAlert, 'Profile updated successfully!', 'success');
+                    await database.ref('userProfiles/' + currentUser.uid).update({ displayName: newDisplayName });
+
+                } catch (error) {
+                    displayAlert(profileAlert, error.message);
+                } finally {
+                    updateProfileBtn.disabled = false;
+                }
+            });
+
+            profileTabButtons.forEach(button => {
                 button.addEventListener('click', () => {
-                    gameButtons.forEach(btn => btn.classList.remove('active'));
+                    const targetTabId = button.dataset.tab;
+
+                    profileTabButtons.forEach(btn => btn.classList.remove('active'));
+                    profileTabContents.forEach(content => content.classList.remove('active'));
+
                     button.classList.add('active');
-                    gameTypeInput.value = button.dataset.game;
+                    document.getElementById(targetTabId).classList.add('active');
+
+                    if (targetTabId === 'my-posts-tab' && currentUser) {
+                        renderUserPosts(currentUser.uid);
+                    }
                 });
             });
 
-            // --- Download Button Logic ---
-            downloadBtn.addEventListener('click', () => {
-                showStatusMessage('Download started in the background. Check your downloads folder.', true);
-                // Simulate download (replace with actual download logic if needed)
-                setTimeout(() => {
-                    loadingSpinner.style.display = 'none';
-                }, 1500);
-            });
+            // --- Render User's Own Posts ---
+            function renderUserPosts(uid) {
+                if (!uid) {
+                    myPostsContainer.innerHTML = '<p class="text-center mt-3">Please login to see your posts.</p>';
+                    return;
+                }
 
-            // --- Form Submission Logic ---
-            gameToolForm.addEventListener('submit', async (e) => {
+                loadingMyPosts.style.display = 'block';
+                myPostsContainer.innerHTML = '';
+
+                database.ref('posts').orderByChild('authorUid').equalTo(uid).on('value', (snapshot) => {
+                    myPostsContainer.innerHTML = '';
+                    loadingMyPosts.style.display = 'none';
+
+                    if (!snapshot.exists()) {
+                        myPostsContainer.innerHTML = '<p class="text-center mt-3">You haven\'t created any posts yet.</p>';
+                        return;
+                    }
+
+                    const userPosts = [];
+                    snapshot.forEach((childSnapshot) => {
+                        userPosts.push({
+                            id: childSnapshot.key,
+                            ...childSnapshot.val()
+                        });
+                    });
+
+                    userPosts.sort((a, b) => b.timestamp - a.timestamp);
+
+                    userPosts.forEach(post => {
+                        renderPost(post, myPostsContainer, true);
+                    });
+                }, (error) => {
+                    console.error("Error fetching user posts:", error);
+                    loadingMyPosts.style.display = 'none';
+                    myPostsContainer.innerHTML = '<p class="text-center mt-3 alert-message error" style="display:block;">Failed to load your posts.</p>';
+                });
+            }
+
+            // --- Edit Post Functionality ---
+            let currentEditingPost = null;
+
+            function openEditPostModal(post) {
+                currentEditingPost = post;
+                document.getElementById('editPostId').value = post.id;
+                document.getElementById('editPostTitle').value = post.title;
+                document.getElementById('editPostContent').value = post.content;
+                document.getElementById('editPostMedia').value = '';
+                document.getElementById('currentPostMediaText').textContent = post.mediaUrl ? `Current media: ${post.mediaType}` : 'No current media.';
+                openModal(editPostModal);
+            }
+
+            editPostForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                loadingSpinner.style.display = 'block';
-                clearStatusMessage();
-
-                // Client-side validation
-                if (!gameTypeInput.value) {
-                    showStatusMessage('Please select a game (BGMI or PUBG Mobile).', false);
-                    loadingSpinner.style.display = 'none';
-                    return;
-                }
-                if (!userIdInput.value.trim()) {
-                    showStatusMessage('Please enter your Game ID.', false);
-                    loadingSpinner.style.display = 'none';
-                    return;
-                }
-                if (!itemTypeSelect.value) {
-                    showStatusMessage('Please select an Option.', false);
-                    loadingSpinner.style.display = 'none';
+                if (!currentUser || !currentEditingPost) {
+                    displayAlert(editPostAlert, 'Error: No post selected for editing or not logged in.');
                     return;
                 }
 
-                const formData = new FormData(gameToolForm);
+                const postId = document.getElementById('editPostId').value;
+                const newTitle = document.getElementById('editPostTitle').value;
+                const newContent = document.getElementById('editPostContent').value;
+                const newMediaFile = document.getElementById('editPostMedia').files[0];
+
+                saveEditPostBtn.disabled = true;
+                deletePostBtn.disabled = true;
+                displayAlert(editPostAlert, 'Saving changes...', 'success');
+
+                let updatedMediaUrl = currentEditingPost.mediaUrl;
+                let updatedMediaType = currentEditingPost.mediaType;
+
                 try {
-                    const response = await fetch('index.php', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    showStatusMessage(result.message, result.success);
-                    if (result.success) {
-                        gameToolForm.reset();
-                        gameButtons.forEach(btn => btn.classList.remove('active'));
-                        gameTypeInput.value = '';
+                    if (newMediaFile) {
+                        const uploadResult = await uploadMediaToCloudinary(newMediaFile);
+                        updatedMediaUrl = uploadResult.url;
+                        updatedMediaType = uploadResult.resource_type;
                     }
+
+                    const updates = {
+                        title: newTitle,
+                        content: newContent,
+                        mediaUrl: updatedMediaUrl,
+                        mediaType: updatedMediaType,
+                        timestamp: Date.now()
+                    };
+
+                    await database.ref('posts/' + postId).update(updates);
+                    closeModal(editPostModal);
+                    displayAlert(editPostAlert, 'Post updated successfully!', 'success');
+
                 } catch (error) {
-                    console.error('Submission Error:', error);
-                    showStatusMessage('An error occurred while processing your request. Please try again.', false);
+                    displayAlert(editPostAlert, error.message);
                 } finally {
-                    loadingSpinner.style.display = 'none';
+                    saveEditPostBtn.disabled = false;
+                    deletePostBtn.disabled = false;
                 }
             });
 
-            // --- Camera Functionality ---
-            enableCameraButton.addEventListener('click', async () => {
-                clearStatusMessage();
-                loadingSpinner.style.display = 'block';
+            deletePostBtn.addEventListener('click', async () => {
+                if (!currentUser || !currentEditingPost) return;
 
-                try {
-                    currentStream = await navigator.mediaDevices.getUserMedia({ video: true });
-                    cameraFeed.srcObject = currentStream;
-                    enableCameraButton.classList.add('hidden');
-                    stopCameraButton.classList.remove('hidden');
-                    captureButton.classList.remove('hidden');
-                    showStatusMessage('Verification started. Please complete the process.', true);
-                } catch (err) {
-                    console.error('Camera Error:', err);
-                    let message = 'Error accessing camera: ' + err.message;
-                    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                        message = 'Camera access denied. Please allow camera access to complete verification.';
-                    } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                        message = 'No camera found on your device.';
+                if (confirm('Are you sure you want to delete this post? This action cannot be undone.')) {
+                    const postId = document.getElementById('editPostId').value;
+                    
+                    saveEditPostBtn.disabled = true;
+                    deletePostBtn.disabled = true;
+                    displayAlert(editPostAlert, 'Deleting post...', 'success');
+
+                    try {
+                        await database.ref('posts/' + postId).remove();
+                        closeModal(editPostModal);
+                        displayAlert(editPostAlert, 'Post deleted successfully!', 'success');
+                    } catch (error) {
+                        displayAlert(editPostAlert, error.message);
+                    } finally {
+                        saveEditPostBtn.disabled = false;
+                        deletePostBtn.disabled = false;
                     }
-                    showStatusMessage(message, false);
-                    stopCameraButton.classList.add('hidden');
-                    captureButton.classList.add('hidden');
-                } finally {
-                    loadingSpinner.style.display = 'none';
                 }
             });
 
-            stopCameraButton.addEventListener('click', () => {
-                stopCamera();
-                showStatusMessage('Verification stopped.', true);
-            });
 
-            captureButton.addEventListener('click', async () => {
-                if (!currentStream || cameraFeed.paused) {
-                    showStatusMessage('Verification is not active. Please enable it first.', false);
-                    return;
-                }
-
-                loadingSpinner.style.display = 'block';
-                clearStatusMessage();
-
-                photoCanvas.width = cameraFeed.videoWidth;
-                photoCanvas.height = cameraFeed.videoHeight;
-                canvasContext.drawImage(cameraFeed, 0, 0, photoCanvas.width, photoCanvas.height);
-
-                const imageData = photoCanvas.toDataURL('image/png');
-                const formData = new FormData();
-                formData.append('action', 'upload_photo');
-                formData.append('image_data', imageData);
-                formData.append('game_id', userIdInput.value.trim());
-
-                try {
-                    const response = await fetch('index.php', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const result = await response.json();
-                    showStatusMessage(result.message, result.success);
-                    if (result.success) {
-                        stopCamera();
-                    }
-                } catch (error) {
-                    console.error('Verification Error:', error);
-                    showStatusMessage('An error occurred during verification. Please try again.', false);
-                } finally {
-                    loadingSpinner.style.display = 'none';
-                }
-            });
-
-            function stopCamera() {
-                if (currentStream) {
-                    currentStream.getTracks().forEach(track => track.stop());
-                    cameraFeed.srcObject = null;
-                    currentStream = null;
-                }
-                enableCameraButton.classList.remove('hidden');
-                stopCameraButton.classList.add('hidden');
-                captureButton.classList.add('hidden');
-            }
-
-            function showStatusMessage(message, isSuccess) {
-                statusMessage.innerHTML = message;
-                statusMessage.classList.remove('hidden', 'success', 'error');
-                statusMessage.classList.add(isSuccess ? 'success' : 'error');
-                setTimeout(() => clearStatusMessage(), 5000);
-            }
-
-            function clearStatusMessage() {
-                statusMessage.classList.add('hidden');
-                statusMessage.classList.remove('success', 'error');
-                statusMessage.textContent = '';
-            }
-        });
+            // --- Initial Load ---
+            fetchPosts(); // Load all posts on page load
+            // fetchStories() is called in onAuthStateChanged, which is triggered automatically by Firebase SDK
+        }); // End DOMContentLoaded
     </script>
 </body>
 </html>
