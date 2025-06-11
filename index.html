@@ -1,3 +1,4 @@
+l
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -178,12 +179,14 @@
             border-radius: 50%;
             object-fit: cover;
             margin-right: 10px;
+            cursor: pointer; /* Indicate clickable for story */
         }
 
         .post-user {
             font-weight: bold;
             font-size: 14px;
             color: var(--text-color);
+            cursor: pointer; /* Indicate clickable for profile */
         }
 
         .post-time {
@@ -496,6 +499,34 @@
             font-size: 12px;
             padding: 5px 10px;
         }
+        /* User Profile Modal Specifics */
+        .user-profile-stats {
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .user-profile-stat {
+            text-align: center;
+        }
+        .user-profile-stat strong {
+            display: block;
+            font-size: 18px;
+            color: var(--primary-color);
+        }
+        .user-profile-posts-container {
+            margin-top: 20px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+        }
+        .user-profile-posts-container .post {
+            cursor: default; /* Posts in this section are not clickable for detail */
+        }
+        .user-profile-posts-container .post-content {
+             cursor: default; /* Posts in this section are not clickable for detail */
+        }
+
 
         .profile-tabs {
             display: flex;
@@ -542,7 +573,7 @@
             max-height: none;
             border-radius: 0;
             background-color: black;
-            position: relative; /* For positioning internal close button */
+            position: relative;
         }
         .modal.story-detail-modal .modal-body {
             padding: 0;
@@ -731,7 +762,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Login</h3>
-                <button class="modal-close" id="closeLoginModal">×</button>
+                <button class="modal-close" id="closeLoginModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="alert-message" id="loginAlert"></div>
@@ -758,7 +789,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Register</h3>
-                <button class="modal-close" id="closeRegisterModal">×</button>
+                <button class="modal-close" id="closeRegisterModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="alert-message" id="registerAlert"></div>
@@ -793,7 +824,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Create New Post</h3>
-                <button class="modal-close" id="closeAddPostModal">×</button>
+                <button class="modal-close" id="closeAddPostModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="alert-message" id="addPostAlert"></div>
@@ -821,7 +852,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Create New Story</h3>
-                <button class="modal-close" id="closeAddStoryModal">×</button>
+                <button class="modal-close" id="closeAddStoryModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="alert-message" id="addStoryAlert"></div>
@@ -842,7 +873,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="detailPostTitle"></h3>
-                <button class="modal-close" id="closePostDetailModal">×</button>
+                <button class="modal-close" id="closePostDetailModal">&times;</button>
             </div>
             <div class="modal-body post-detail-modal-body" id="postDetailContent">
                 <!-- Post content will be loaded here -->
@@ -857,17 +888,17 @@
                 <!-- Story content will be loaded here dynamically -->
             </div>
             <!-- The close button is now outside the dynamically generated content, always present -->
-            <button class="story-detail-modal-close-btn" id="closeStoryDetailModalButton">×</button>
+            <button class="story-detail-modal-close-btn" id="closeStoryDetailModalButton">&times;</button>
         </div>
     </div>
 
 
-    <!-- Profile Modal -->
+    <!-- Profile Modal (for current user to edit their own profile) -->
     <div class="modal" id="profileModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Your Profile</h3>
-                <button class="modal-close" id="closeProfileModal">×</button>
+                <button class="modal-close" id="closeProfileModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="alert-message" id="profileAlert"></div>
@@ -906,12 +937,49 @@
         </div>
     </div>
 
+    <!-- User Profile Modal (for viewing other users' profiles) -->
+    <div class="modal" id="userProfileModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="userProfileName"></h3>
+                <button class="modal-close" id="closeUserProfileModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="alert-message" id="userProfileAlert"></div>
+                
+                <div class="profile-header-section">
+                    <img src="https://randomuser.me/api/portraits/men/100.jpg" alt="Profile Picture" class="profile-avatar-display" id="userProfileAvatar">
+                    <div class="profile-name" id="userProfileDisplayName"></div>
+                    <div class="profile-email" id="userProfileEmail"></div>
+                    <div class="user-profile-stats">
+                        <div class="user-profile-stat">
+                            <strong id="userProfilePostsCount">0</strong> Posts
+                        </div>
+                        <div class="user-profile-stat">
+                            <strong id="userProfileFollowersCount">0</strong> Followers
+                        </div>
+                        <div class="user-profile-stat">
+                            <strong id="userProfileFollowingCount">0</strong> Following
+                        </div>
+                    </div>
+                    <button class="btn follow-btn mt-3" id="userProfileFollowBtn" style="display: none;"></button>
+                </div>
+
+                <div class="user-profile-posts-container" id="userProfilePostsContainer">
+                    <p class="text-center" id="loadingUserProfilePosts">Loading posts...</p>
+                    <!-- Other user's posts will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <!-- Edit Post Modal -->
     <div class="modal" id="editPostModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Edit Post</h3>
-                <button class="modal-close" id="closeEditPostModal">×</button>
+                <button class="modal-close" id="closeEditPostModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="alert-message" id="editPostAlert"></div>
@@ -978,7 +1046,8 @@
             const addStoryModal = document.getElementById('addStoryModal');
             const postDetailModal = document.getElementById('postDetailModal');
             const storyDetailModal = document.getElementById('storyDetailModal');
-            const profileModal = document.getElementById('profileModal');
+            const profileModal = document.getElementById('profileModal'); // Current user's profile
+            const userProfileModal = document.getElementById('userProfileModal'); // Other user's profile
             const editPostModal = document.getElementById('editPostModal');
 
             const profileNavBtn = document.getElementById('profileNavBtn');
@@ -988,9 +1057,9 @@
             const closeAddPostModal = document.getElementById('closeAddPostModal');
             const closeAddStoryModal = document.getElementById('closeAddStoryModal');
             const closePostDetailModal = document.getElementById('closePostDetailModal');
-            // This is the fixed reference for the story detail modal's close button
             const closeStoryDetailModalButton = document.getElementById('closeStoryDetailModalButton'); 
             const closeProfileModal = document.getElementById('closeProfileModal');
+            const closeUserProfileModal = document.getElementById('closeUserProfileModal'); // New close button for other user's profile
             const closeEditPostModal = document.getElementById('closeEditPostModal');
 
 
@@ -1017,6 +1086,7 @@
             const addPostAlert = document.getElementById('addPostAlert');
             const addStoryAlert = document.getElementById('addStoryAlert');
             const profileAlert = document.getElementById('profileAlert');
+            const userProfileAlert = document.getElementById('userProfileAlert'); // New alert for user profile modal
             const editPostAlert = document.getElementById('editPostAlert');
 
             const loginSubmitBtn = document.getElementById('loginSubmitBtn');
@@ -1036,6 +1106,18 @@
             const editDisplayNameInput = document.getElementById('editDisplayName');
             const myPostsContainer = document.getElementById('myPostsContainer');
             const loadingMyPosts = document.getElementById('loadingMyPosts');
+
+            const userProfileName = document.getElementById('userProfileName');
+            const userProfileAvatar = document.getElementById('userProfileAvatar');
+            const userProfileDisplayName = document.getElementById('userProfileDisplayName');
+            const userProfileEmail = document.getElementById('userProfileEmail');
+            const userProfilePostsCount = document.getElementById('userProfilePostsCount');
+            const userProfileFollowersCount = document.getElementById('userProfileFollowersCount');
+            const userProfileFollowingCount = document.getElementById('userProfileFollowingCount');
+            const userProfileFollowBtn = document.getElementById('userProfileFollowBtn');
+            const userProfilePostsContainer = document.getElementById('userProfilePostsContainer');
+            const loadingUserProfilePosts = document.getElementById('loadingUserProfilePosts');
+
 
             const profileTabButtons = document.querySelectorAll('.profile-tab-btn');
             const profileTabContents = document.querySelectorAll('.profile-tab-content');
@@ -1064,15 +1146,17 @@
                 const days = Math.floor(hours / 24);
                 if (days < 30) return `${days} days ago`;
                 const months = Math.floor(days / 30);
-                if (months < 12) return `${months} years ago`;
+                if (months < 12) return `${months} months ago`;
                 const years = Math.floor(months / 12);
                 return `${years} years ago`;
             }
 
             function getDefaultAvatarUrl(uid) {
                 let hash = 0;
-                for (let i = 0; i < uid.length; i++) {
-                    hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+                if (uid) { // Ensure UID is not null/undefined
+                    for (let i = 0; i < uid.length; i++) {
+                        hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+                    }
                 }
                 const gender = (hash % 2 === 0) ? 'men' : 'women';
                 const index = Math.abs(hash % 100) + 1;
@@ -1115,9 +1199,9 @@
             closeAddPostModal.addEventListener('click', () => closeModal(addPostModal));
             closeAddStoryModal.addEventListener('click', () => closeModal(addStoryModal));
             closePostDetailModal.addEventListener('click', () => closeModal(postDetailModal));
-            // Listener for the statically placed story detail modal close button
-            closeStoryDetailModalButton.addEventListener('click', () => closeModal(storyDetailModal));
+            closeStoryDetailModalButton.addEventListener('click', () => closeModal(storyDetailModal)); 
             closeProfileModal.addEventListener('click', () => closeModal(profileModal));
+            closeUserProfileModal.addEventListener('click', () => closeModal(userProfileModal));
             closeEditPostModal.addEventListener('click', () => closeModal(editPostModal));
 
 
@@ -1154,7 +1238,7 @@
                 if (currentUser) {
                     openModal(profileModal);
                     updateProfileModalUI(currentUser);
-                    renderUserPosts(currentUser.uid);
+                    renderUserPosts(currentUser.uid); // Render own posts
                 } else {
                     openModal(loginModal);
                     displayAlert(loginAlert, 'Please login to view your profile.');
@@ -1169,6 +1253,7 @@
                 if (e.target === postDetailModal) closeModal(postDetailModal);
                 if (e.target === storyDetailModal) closeModal(storyDetailModal);
                 if (e.target === profileModal) closeModal(profileModal);
+                if (e.target === userProfileModal) closeModal(userProfileModal);
                 if (e.target === editPostModal) closeModal(editPostModal);
             });
 
@@ -1431,7 +1516,6 @@
                 if (post.mediaUrl) {
                     let transformedMediaUrl;
                     if (post.mediaType === 'video') {
-                        // Use f_auto:video for video format and q_auto for quality
                         transformedMediaUrl = post.mediaUrl.replace('/upload/', '/upload/f_auto:video,q_auto,w_600,c_fill/');
                         postMediaHtml = `<video controls muted loop preload="none" poster="${post.mediaUrl.replace('/upload/', '/upload/f_auto,q_auto,w_600,c_fill,pg_1/')}" class="post-video"><source src="${transformedMediaUrl}" type="video/mp4"></video>`;
                     } else {
@@ -1453,9 +1537,9 @@
 
                 postElement.innerHTML = `
                     <div class="post-header">
-                        <img src="${post.authorAvatar || getDefaultAvatarUrl(post.authorUid || '')}" alt="User" class="post-avatar">
+                        <img src="${post.authorAvatar || getDefaultAvatarUrl(post.authorUid || '')}" alt="User" class="post-avatar" data-author-uid="${post.authorUid}">
                         <div class="post-header-info">
-                            <div class="post-user">${post.authorName}</div>
+                            <div class="post-user" data-author-uid="${post.authorUid}">${post.authorName}</div>
                             <span class="post-time">${timeAgo(post.timestamp)}</span>
                         </div>
                         <div class="post-header-actions">
@@ -1476,11 +1560,31 @@
                 `;
                 containerElement.prepend(postElement);
 
+                // Event listener for post content click (to view detail)
                 postElement.querySelector('.post-content').addEventListener('click', (e) => {
                     if (!e.target.closest('video, .post-action')) {
                         openPostDetail(post);
                     }
                 });
+
+                // Event listener for post avatar click (to view story)
+                postElement.querySelector('.post-avatar').addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent post detail from opening
+                    const authorUid = e.target.dataset.authorUid;
+                    if (authorUid) {
+                        openStoryDetailForUser(authorUid); // New function to open story by UID
+                    }
+                });
+
+                // Event listener for post user name click (to view profile)
+                postElement.querySelector('.post-user').addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent post detail from opening
+                    const authorUid = e.target.dataset.authorUid;
+                    if (authorUid) {
+                        openUserProfileModal(authorUid); // New function to open user profile
+                    }
+                });
+
 
                 if (canEdit) {
                     postElement.querySelector('.edit-post-btn').addEventListener('click', (e) => {
@@ -1583,7 +1687,7 @@
                 storyContainer.insertBefore(storyElement, storyContainer.querySelector('.add-story').nextSibling);
 
                 storyElement.addEventListener('click', () => {
-                    openStoryDetail(story);
+                    openStoryDetail(story); // Open this specific story
                     seenStories[story.id] = true;
                     localStorage.setItem('seenStories', JSON.stringify(seenStories));
                     storyElement.querySelector('.story-avatar').classList.add('seen'); // Mark as seen immediately
@@ -1676,9 +1780,9 @@
 
                 detailContent.innerHTML = `
                     <div class="post-header">
-                        <img src="${post.authorAvatar || getDefaultAvatarUrl(post.authorUid || '')}" alt="User" class="post-avatar">
+                        <img src="${post.authorAvatar || getDefaultAvatarUrl(post.authorUid || '')}" alt="User" class="post-avatar" data-author-uid="${post.authorUid}">
                         <div>
-                            <div class="post-user">${post.authorName}</div>
+                            <div class="post-user" data-author-uid="${post.authorUid}">${post.authorName}</div>
                             <span class="post-time">${timeAgo(post.timestamp)}</span>
                         </div>
                     </div>
@@ -1693,9 +1797,21 @@
                     </div>
                 `;
                 openModal(postDetailModal);
+
+                // Add listeners to elements inside the opened modal
+                detailContent.querySelector('.post-avatar').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeModal(postDetailModal); // Close current modal
+                    openStoryDetailForUser(e.target.dataset.authorUid);
+                });
+                detailContent.querySelector('.post-user').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    closeModal(postDetailModal); // Close current modal
+                    openUserProfileModal(e.target.dataset.authorUid);
+                });
             }
 
-            // --- Story Detail View ---
+            // --- Story Detail View for a specific Story Object ---
             function openStoryDetail(story) {
                 const storyDetailContent = document.getElementById('storyDetailContent');
                 storyDetailContent.innerHTML = ''; // Clear previous content
@@ -1759,6 +1875,29 @@
                 storyDetailContent.appendChild(mediaElement);
 
                 openModal(storyDetailModal);
+            }
+
+            // --- Story Detail View for a specific User (shows their latest story) ---
+            async function openStoryDetailForUser(uid) {
+                const now = Date.now();
+                const oneDayAgo = now - (24 * 60 * 60 * 1000);
+
+                const snapshot = await database.ref('stories')
+                    .orderByChild('authorUid')
+                    .equalTo(uid)
+                    .orderByChild('timestamp')
+                    .startAt(oneDayAgo)
+                    .limitToLast(1) // Get the most recent story
+                    .once('value');
+
+                if (snapshot.exists()) {
+                    const storyData = snapshot.val();
+                    const storyId = Object.keys(storyData)[0];
+                    const story = { id: storyId, ...storyData[storyId] };
+                    openStoryDetail(story);
+                } else {
+                    alert('This user has no recent stories.');
+                }
             }
 
 
@@ -1840,27 +1979,28 @@
                     document.getElementById(targetTabId).classList.add('active');
 
                     if (targetTabId === 'my-posts-tab' && currentUser) {
-                        renderUserPosts(currentUser.uid);
+                        renderUserPosts(currentUser.uid, myPostsContainer, true); // Render own posts, allow edit
                     }
                 });
             });
 
-            // --- Render User's Own Posts ---
-            function renderUserPosts(uid) {
+            // --- Render User's Own Posts (for my profile and other user's profile) ---
+            function renderUserPosts(uid, containerElement, canEdit = false) {
                 if (!uid) {
-                    myPostsContainer.innerHTML = '<p class="text-center mt-3">Please login to see your posts.</p>';
+                    containerElement.innerHTML = '<p class="text-center mt-3">User not found or not logged in.</p>';
                     return;
                 }
 
-                loadingMyPosts.style.display = 'block';
-                myPostsContainer.innerHTML = '';
+                const loadingElement = (containerElement === myPostsContainer) ? loadingMyPosts : loadingUserProfilePosts;
+                loadingElement.style.display = 'block';
+                containerElement.innerHTML = ''; // Clear previous posts
 
                 database.ref('posts').orderByChild('authorUid').equalTo(uid).on('value', (snapshot) => {
-                    myPostsContainer.innerHTML = '';
-                    loadingMyPosts.style.display = 'none';
+                    containerElement.innerHTML = ''; // Clear again
+                    loadingElement.style.display = 'none';
 
                     if (!snapshot.exists()) {
-                        myPostsContainer.innerHTML = '<p class="text-center mt-3">You haven\'t created any posts yet.</p>';
+                        containerElement.innerHTML = '<p class="text-center mt-3">No posts yet from this user.</p>';
                         return;
                     }
 
@@ -1872,17 +2012,165 @@
                         });
                     });
 
-                    userPosts.sort((a, b) => b.timestamp - a.timestamp);
+                    userPosts.sort((a, b) => b.timestamp - a.timestamp); // Newest first
 
                     userPosts.forEach(post => {
-                        renderPost(post, myPostsContainer, true);
+                        // When rendering on a profile page, we don't want the post itself to open the detail modal.
+                        // The 'canEdit' parameter controls the edit button visibility.
+                        const postElement = document.createElement('div');
+                        postElement.classList.add('post');
+                        
+                        let postMediaHtml = '';
+                        if (post.mediaUrl) {
+                            let transformedMediaUrl;
+                            if (post.mediaType === 'video') {
+                                transformedMediaUrl = post.mediaUrl.replace('/upload/', '/upload/f_auto:video,q_auto,w_600,c_fill/');
+                                postMediaHtml = `<video controls muted loop preload="none" poster="${post.mediaUrl.replace('/upload/', '/upload/f_auto,q_auto,w_600,c_fill,pg_1/')}" class="post-video"><source src="${transformedMediaUrl}" type="video/mp4"></video>`;
+                            } else {
+                                transformedMediaUrl = post.mediaUrl.replace('/upload/', '/upload/f_auto,q_auto,w_600,c_fill/');
+                                postMediaHtml = `<img src="${transformedMediaUrl}" alt="${post.title}" class="post-image">`;
+                            }
+                        }
+
+                        postElement.innerHTML = `
+                            <div class="post-header">
+                                <img src="${post.authorAvatar || getDefaultAvatarUrl(post.authorUid || '')}" alt="User" class="post-avatar">
+                                <div class="post-header-info">
+                                    <div class="post-user">${post.authorName}</div>
+                                    <span class="post-time">${timeAgo(post.timestamp)}</span>
+                                </div>
+                            </div>
+                            <div class="post-content">
+                                <div class="post-title">${post.title}</div>
+                                <div class="post-text">${post.content}</div>
+                                ${postMediaHtml}
+                            </div>
+                            <div class="post-actions">
+                                <a href="#" class="post-action"><i class="far fa-heart"></i> Like</a>
+                                <a href="#" class="post-action"><i class="far fa-comment"></i> Comment</a>
+                                <a href="#" class="post-action"><i class="far fa-share-square"></i> Share</a>
+                                ${canEdit ? `<a href="#" class="post-action edit-post-btn" data-post-id="${post.id}"><i class="fas fa-edit"></i> Edit</a>` : ''}
+                            </div>
+                        `;
+                        containerElement.appendChild(postElement); // Append to show oldest first in profile context, or adjust to prepend
+
+                        if (canEdit) {
+                            postElement.querySelector('.edit-post-btn').addEventListener('click', (e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                openEditPostModal(post);
+                            });
+                        }
                     });
                 }, (error) => {
                     console.error("Error fetching user posts:", error);
-                    loadingMyPosts.style.display = 'none';
-                    myPostsContainer.innerHTML = '<p class="text-center mt-3 alert-message error" style="display:block;">Failed to load your posts.</p>';
+                    loadingElement.style.display = 'none';
+                    containerElement.innerHTML = '<p class="text-center mt-3 alert-message error" style="display:block;">Failed to load posts.</p>';
                 });
             }
+
+            // --- Open Other User's Profile Modal ---
+            async function openUserProfileModal(uid) {
+                if (!uid) {
+                    displayAlert(userProfileAlert, 'User ID is missing.');
+                    return;
+                }
+
+                // Clear previous data
+                userProfileName.textContent = '';
+                userProfileAvatar.src = '';
+                userProfileDisplayName.textContent = '';
+                userProfileEmail.textContent = '';
+                userProfilePostsCount.textContent = '0';
+                userProfileFollowersCount.textContent = '0';
+                userProfileFollowingCount.textContent = '0';
+                userProfileFollowBtn.style.display = 'none';
+                userProfilePostsContainer.innerHTML = '';
+                loadingUserProfilePosts.style.display = 'block';
+                displayAlert(userProfileAlert, '', 'success'); // Clear previous alert
+
+                openModal(userProfileModal);
+
+                try {
+                    // Fetch user profile data
+                    const profileSnapshot = await database.ref('userProfiles/' + uid).once('value');
+                    const profile = profileSnapshot.val();
+                    if (profile) {
+                        userProfileName.textContent = profile.displayName || profile.email.split('@')[0];
+                        userProfileAvatar.src = profile.avatarUrl || getDefaultAvatarUrl(uid);
+                        userProfileDisplayName.textContent = profile.displayName || profile.email.split('@')[0];
+                        userProfileEmail.textContent = profile.email;
+                    } else {
+                        displayAlert(userProfileAlert, 'User profile not found.', 'error');
+                        userProfileName.textContent = 'User Not Found';
+                        return; // Stop if profile not found
+                    }
+
+                    // Fetch and count their posts
+                    const postsSnapshot = await database.ref('posts').orderByChild('authorUid').equalTo(uid).once('value');
+                    const postsData = postsSnapshot.val();
+                    const posts = postsData ? Object.values(postsData) : [];
+                    userProfilePostsCount.textContent = posts.length;
+                    
+                    // Render their posts in the container
+                    loadingUserProfilePosts.style.display = 'none';
+                    userProfilePostsContainer.innerHTML = ''; // Clear loading text
+                    if (posts.length === 0) {
+                        userProfilePostsContainer.innerHTML = '<p class="text-center mt-3">No posts from this user yet.</p>';
+                    } else {
+                        posts.sort((a,b) => b.timestamp - a.timestamp); // Sort by newest
+                        posts.forEach(post => {
+                            // CanEdit is false because it's not the current user's editable profile
+                            renderPost(post, userProfilePostsContainer, false); 
+                            // Override post-content click for these rendered posts to avoid recursive detail modal
+                            const renderedPostElement = userProfilePostsContainer.querySelector(`[data-post-id="${post.id}"]`);
+                            if (renderedPostElement) {
+                                renderedPostElement.querySelector('.post-content').style.cursor = 'default';
+                                renderedPostElement.querySelector('.post-content').removeEventListener('click', (e) => openPostDetail(post)); // Remove previous listener
+                            }
+                        });
+                    }
+
+                    // Count who they are following
+                    const followingSnapshot = await database.ref(`userFollowing/${uid}`).once('value');
+                    userProfileFollowingCount.textContent = followingSnapshot.exists() ? Object.keys(followingSnapshot.val()).length : 0;
+
+                    // Count their followers (this is less efficient)
+                    let followerCount = 0;
+                    const allFollowingSnapshot = await database.ref('userFollowing').once('value');
+                    if (allFollowingSnapshot.exists()) {
+                        allFollowingSnapshot.forEach(followerNode => {
+                            if (followerNode.child(uid).exists()) { // Check if this follower follows the target UID
+                                followerCount++;
+                            }
+                        });
+                    }
+                    userProfileFollowersCount.textContent = followerCount;
+
+                    // Show follow/unfollow button if not current user's profile
+                    if (currentUser && uid !== currentUser.uid) {
+                        userProfileFollowBtn.style.display = 'block';
+                        const isFollowing = followingList[uid];
+                        userProfileFollowBtn.classList.toggle('unfollow', isFollowing);
+                        userProfileFollowBtn.innerHTML = isFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow';
+                        
+                        userProfileFollowBtn.onclick = async () => {
+                            await toggleFollow(uid);
+                            // Update button state immediately after toggle
+                            const newIsFollowing = !isFollowing; // Simulate new state
+                            userProfileFollowBtn.classList.toggle('unfollow', newIsFollowing);
+                            userProfileFollowBtn.innerHTML = newIsFollowing ? '<i class="fas fa-user-minus"></i> Unfollow' : '<i class="fas fa-user-plus"></i> Follow';
+                        };
+                    } else {
+                        userProfileFollowBtn.style.display = 'none';
+                    }
+
+                } catch (error) {
+                    console.error('Error opening user profile:', error);
+                    displayAlert(userProfileAlert, `Failed to load profile: ${error.message}`, 'error');
+                }
+            }
+
 
             // --- Edit Post Functionality ---
             let currentEditingPost = null;
@@ -1968,8 +2256,7 @@
 
 
             // --- Initial Load ---
-            fetchPosts(); // Load all posts on page load
-            // fetchStories() is called in onAuthStateChanged, which is triggered automatically by Firebase SDK
+            fetchPosts();
         }); // End DOMContentLoaded
     </script>
 </body>
