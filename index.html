@@ -1,4 +1,4 @@
-///tag///
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,38 +53,32 @@
             line-height: 1.6;
         }
 
-        header {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
-
-        .logo i {
-            margin-right: 10px;
-        }
+        /* Original header styles removed */
 
         .dark-mode-toggle {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 20px;
+            /* Styles adjusted for placement inside the profile modal */
+            background: var(--card-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-size: 16px;
             cursor: pointer;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px; /* Space between icon and text */
+            width: 100%; /* Full width in form group */
+            font-weight: bold;
         }
         .dark-mode-toggle:hover {
-            transform: scale(1.1);
+            transform: scale(1.02);
+            background-color: var(--secondary-color);
+        }
+        .dark-mode-toggle i {
+            font-size: 20px;
         }
 
         .user-story {
@@ -93,21 +87,26 @@
             margin-bottom: 20px;
             overflow-x: auto;
             white-space: nowrap;
-            display: flex; /* Use flex to ensure stories stay in one row */
+            display: flex;
             align-items: center;
-            gap: 15px; /* Spacing between stories */
+            gap: 15px;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
+            /* Made sticky to replace the removed header's effect */
+            position: sticky;
+            top: 0;
+            z-index: 90; /* Below modals but above posts */
+            box-shadow: var(--shadow); /* Add shadow for visual separation */
         }
         .user-story::-webkit-scrollbar {
             display: none;
         }
 
         .story {
-            display: inline-flex; /* Use inline-flex for vertical centering and horizontal spacing */
+            display: inline-flex;
             flex-direction: column;
             align-items: center;
-            width: 70px; /* Fixed width */
+            width: 70px;
             flex-shrink: 0;
             text-align: center;
             cursor: pointer;
@@ -130,7 +129,7 @@
             opacity: 0.7;
         }
         .story-avatar.seen {
-            border-color: #888; /* Dim border for seen stories */
+            border-color: #888;
         }
 
         .story-username {
@@ -139,7 +138,7 @@
             text-overflow: ellipsis;
             white-space: nowrap;
             color: var(--text-color);
-            max-width: 100%; /* Ensure text doesn't overflow story width */
+            max-width: 100%;
         }
 
         .post-container {
@@ -179,14 +178,14 @@
             border-radius: 50%;
             object-fit: cover;
             margin-right: 10px;
-            cursor: pointer; /* Indicate clickable for story */
+            cursor: pointer;
         }
 
         .post-user {
             font-weight: bold;
             font-size: 14px;
             color: var(--text-color);
-            cursor: pointer; /* Indicate clickable for profile */
+            cursor: pointer;
         }
 
         .post-time {
@@ -521,10 +520,10 @@
             padding-top: 15px;
         }
         .user-profile-posts-container .post {
-            cursor: default; /* Posts in this section are not clickable for detail */
+            cursor: default;
         }
         .user-profile-posts-container .post-content {
-             cursor: default; /* Posts in this section are not clickable for detail */
+             cursor: default;
         }
 
 
@@ -648,12 +647,6 @@
 
         /* Responsive adjustments */
         @media (max-width: 600px) {
-            header {
-                padding: 10px 15px;
-            }
-            .logo {
-                font-size: 20px;
-            }
             .user-story {
                 padding: 10px;
                 gap: 10px;
@@ -703,7 +696,6 @@
             .modal-body {
                 padding: 15px;
             }
-            /* Story detail modal full screen */
             .modal.story-detail-modal .modal-content {
                 border-radius: 0;
             }
@@ -711,14 +703,7 @@
     </style>
 </head>
 <body>
-    <header>
-        <div class="logo">
-            <i class="fas fa-mosque"></i> Islamic Community
-        </div>
-        <button class="dark-mode-toggle" id="darkModeToggle">
-            <i class="fas fa-moon"></i>
-        </button>
-    </header>
+    <!-- Original header removed. Sticky user-story bar now at top. -->
 
     <div class="user-story" id="storyContainer">
         <div class="story add-story" id="addStoryBtn">
@@ -922,6 +907,13 @@
                             <label for="editDisplayName">Display Name</label>
                             <input type="text" id="editDisplayName" class="form-control" required>
                         </div>
+                        <!-- Dark Mode Toggle moved here into the profile settings -->
+                        <div class="form-group">
+                            <label>App Theme</label>
+                            <button class="dark-mode-toggle" id="darkModeToggle">
+                                <i class="fas fa-moon"></i> <span>Dark Mode</span>
+                            </button>
+                        </div>
                         <button type="submit" class="btn btn-block" id="updateProfileBtn">Update Profile</button>
                     </form>
                     <button class="btn btn-block mt-3" id="logoutBtn">Logout</button>
@@ -1037,8 +1029,10 @@
             let followingList = {}; // To store UIDs of users current user is following
 
             // --- UI Elements ---
-            const darkModeToggle = document.getElementById('darkModeToggle');
             const body = document.body;
+            // Dark Mode Toggle element is now inside the profile modal
+            const darkModeToggle = document.getElementById('darkModeToggle');
+
 
             const loginModal = document.getElementById('loginModal');
             const registerModal = document.getElementById('registerModal');
@@ -1163,18 +1157,47 @@
                 return `https://randomuser.me/api/portraits/${gender}/${index}.jpg`;
             }
 
-            // --- Dark Mode Toggle ---
-            darkModeToggle.addEventListener('click', () => {
-                body.classList.toggle('dark-mode');
-                const icon = darkModeToggle.querySelector('i');
-                if (body.classList.contains('dark-mode')) {
-                    icon.classList.remove('fa-moon');
-                    icon.classList.add('fa-sun');
-                } else {
-                    icon.classList.remove('fa-sun');
-                    icon.classList.add('fa-moon');
+            // --- Dark Mode Toggle & Local Storage for Dark Mode ---
+            // Load dark mode preference from localStorage on page load
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode === 'enabled') {
+                body.classList.add('dark-mode');
+                // Check if darkModeToggle exists before manipulating it (it will be null until profile modal is rendered)
+                if (darkModeToggle) { 
+                    darkModeToggle.querySelector('i').classList.remove('fa-moon');
+                    darkModeToggle.querySelector('i').classList.add('fa-sun');
+                    darkModeToggle.querySelector('span').textContent = 'Light Mode'; // Update text
                 }
-            });
+            } else {
+                body.classList.remove('dark-mode');
+                if (darkModeToggle) {
+                    darkModeToggle.querySelector('i').classList.remove('fa-sun');
+                    darkModeToggle.querySelector('i').classList.add('fa-moon');
+                    darkModeToggle.querySelector('span').textContent = 'Dark Mode'; // Update text
+                }
+            }
+
+            // Add event listener for dark mode toggle
+            // This listener will be effective once `darkModeToggle` element is in the DOM (i.e., when profile modal is opened)
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('click', () => {
+                    body.classList.toggle('dark-mode');
+                    const icon = darkModeToggle.querySelector('i');
+                    const textSpan = darkModeToggle.querySelector('span'); // Get the span for text
+                    if (body.classList.contains('dark-mode')) {
+                        icon.classList.remove('fa-moon');
+                        icon.classList.add('fa-sun');
+                        textSpan.textContent = 'Light Mode'; // Update text
+                        localStorage.setItem('darkMode', 'enabled'); // Save preference
+                    } else {
+                        icon.classList.remove('fa-sun');
+                        icon.classList.add('fa-moon');
+                        textSpan.textContent = 'Dark Mode'; // Update text
+                        localStorage.setItem('darkMode', 'disabled'); // Save preference
+                    }
+                });
+            }
+
 
             // --- Modal Handling ---
             function openModal(modal) {
@@ -1238,7 +1261,17 @@
                 if (currentUser) {
                     openModal(profileModal);
                     updateProfileModalUI(currentUser);
-                    renderUserPosts(currentUser.uid); // Render own posts
+                    // Ensure the 'Edit Profile' tab is active by default and its content is shown
+                    document.getElementById('edit-profile-tab').classList.add('active');
+                    document.getElementById('my-posts-tab').classList.remove('active');
+                    profileTabButtons.forEach(btn => {
+                        if (btn.dataset.tab === 'edit-profile-tab') {
+                            btn.classList.add('active');
+                        } else {
+                            btn.classList.remove('active');
+                        }
+                    });
+                    renderUserPosts(currentUser.uid, myPostsContainer, true); // Render own posts
                 } else {
                     openModal(loginModal);
                     displayAlert(loginAlert, 'Please login to view your profile.');
@@ -1271,7 +1304,7 @@
                             photoURL: user.photoURL || defaultAvatar
                         }).then(() => {
                             console.log('User profile updated with default values.');
-                            currentUser = auth.currentUser;
+                            currentUser = auth.currentUser; // Refresh currentUser after update
                         }).catch(error => {
                             console.error('Error updating user profile:', error);
                         });
@@ -1677,6 +1710,7 @@
                 storyElement.dataset.timestamp = story.timestamp;
                 storyElement.dataset.authorUid = story.authorUid;
 
+                // Load seen stories from localStorage (already present in original code)
                 const seenStories = JSON.parse(localStorage.getItem('seenStories') || '{}');
                 
                 storyElement.innerHTML = `
@@ -1907,6 +1941,20 @@
                 profileDisplayName.textContent = user.displayName || 'No Name Set';
                 profileEmail.textContent = user.email;
                 editDisplayNameInput.value = user.displayName || '';
+
+                // Update dark mode toggle state in profile modal on open
+                const isDarkMode = body.classList.contains('dark-mode');
+                const icon = darkModeToggle.querySelector('i');
+                const textSpan = darkModeToggle.querySelector('span');
+                if (isDarkMode) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                    textSpan.textContent = 'Light Mode';
+                } else {
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                    textSpan.textContent = 'Dark Mode';
+                }
             }
 
             changeAvatarBtn.addEventListener('click', () => {
@@ -2015,8 +2063,6 @@
                     userPosts.sort((a, b) => b.timestamp - a.timestamp); // Newest first
 
                     userPosts.forEach(post => {
-                        // When rendering on a profile page, we don't want the post itself to open the detail modal.
-                        // The 'canEdit' parameter controls the edit button visibility.
                         const postElement = document.createElement('div');
                         postElement.classList.add('post');
                         
@@ -2052,7 +2098,7 @@
                                 ${canEdit ? `<a href="#" class="post-action edit-post-btn" data-post-id="${post.id}"><i class="fas fa-edit"></i> Edit</a>` : ''}
                             </div>
                         `;
-                        containerElement.appendChild(postElement); // Append to show oldest first in profile context, or adjust to prepend
+                        containerElement.appendChild(postElement);
 
                         if (canEdit) {
                             postElement.querySelector('.edit-post-btn').addEventListener('click', (e) => {
@@ -2120,14 +2166,8 @@
                     } else {
                         posts.sort((a,b) => b.timestamp - a.timestamp); // Sort by newest
                         posts.forEach(post => {
-                            // CanEdit is false because it's not the current user's editable profile
                             renderPost(post, userProfilePostsContainer, false); 
-                            // Override post-content click for these rendered posts to avoid recursive detail modal
-                            const renderedPostElement = userProfilePostsContainer.querySelector(`[data-post-id="${post.id}"]`);
-                            if (renderedPostElement) {
-                                renderedPostElement.querySelector('.post-content').style.cursor = 'default';
-                                renderedPostElement.querySelector('.post-content').removeEventListener('click', (e) => openPostDetail(post)); // Remove previous listener
-                            }
+                            // Note: Posts rendered here won't open detail modal on content click as per CSS and structure.
                         });
                     }
 
@@ -2257,7 +2297,9 @@
 
             // --- Initial Load ---
             fetchPosts();
+            // fetchStories is already called inside onAuthStateChanged, which covers initial load and re-fetches on login/logout
         }); // End DOMContentLoaded
     </script>
 </body>
 </html>
+`
