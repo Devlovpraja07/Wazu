@@ -1,176 +1,1527 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Ummah Connect - Explore authentic Hadiths and Islamic videos with ease.">
-    <meta name="keywords" content="Hadith, Islamic videos, Ummah Connect, Islam, Muslim">
-    <meta name="author" content="Ummah Connect Team">
-    <title>Ummah Connect - Hadiths & Islamic Videos</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Coin Rewards Mobile App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #4361ee;
+      --secondary: #3f37c9;
+      --success: #28a745; /* Changed success color slightly */
+      --accent: #f72585;
+      --dark: #1d3557;
+      --light: #f8f9fa;
+      --gray: #6c757d;
+      --border: #dee2e6;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --app-bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --reward-bg: gold; /* Scratch card background */
+      --reward-text: var(--dark); /* Scratch card text color */
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--app-bg);
+      color: #333;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding-bottom: 60px; /* Add padding for bottom nav */
+    }
+
+    .app-container {
+      max-width: 500px;
+      margin: 0 auto;
+      background: var(--app-bg);
+      min-height: calc(100vh - 60px); /* Adjust height considering bottom nav */
+      position: relative;
+      box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    }
+
+    .app-header {
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      color: white;
+      padding: 15px;
+      position: sticky; /* Keep header sticky */
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header-content {
+      flex: 1;
+    }
+
+    .app-title {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .app-subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-top: 3px;
+    }
+
+    .balance-display {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 600;
+      font-size: 18px;
+      background: rgba(255,255,255,0.2);
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .balance-display:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .app-body {
+      padding: 15px;
+      padding-bottom: 80px; /* More padding at bottom to avoid content hiding behind nav */
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 15px 0 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--border);
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title i {
+      color: var(--primary);
+    }
+
+    .tasks-grid, .apk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .task-card, .apk-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+      border: 1px solid rgba(0,0,0,0.05);
+      display: flex; /* Use flex for better alignment */
+      flex-direction: column;
+      justify-content: space-between; /* Distribute space */
+    }
+
+    .task-card:hover:not(.completed):not(.started), .apk-card:hover:not(.completed) {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+
+    .task-card.completed {
+      background: rgba(40, 167, 69, 0.1); /* Match success color */
+      border: 1px solid rgba(40, 167, 69, 0.3);
+    }
+
+     .task-card.started {
+        background: rgba(108, 117, 125, 0.1); /* Indicate processing state */
+        border: 1px solid rgba(108, 117, 125, 0.3);
+     }
+
+
+    .task-icon, .apk-icon {
+      width: 50px;
+      height: 50px;
+      background: rgba(67, 97, 238, 0.1);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      font-size: 22px;
+      color: var(--primary);
+      flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    .task-name, .apk-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 5px;
+      min-height: 34px; /* Ensure consistent height */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-grow: 1; /* Allow growing */
+    }
+
+    .task-reward, .apk-reward {
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+
+    .task-btn, .apk-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      width: 100%;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      text-decoration: none; /* For APK link */
+      flex-shrink: 0;
+    }
+
+    .task-btn.completed, .apk-btn.completed {
+      background: var(--success); /* Use success color */
+      cursor: default; /* Indicate not clickable */
+    }
+
+     .task-btn.started {
+        background: var(--gray); /* Indicate processing state */
+        cursor: wait;
+    }
+
+
+    .task-btn:disabled, .apk-btn:disabled {
+      background: var(--gray);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .task-btn:not(:disabled):not(.started):hover, .apk-btn:not(:disabled):hover {
+      background: var(--secondary);
+    }
+
+    .wallet-section {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      margin-top: 20px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .wallet-card {
+      background: linear-gradient(135deg, #1d2b64 0%, #1d3557 100%);
+      color: white;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 15px;
+    }
+
+    .balance-title {
+      font-size: 16px;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+
+    .balance-amount {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .balance-amount i {
+      color: gold;
+    }
+
+    .wallet-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .wallet-btn {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none; /* For potential button links */
+    }
+
+    .wallet-btn:hover:not(:disabled) {
+      background: rgba(255,255,255,0.25);
+    }
+
+     .wallet-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+     }
+
+    .redeem-section {
+      margin-top: 20px;
+    }
+
+    .code-container {
+      background: white;
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow); /* Added shadow */
+    }
+
+    .code-text {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: 1px;
+      color: var(--dark);
+      flex-grow: 1;
+      word-break: break-all; /* Prevent overflow */
+      margin-right: 10px;
+    }
+
+    .copy-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 14px;
+      flex-shrink: 0; /* Prevent shrinking */
+    }
+
+    .copy-btn:hover {
+      background: var(--secondary);
+    }
+
+    .back-btn {
+      background: transparent;
+      color: var(--gray);
+      border: none;
+      padding: 8px 15px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 15px;
+      font-size: 14px;
+      text-decoration: none; /* Ensure it looks like a button */
+      display: inline-flex; /* Make it inline-flex to fit content */
+    }
+
+    .back-btn:hover {
+      background: rgba(0,0,0,0.05);
+    }
+
+    .ad-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .ad-container.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .ad-content {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      width: 95%;
+      max-width: 400px;
+      position: relative;
+      display: flex; /* Use flex to stack header and iframe */
+      flex-direction: column;
+    }
+
+    .ad-header {
+      background: var(--primary);
+      color: white;
+      padding: 12px;
+      text-align: center;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .ad-timer {
+      background: rgba(255,255,255,0.2);
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+
+    #adPlaceholder {
+      width: 100%;
+      height: 250px; /* Ensure placeholder has height */
+      background: #ccc; /* Placeholder background */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #555;
+      font-size: 16px;
+      /* Adsterrra ad might replace this content */
+    }
+
+    .ad-close-btn {
+      position: static; /* Position inside ad-content flex */
+      margin: 15px auto; /* Center the button */
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 25px;
+      border-radius: 30px;
+      font-weight: 600;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      pointer-events: none; /* Disable clicks until active */
+    }
+
+    .ad-close-btn.active {
+      opacity: 1;
+      pointer-events: auto; /* Enable clicks when active */
+    }
+
+    .notification {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 12px 20px;
+      border-radius: 30px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1001; /* Higher z-index than ad/scratchcard */
+      opacity: 0;
+      visibility: hidden; /* Use visibility for better control */
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .notification.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .notification i {
+      font-size: 18px;
+      color: var(--success);
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: white;
+      display: flex;
+      justify-content: space-around;
+      padding: 10px 0;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      border-top: 1px solid var(--border);
+      z-index: 99; /* Ensure it's above body content but below modals */
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 12px;
+      color: var(--gray);
+      text-decoration: none;
+      transition: color 0.3s ease;
+      flex: 1; /* Equal width nav items */
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-item i {
+      font-size: 20px;
+      margin-bottom: 3px;
+    }
+
+    .scratch-card-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .scratch-card-container.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .scratch-card {
+      width: 280px;
+      height: 180px;
+      background: var(--reward-bg); /* Using variable */
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .scratch-canvas {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .scratch-reward {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--reward-text); /* Using variable */
+      text-align: center;
+      display: none;
+      pointer-events: none; /* Allow scratching underneath */
+    }
+
+    .scratch-close-btn {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      opacity: 0; /* Hide initially */
+      pointer-events: none; /* Disable clicks until revealed */
+      transition: opacity 0.3s ease;
+    }
+
+    .scratch-close-btn.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .profile-section {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .profile-pic {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--primary);
+      margin: 0 auto 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      color: white;
+    }
+
+    .earn-section {
+      padding: 20px 0; /* Adjust padding */
+    }
+
+    .empty-state {
+        text-align: center;
+        color: var(--gray);
+        margin-top: 20px;
+    }
+
+     .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100px;
+     }
+     .loading-spinner i {
+        font-size: 30px;
+        color: var(--primary);
+     }
+
+
+    @media (max-width: 480px) {
+      .app-title {
+        font-size: 20px;
+      }
+
+      .balance-display {
+        font-size: 16px;
+        padding: 4px 10px;
+      }
+
+      .tasks-grid, .apk-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      }
+
+      .task-card, .apk-card {
+        padding: 12px;
+      }
+
+      .code-text {
+        font-size: 14px;
+      }
+
+      .copy-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+    }
+
+    @media (max-width: 380px) {
+      .tasks-grid, .apk-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-    <!-- Header -->
-    <header>
-        <button id="menuBtn" aria-label="Open Menu"><i class="fas fa-bars"></i></button>
-        <h1>Ummah Connect</h1>
-        <button id="darkModeToggle" aria-label="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
-    </header>
+  <div class="app-container">
+    <div class="app-header">
+      <div class="header-content">
+        <div class="app-title">Coin Rewards</div>
+        <div class="app-subtitle">Earn coins, get rewards</div>
+      </div>
+      <div class="balance-display" id="balanceDisplay">
+        <i class="fas fa-coins"></i>
+        <span id="coinCount">...</span> <!-- Show loading state -->
+      </div>
+    </div>
 
-    <!-- Navigation -->
-    <nav class="bottom-nav">
-        <button class="nav-tab active" data-target="hadithSection" aria-label="Hadith Section"><i class="fas fa-book"></i> Hadith</button>
-        <button class="nav-tab" data-target="youtubeSection" aria-label="Videos Section"><i class="fab fa-youtube"></i> Videos</button>
-        <button class="nav-tab" data-target="addHadithSection" aria-label="Add Hadith Section"><i class="fas fa-plus"></i> Add Hadith</button>
-        <button class="nav-tab" data-target="bookmarksSection" aria-label="Bookmarks Section"><i class="fas fa-bookmark"></i> Bookmarks</button>
-    </nav>
+    <div class="app-body">
+       <!-- Loading Indicator -->
+       <div id="loadingSpinner" class="loading-spinner">
+           <i class="fas fa-spinner fa-spin"></i>
+       </div>
 
-    <!-- Menu Modal -->
-    <div id="menuModal" class="modal">
-        <div class="modal-content">
-            <button id="menuCloseButton" aria-label="Close Menu"><i class="fas fa-times"></i></button>
-            <div class="menu-items">
-                <button class="menu-item" data-target="hadithSection"><i class="fas fa-book"></i> Hadith</button>
-                <button class="menu-item" data-target="youtubeSection"><i class="fab fa-youtube"></i> Videos</button>
-                <button class="menu-item" data-target="addHadithSection"><i class="fas fa-plus"></i> Add Hadith</button>
-                <button class="menu-item" data-target="bookmarksSection"><i class="fas fa-bookmark"></i> Bookmarks</button>
-                <button class="menu-item" data-target="aboutUsSection"><i class="fas fa-info-circle"></i> About Us</button>
-                <button class="menu-item" data-target="contactUsSection"><i class="fas fa-envelope"></i> Contact Us</button>
-                <button class="menu-item" data-target="disclaimerSection"><i class="fas fa-exclamation-circle"></i> Disclaimer</button>
-                <button class="menu-item" data-target="privacyPolicySection"><i class="fas fa-shield-alt"></i> Privacy Policy</button>
+      <div id="homePage" class="page-content" style="display:none;">
+        <h2 class="section-title"><i class="fas fa-tasks"></i> Daily Tasks</h2>
+        <div class="tasks-grid" id="taskList"></div>
+
+        <div class="wallet-section" id="walletSection">
+          <h2 class="section-title"><i class="fas fa-wallet"></i> My Wallet</h2>
+          <div class="wallet-card">
+            <div class="balance-title">Your Coin Balance</div>
+            <div class="balance-amount">
+              <i class="fas fa-coins"></i>
+              <span id="walletCoinCount">...</span> <!-- Show loading state -->
             </div>
+            <div class="wallet-buttons">
+              <button id="walletBtn" class="wallet-btn">
+                <i class="fas fa-gift"></i> Redeem Rewards
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div id="walletPage" class="page-content" style="display:none;">
+        <div class="redeem-section">
+          <h3 class="section-title"><i class="fas fa-ticket-alt"></i> Get Reward Code</h3>
+          <p>Redeem your coins for special discount codes (<span id="redeemCostText">...</span> coins per code)</p>
+          <button id="redeemBtn" class="wallet-btn" style="margin-top: 15px;">
+            <i class="fas fa-ticket-alt"></i> Generate Code
+          </button>
+          <div id="redeemCode" class="code-container" style="display:none;">
+            <div class="code-text"></div>
+            <button class="copy-btn" data-copy-target="#redeemCode .code-text">
+              <i class="fas fa-copy"></i> Copy
+            </button>
+          </div>
+          <a href="#" class="back-btn" data-page="home">
+            <i class="fas fa-arrow-left"></i> Back
+          </a>
+        </div>
+      </div>
+
+      <div id="earnPage" class="page-content" style="display:none;">
+        <div class="earn-section">
+          <h2 class="section-title"><i class="fas fa-coins"></i> Earn More Coins</h2>
+          <div class="apk-grid" id="apkList"></div>
+        </div>
+      </div>
+
+      <div id="rewardsPage" class="page-content" style="display:none;">
+        <div class="redeem-section">
+          <h2 class="section-title"><i class="fas fa-gift"></i> Your Rewards</h2>
+          <p>Complete tasks to unlock scratch cards!</p>
+           <!-- You could list unlocked/claimed rewards here -->
+           <p class="empty-state" id="rewardsEmptyState">Complete tasks to unlock rewards.</p>
+        </div>
+      </div>
+
+      <div id="profilePage" class="page-content" style="display:none;">
+        <div class="profile-section">
+          <h2 class="section-title"><i class="fas fa-user"></i> Profile</h2>
+          <div class="profile-pic">👤</div>
+          <p>User ID: <span id="userId">Loading...</span></p>
+          <p>Total Coins Earned: <span id="totalCoinsEarned">...</span></p>
+          <p>Tasks Completed: <span id="tasksCompleted">...</span></p>
+        </div>
+      </div>
     </div>
 
-    <!-- Main Content -->
-    <main>
-        <!-- Hadith Section -->
-        <section id="hadithSection" class="app-section">
-            <h2>Hadith</h2>
-            <div id="hadithList"></div>
-        </section>
-
-        <!-- YouTube Videos Section -->
-        <section id="youtubeSection" class="app-section hidden">
-            <h2>Videos</h2>
-            <div id="youtubeVideosList"></div>
-        </section>
-
-        <!-- Add Hadith Section -->
-        <section id="addHadithSection" class="app-section hidden">
-            <h2>Add Hadith</h2>
-            <form id="addHadithForm" class="submission-form">
-                <div class="form-group">
-                    <label for="hadithTitle">Title <span class="required">*</span></label>
-                    <input type="text" id="hadithTitle" name="hadithTitle" required aria-required="true">
-                </div>
-                <div class="form-group">
-                    <label for="hadithArabic">Arabic Text</label>
-                    <textarea id="hadithArabic" name="hadithArabic" rows="3"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="hadithTranslation">Translation (HTML Supported) <span class="required">*</span></label>
-                    <textarea id="hadithTranslation" name="hadithTranslation" rows="5" required aria-required="true"></textarea>
-                    <small>Enter translation here. You can use HTML tags like <b>, <i>, <p>, etc.</small>
-                </div>
-                <div class="form-group">
-                    <label for="hadithSource">Source <span class="required">*</span></label>
-                    <input type="text" id="hadithSource" name="hadithSource" required aria-required="true">
-                </div>
-                <div class="form-group">
-                    <label for="hadithNarrator">Narrator <span class="required">*</span></label>
-                    <input type="text" id="hadithNarrator" name="hadithNarrator" required aria-required="true">
-                </div>
-                <div class="form-group">
-                    <label for="imageUrl">Image</label>
-                    <input type="text" id="imageUrl" name="imageUrl" readonly>
-                    <button type="button" id="uploadImageBtn" class="upload-btn">Upload Image</button>
-                </div>
-                <div class="form-group">
-                    <label for="audioUrl">Audio</label>
-                    <input type="text" id="audioUrl" name="audioUrl" readonly>
-                    <button type="button" id="uploadAudioBtn" class="upload-btn">Upload Audio</button>
-                </div>
-                <button type="submit" class="submit-btn">Submit Hadith</button>
-                <div id="formMessage" class="message" aria-live="polite"></div>
-            </form>
-        </section>
-
-        <!-- Bookmarks Section -->
-        <section id="bookmarksSection" class="app-section hidden">
-            <h2>Bookmarks</h2>
-            <p>Bookmarks feature coming soon!</p>
-        </section>
-
-        <!-- About Us Section -->
-        <section id="aboutUsSection" class="app-section hidden">
-            <h2>About Us</h2>
-            <p>We are a team dedicated to providing authentic Islamic content to the Ummah. Our mission is to make Hadiths and Islamic videos accessible to everyone.</p>
-        </section>
-
-        <!-- Contact Us Section -->
-        <section id="contactUsSection" class="app-section hidden">
-            <h2>Contact Us</h2>
-            <p>Email us at: <a href="mailto:support@ummahconnect.com">support@ummahconnect.com</a></p>
-        </section>
-
-        <!-- Disclaimer Section -->
-        <section id="disclaimerSection" class="app-section hidden">
-            <h2>Disclaimer</h2>
-            <p>The content provided is for educational purposes only. Please verify the authenticity of Hadiths with a qualified scholar.</p>
-        </section>
-
-        <!-- Privacy Policy Section -->
-        <section id="privacyPolicySection" class="app-section hidden">
-            <h2>Privacy Policy</h2>
-            <p>We value your privacy. Your data is not shared with third parties.</p>
-        </section>
-    </main>
-
-    <!-- FAB -->
-    <div id="fabContainer">
-        <button id="fab" aria-label="Actions"><i id="fabIcon" class="fas fa-plus"></i></button>
-        <div class="fab-actions">
-            <button id="submitVideoAction" class="fab-action" aria-label="Submit a Video"><i class="fab fa-youtube"></i> Submit Video</button>
-            <button id="shareAction" class="fab-action" aria-label="Share App"><i class="fas fa-share-alt"></i> Share</button>
-        </div>
+    <div class="bottom-nav">
+      <a href="#" class="nav-item" data-page="home">
+        <i class="fas fa-home"></i>
+        <span>Home</span>
+      </a>
+      <a href="#" class="nav-item" data-page="earn">
+        <i class="fas fa-coins"></i>
+        <span>Earn</span>
+      </a>
+      <a href="#" class="nav-item" data-page="rewards">
+        <i class="fas fa-gift"></i>
+        <span>Rewards</span>
+      </a>
+      <a href="#" class="nav-item" data-page="profile">
+        <i class="fas fa-user"></i>
+        <span>Profile</span>
+      </a>
     </div>
+  </div>
 
-    <!-- Content Modal -->
-    <div id="contentModal" class="modal">
-        <div class="modal-content">
-            <button id="contentModalCloseButton" aria-label="Close Content Modal"><i class="fas fa-times"></i></button>
-            <div id="contentModalContent"></div>
-        </div>
+  <div class="ad-container" id="adContainer">
+    <div class="ad-content">
+      <div class="ad-header">
+        <span>Ad - Earn Coins</span>
+        <div class="ad-timer" id="adTimer">Ad closes in <span id="adTimerSeconds">5</span>s</div>
+      </div>
+      <div id="adPlaceholder">
+         <!-- Adsterrra ad script will be loaded here -->
+         Loading Ad...
+      </div>
+      <button class="ad-close-btn" id="adCloseBtn">Close Ad</button>
     </div>
+  </div>
 
-    <!-- Video Submission Modal -->
-    <div id="videoSubmissionModal" class="modal">
-        <div class="modal-content">
-            <button id="videoModalCloseButton" aria-label="Close Video Submission Modal"><i class="fas fa-times"></i></button>
-            <h2>Submit a Video</h2>
-            <form id="submitVideoForm" class="submission-form">
-                <div class="form-group">
-                    <label for="videoTitle">Video Title <span class="required">*</span></label>
-                    <input type="text" id="videoTitle" name="videoTitle" required aria-required="true">
-                </div>
-                <div class="form-group">
-                    <label for="youtubeUrl">YouTube URL <span class="required">*</span></label>
-                    <input type="url" id="youtubeUrl" name="youtubeUrl" required aria-required="true" placeholder="e.g., https://www.youtube.com/watch?v=VIDEO_ID">
-                </div>
-                <button type="submit" class="submit-btn">Submit Video</button>
-                <div id="videoFormMessage" class="message" aria-live="polite"></div>
-            </form>
-        </div>
+  <div class="scratch-card-container" id="scratchCardContainer">
+    <div class="scratch-card">
+      <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
+      <div class="scratch-reward" id="scratchReward"></div>
+      <button class="scratch-close-btn" id="scratchCloseBtn">Claim Reward</button>
     </div>
+  </div>
 
-    <!-- Scripts -->
-    <!-- Use Firebase 9.23.0 (latest as of 2023) with compatibility mode -->
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script defer src="https://widget.cloudinary.com/v2.0/global/all.js" type="text/javascript"></script>
-    <script defer src="script.js"></script>
+  <div class="notification" id="notification">
+    <i class="fas fa-check-circle"></i>
+    <span id="notificationText">Task completed! +50 coins</span>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <script>
+    // Replace with your Firebase Web App config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAY3hXmpCXJUVrBtOaosPY_tsse3sx-O5o", // Use your ACTUAL Web API Key
+      authDomain: "nima-d4d7d.firebaseapp.com",
+      databaseURL: "https://nima-d4d7d-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "nima-d4d7d",
+      storageBucket: "nima-d4d7d.firebasestorage.app",
+      appId: "1:919311840182:web:YOUR_WEB_APP_ID", // Replace with your Web App ID
+      // measurementId: "G-XXXXXXXXXX" // Optional: if you use analytics
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // --- App State Variables ---
+    let userId = null;
+    let userCoins = 0;
+    let completedTaskIds = [];
+    let triggeredScratchCards = [];
+    let allTasks = []; // Will be loaded from Firebase
+    let allApks = [];  // Will be loaded from Firebase
+    let redeemCost = 200; // Default, can be set in admin later if needed
+
+    let currentAdTaskId = null;
+    let adTimerInterval;
+    let adDuration = 5; // seconds for ad to show
+    let isScratching = false;
+    let scratchCardRewardAmount = 0;
+
+    // --- DOM Elements ---
+    const taskList = document.getElementById("taskList");
+    const apkList = document.getElementById("apkList");
+    const coinCountElements = document.querySelectorAll("#coinCount, #walletCoinCount");
+    const redeemBtn = document.getElementById("redeemBtn");
+    const redeemCostTextElement = document.getElementById("redeemCostText");
+    const redeemCodeContainer = document.getElementById("redeemCode");
+    const redeemCodeText = redeemCodeContainer.querySelector(".code-text");
+    const adContainer = document.getElementById("adContainer");
+    const adTimerElement = document.getElementById("adTimer");
+    const adTimerSecondsElement = document.getElementById("adTimerSeconds");
+    const adCloseBtn = document.getElementById("adCloseBtn");
+    const adPlaceholder = document.getElementById("adPlaceholder");
+    const scratchCardContainer = document.getElementById("scratchCardContainer");
+    const scratchCanvas = document.getElementById("scratchCanvas");
+    const scratchRewardElement = document.getElementById("scratchReward");
+    const scratchCloseBtn = document.getElementById("scratchCloseBtn");
+    const notificationElement = document.getElementById("notification");
+    const notificationText = document.getElementById("notificationText");
+    const pages = document.querySelectorAll(".page-content");
+    const navItems = document.querySelectorAll(".bottom-nav .nav-item");
+    const loadingSpinner = document.getElementById("loadingSpinner");
+    const userIdElement = document.getElementById("userId");
+    const totalCoinsEarnedElement = document.getElementById("totalCoinsEarned");
+    const tasksCompletedElement = document.getElementById("tasksCompleted");
+
+
+    // --- Firebase References ---
+    let userRef = null; // Set after user is authenticated
+    const configRef = database.ref('config');
+    const tasksRef = configRef.child('tasks');
+    const apksRef = configRef.child('apks');
+
+
+    // --- Initialization ---
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        userId = user.uid;
+        userRef = database.ref('users/' + userId);
+        userIdElement.textContent = userId; // Display user ID in profile
+
+        await loadAppData(); // Load user data, tasks, and apks from Firebase
+        setupEventListeners(); // Set up listeners after data is loaded
+        updateUI(); // Update UI based on loaded state
+        switchPage("home"); // Start on the home page
+
+        // Hide loading spinner and show app body
+        loadingSpinner.style.display = 'none';
+        document.querySelector('.app-body').style.display = 'block';
+
+
+      } else {
+        // User is signed out or not signed in - sign in anonymously
+        console.log("No user signed in, signing in anonymously...");
+        auth.signInAnonymously().catch((error) => {
+          console.error("Anonymous Auth failed:", error);
+          showNotification("Failed to initialize app.", false);
+          // Handle error - maybe show a message to the user
+           loadingSpinner.innerHTML = '<p style="color:red;">Error loading app. Please try again.</p>';
+        });
+      }
+    });
+
+
+    async function loadAppData() {
+        try {
+            // Load user data
+            const userSnapshot = await userRef.once('value');
+            const userData = userSnapshot.val() || {};
+            userCoins = userData.coins || 0;
+            completedTaskIds = userData.completedTaskIds || [];
+            triggeredScratchCards = userData.triggeredScratchCards || [];
+             // If you track total earned (e.g., for profile), load that too
+             // let totalEarned = userData.totalEarned || 0; // Need to add this to DB if needed
+
+            // Load config data (tasks, apks, maybe redeem cost)
+            const configSnapshot = await configRef.once('value');
+            const configData = configSnapshot.val() || {};
+
+            // Convert Firebase object format to array
+            allTasks = Object.values(configData.tasks || {}).filter(item => item && item.id); // Filter out null/undefined and ensure id exists
+            allApks = Object.values(configData.apks || {}).filter(item => item && item.id); // Filter out null/undefined and ensure id exists
+            redeemCost = configData.settings?.redeemCost || 200; // Load redeem cost from settings or use default
+
+
+            console.log("Data loaded:", {userCoins, completedTaskIds, triggeredScratchCards, allTasks, allApks, redeemCost});
+
+        } catch (error) {
+            console.error("Error loading app data from Firebase:", error);
+            showNotification("Failed to load data. Please refresh.", false);
+             // Maybe disable functionality or show an error state
+        }
+    }
+
+
+    function saveUserData() {
+      if (userRef) {
+        userRef.update({ // Use update to avoid overwriting other potential user data
+          coins: userCoins,
+          completedTaskIds: completedTaskIds,
+          triggeredScratchCards: triggeredScratchCards,
+           // Save totalEarned if you track it
+           // totalEarned: totalEarned
+        }).catch(error => {
+          console.error("Error saving user data:", error);
+          showNotification("Failed to save progress.", false);
+        });
+      }
+    }
+
+
+    function setupEventListeners() {
+      // Avoid setting up listeners multiple times if auth state changes
+      if (setupEventListeners.hasRun) return;
+      setupEventListeners.hasRun = true;
+
+      // Bottom Navigation
+      navItems.forEach(item => {
+        item.addEventListener("click", (e) => {
+          e.preventDefault();
+          const page = item.getAttribute("data-page");
+          switchPage(page);
+        });
+      });
+
+      // Balance Display (Header)
+      document.getElementById("balanceDisplay").addEventListener("click", () => switchPage("wallet"));
+
+      // Wallet Redeem Button (Home Page)
+      document.getElementById("walletBtn").addEventListener("click", () => switchPage("wallet"));
+
+      // Generate Code Button (Wallet Page)
+      redeemBtn.addEventListener("click", redeemCoins);
+
+      // Copy Code Button (Wallet Page)
+      document.querySelector('.copy-btn').addEventListener('click', function() {
+          const targetSelector = this.getAttribute('data-copy-target');
+          copyCode(targetSelector);
+      });
+
+      // Back Button (Wallet Page)
+      document.querySelector('.back-btn[data-page="home"]').addEventListener('click', (e) => {
+          e.preventDefault();
+          goBack('home');
+      });
+
+      // Task Grid Event Delegation
+      taskList.addEventListener('click', handleTaskClick);
+
+      // APK Grid Event Delegation
+      apkList.addEventListener('click', handleAPKClick);
+
+      // Ad Close Button
+      adCloseBtn.addEventListener("click", closeAd);
+
+      // Scratch Card Close/Claim Button
+      scratchCloseBtn.addEventListener("click", claimScratchReward);
+
+      // Setup Scratch Card Canvas listeners once
+      setupScratchCardCanvasListeners();
+    }
+
+    function switchPage(page) {
+      // Hide all pages
+      pages.forEach(p => p.style.display = "none");
+
+      // Show the requested page
+      const targetPageElement = document.getElementById(`${page}Page`);
+      if (targetPageElement) {
+          targetPageElement.style.display = "block";
+      } else {
+          console.error("Page not found:", page);
+          // Fallback to home
+          document.getElementById("homePage").style.display = "block";
+          page = "home";
+      }
+
+      // Update active nav item
+      navItems.forEach(item => item.classList.remove("active"));
+      const activeNavItem = document.querySelector(`.nav-item[data-page="${page}"]`);
+      if (activeNavItem) {
+          activeNavItem.classList.add("active");
+      }
+
+      // Update content specific to the page
+      if (page === "earn") {
+        updateAPKList();
+      } else if (page === "profile") {
+        updateProfile();
+      } else if (page === "wallet") {
+        // Ensure wallet coin count and redeem cost are updated
+        updateUI();
+        // Hide code section when switching to wallet page
+        redeemCodeContainer.style.display = "none";
+      } else if (page === "home") {
+        updateTaskList(); // Ensure tasks are rendered on home
+      }
+    }
+
+    function updateUI() {
+      // Update coin counts everywhere
+      coinCountElements.forEach(el => el.textContent = userCoins);
+
+      // Update task list on Home page
+      updateTaskList();
+
+      // Update APK list if on Earn page
+       if (document.getElementById("earnPage").style.display !== "none") {
+            updateAPKList();
+       }
+
+      // Update profile page if on Profile page
+      if (document.getElementById("profilePage").style.display !== "none") {
+            updateProfile();
+      }
+
+
+      // Update redeem button state and cost text
+      if (redeemBtn && redeemCostTextElement) {
+          redeemCostTextElement.textContent = redeemCost;
+          if (userCoins >= redeemCost) {
+              redeemBtn.disabled = false;
+              redeemBtn.style.opacity = "1";
+          } else {
+              redeemBtn.disabled = true;
+              redeemBtn.style.opacity = "0.6";
+          }
+          redeemBtn.innerHTML = `<i class="fas fa-ticket-alt"></i> Generate Code`;
+      }
+
+      // Check for scratch card eligibility *after* UI update and data load
+      checkScratchCardEligibility();
+    }
+
+    function updateTaskList() {
+      taskList.innerHTML = ""; // Clear current list
+      if (allTasks.length === 0) {
+           taskList.innerHTML = '<p class="empty-state">No tasks available right now. Check back later!</p>';
+           return;
+      }
+      allTasks.forEach(task => {
+        const isCompleted = completedTaskIds.includes(task.id);
+        const taskCard = document.createElement("div");
+        taskCard.className = `task-card ${isCompleted ? 'completed' : ''}`;
+        taskCard.innerHTML = `
+          <div class="task-icon">
+            <i class="${task.icon}"></i>
+          </div>
+          <div class="task-name">${task.name}</div>
+          <div class="task-reward">
+            <i class="fas fa-coins"></i>
+            <span>${task.coins} coins</span>
+          </div>
+          <button class="task-btn ${isCompleted ? 'completed' : ''}"
+                  data-id="${task.id}"
+                  data-coins="${task.coins}"
+                  data-type="${task.type}"
+                  ${isCompleted ? 'disabled' : ''}>
+            ${isCompleted ? '<i class="fas fa-check"></i> Completed' :
+                            `<i class="fas fa-play"></i> Start`}
+          </button>
+        `;
+        taskList.appendChild(taskCard);
+      });
+    }
+
+
+    function updateAPKList() {
+      apkList.innerHTML = ""; // Clear current list
+       if (allApks.length === 0) {
+            apkList.innerHTML = '<p class="empty-state">No apps available to download right now.</p>';
+            return;
+        }
+      allApks.forEach(apk => {
+        const isCompleted = completedTaskIds.includes(apk.id);
+        const apkCard = document.createElement("div");
+        apkCard.className = `apk-card ${isCompleted ? 'completed' : ''}`;
+        // Use a link for download tasks, styled as a button
+        apkCard.innerHTML = `
+          <div class="apk-icon">
+            <i class="${apk.icon}"></i>
+          </div>
+          <div class="apk-name">${apk.name}</div>
+          <div class="apk-reward">
+            <i class="fas fa-coins"></i>
+            <span>${apk.coins} coins</span>
+          </div>
+          <a href="${isCompleted ? '#' : apk.url}" class="apk-btn ${isCompleted ? 'completed' : ''}"
+             data-id="${apk.id}"
+             data-coins="${apk.coins}"
+             data-type="${apk.type}"
+             ${isCompleted ? 'disabled' : ''}
+             ${isCompleted ? '' : 'target="_blank" rel="noopener noreferrer"'}> <!-- Open link in new tab -->
+            ${isCompleted ? '<i class="fas fa-check"></i> Completed' :
+                            '<i class="fas fa-download"></i> Download'}
+          </a>
+        `;
+        apkList.appendChild(apkCard);
+      });
+
+       // Disable the link pointer events if the card is completed
+       apkList.querySelectorAll('.apk-btn[disabled]').forEach(link => {
+            link.style.pointerEvents = 'none'; // Prevent click
+       });
+    }
+
+    function updateProfile() {
+      totalCoinsEarnedElement.textContent = userCoins; // Assuming current balance is total earned for simplicity
+      tasksCompletedElement.textContent = completedTaskIds.length;
+      userIdElement.textContent = userId || 'Loading...';
+    }
+
+    // --- Task & APK Handlers using Delegation ---
+
+    function handleTaskClick(event) {
+        const button = event.target.closest('.task-btn');
+        if (!button || button.disabled || button.classList.contains('started')) return;
+
+        const taskId = parseInt(button.getAttribute('data-id'));
+        const coins = parseInt(button.getAttribute('data-coins'));
+        const taskType = button.getAttribute('data-type');
+
+        // Mark task as started (visually and logically)
+        button.classList.add('started');
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
+
+        if (taskType === "ad") {
+            currentAdTaskId = taskId;
+            // Pass coins to showAd so it knows how much to reward on closure
+            showAd(coins);
+        } else if (taskType === "manual") {
+             showNotification(`Starting task: ${allTasks.find(t => t.id === taskId)?.name || 'Manual Task'}...`);
+             // Simulate completion after a delay
+            setTimeout(() => {
+                completeTask(taskId, coins);
+                 // Re-render list to update button state
+                updateTaskList();
+            }, 2000); // Simulate task duration
+        } else {
+            console.error("Unknown task type:", taskType);
+            // Reset button state if task type is unknown
+            button.classList.remove('started');
+            button.disabled = false;
+            button.innerHTML = `<i class="fas fa-play"></i> Start`;
+            showNotification("Unknown task type.", false);
+        }
+    }
+
+     function handleAPKClick(event) {
+        const link = event.target.closest('.apk-btn');
+        if (!link || link.disabled) return;
+
+        const taskId = parseInt(link.getAttribute('data-id'));
+        const coins = parseInt(link.getAttribute('data-coins'));
+        const taskType = link.getAttribute('data-type');
+
+         if (taskType !== "apk") return; // Should only trigger for apk types
+
+        // Simulate APK completion after a delay after the link is clicked.
+        // In a real app, this would require detecting app install/first open.
+        showNotification(`Starting download task: ${allApks.find(a => a.id === taskId)?.name || 'APK Download'}...`);
+
+        // The actual download opens in a new tab due to target="_blank"
+        // This timeout grants the reward client-side after a delay,
+        // regardless of actual install success, for demo purposes.
+        setTimeout(() => {
+            completeTask(taskId, coins);
+            // Re-render APK list to show completed state
+            updateAPKList();
+        }, 3000); // Simulate time for download/initiation
+    }
+
+
+    function completeTask(taskId, coins) {
+      // Check if task ID is valid and not already completed
+      if (taskId && !completedTaskIds.includes(taskId)) {
+        completedTaskIds.push(taskId);
+        userCoins += coins;
+
+        saveUserData(); // Save state after completion
+
+        updateUI(); // Update UI
+        showNotification(`Task completed! You earned ${coins} coins.`);
+
+        // Check scratch card eligibility *after* completing a task
+        checkScratchCardEligibility();
+      } else if (completedTaskIds.includes(taskId)) {
+         console.log(`Task ${taskId} already completed.`);
+          showNotification("Task already completed.", false);
+           // Ensure UI is updated correctly even if re-attempted
+           updateTaskList();
+           updateAPKList(); // Might be an APK task
+      } else {
+          console.error("Attempted to complete invalid task ID:", taskId);
+           showNotification("Error completing task.", false);
+            updateTaskList(); // Try to refresh buttons
+            updateAPKList();
+      }
+    }
+
+    // --- Ad Functions (Adsterrra Integration) ---
+
+    function showAd(rewardCoins) {
+      // Clear previous ad content
+      adPlaceholder.innerHTML = '';
+
+      // Adsterrra Ad Script (Replace 'YOUR_ADSTERRRA_ZONE_ID' with your actual ID)
+      // This script injects the ad into the adPlaceholder div.
+      // The script tag needs to be dynamically created and appended.
+      const adScript = document.createElement('script');
+      adScript.type = 'text/javascript';
+      adScript.innerHTML = `
+        var atOptions = {
+          'key' : 'c558060fad53436f1c7888fd9c82ba16', // REPLACE WITH YOUR ADSTERRRA ZONE ID KEY
+          'format' : 'iframe', // Or other formats like 'banner', 'native' depending on zone
+          'height' : 250, // Match the container height
+          'width' : 300,  // Match the container width or set dynamically
+          'params' : {}
+        };
+        var adContainerDiv = document.createElement('div');
+        adContainerDiv.id = 'container-' + atOptions.key;
+        document.getElementById('adPlaceholder').appendChild(adContainerDiv); // Append to placeholder
+        // Load Adsterrra invoke script
+        var invokeScript = document.createElement('script');
+        invokeScript.type = 'text/javascript';
+        invokeScript.src = '//www.highperformanceformat.com/c558060fad53436f1c7888fd9c82ba16/invoke.js'; // Use your invoke.js URL
+        document.getElementById('adPlaceholder').appendChild(invokeScript); // Append after the container div
+      `;
+
+      // Append the script to the adPlaceholder to load the ad
+      adPlaceholder.appendChild(adScript);
+
+
+      adCloseBtn.classList.remove('active'); // Hide/Disable close button initially
+      adContainer.classList.add('active');
+      startAdTimer(rewardCoins); // Pass rewardCoins to timer function
+    }
+
+    function startAdTimer(rewardCoins) {
+      let seconds = adDuration;
+      adTimerSecondsElement.textContent = seconds;
+      adTimerElement.style.display = 'block'; // Ensure timer is visible
+
+
+      adTimerInterval = setInterval(() => {
+        seconds--;
+        adTimerSecondsElement.textContent = seconds;
+
+        if (seconds <= 0) {
+          clearInterval(adTimerInterval);
+          adTimerElement.textContent = `Ad ready to close`;
+          adCloseBtn.classList.add('active'); // Activate close button
+          // Optional: Add a brief sound or visual cue that it's ready
+        }
+      }, 1000);
+    }
+
+    function closeAd() {
+      // Only proceed if the close button is active (timer finished)
+      if (!adCloseBtn.classList.contains('active')) {
+          showNotification("Ad not finished yet!", false); // Show error notification
+          return;
+      }
+
+      adContainer.classList.remove('active');
+      adCloseBtn.classList.remove('active');
+      clearInterval(adTimerInterval); // Clear timer
+
+      // Find the task details by currentAdTaskId to get the correct coins
+      const task = allTasks.find(t => t.id === currentAdTaskId);
+      if (task && task.type === "ad") {
+           completeTask(currentAdTaskId, task.coins);
+      } else {
+          console.error("Could not find ad task details or type mismatch for completion.");
+           showNotification("Error completing Ad task.", false);
+      }
+
+      currentAdTaskId = null; // Reset current task
+      adPlaceholder.innerHTML = ''; // Clear ad content
+      adTimerElement.style.display = 'none'; // Hide timer until next ad
+    }
+
+    // --- Scratch Card Functions ---
+
+    function setupScratchCardCanvasListeners() {
+      const ctx = scratchCanvas.getContext("2d");
+      // Set canvas size based on its container size (do this potentially when showing card)
+      // const rect = scratchCanvas.parentElement.getBoundingClientRect();
+      // scratchCanvas.width = rect.width;
+      // scratchCanvas.height = rect.height;
+
+      ctx.lineJoin = ctx.lineCap = 'round'; // For smooth drawing
+
+      let isDrawing = false;
+
+      function getCanvasPos(e) {
+        const rect = scratchCanvas.getBoundingClientRect();
+        if (e.touches) { // Handle touch events
+             return {
+                x: e.touches[0].clientX - rect.left,
+                y: e.touches[0].clientY - rect.top
+             };
+        } else { // Handle mouse events
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+      }
+
+      function startScratch(e) {
+        if (!isScratching) return;
+        isDrawing = true;
+        const pos = getCanvasPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x + 1, pos.y + 1);
+      }
+
+       function scratch(e) {
+            if (!isDrawing || !isScratching) return;
+
+            const pos = getCanvasPos(e);
+
+            ctx.globalCompositeOperation = "destination-out"; // Use destination-out to erase
+            ctx.lineWidth = 40; // Width of the "eraser"
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+
+            // Check for completion periodically if needed, but ending is simpler for demo
+        }
+
+      function endScratch() {
+        if (!isDrawing || !isScratching) return;
+        isDrawing = false;
+
+        // Check transparency when drawing ends
+        const totalPixels = scratchCanvas.width * scratchCanvas.height;
+        const imageData = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
+        const pixels = imageData.data;
+        let transparentCount = 0;
+
+        for (let i = 3; i < pixels.length; i += 4) {
+          if (pixels[i] === 0) transparentCount++;
+        }
+
+        if (transparentCount / totalPixels > 0.5) { // If more than 50% is scratched
+          scratchRewardElement.style.display = "block";
+          scratchCloseBtn.classList.add('active'); // Activate claim button
+          isScratching = false; // Stop further scratching
+           // Disable canvas interaction? Optional
+        }
+      }
+
+      // Add listeners only once
+      scratchCanvas.addEventListener("mousedown", startScratch);
+      scratchCanvas.addEventListener("mousemove", scratch);
+      scratchCanvas.addEventListener("mouseup", endScratch);
+      scratchCanvas.addEventListener("mouseleave", endScratch);
+
+      scratchCanvas.addEventListener("touchstart", startScratch, { passive: true });
+      scratchCanvas.addEventListener("touchmove", scratch, { passive: true });
+      scratchCanvas.addEventListener("touchend", endScratch);
+      scratchCanvas.addEventListener("touchcancel", endScratch);
+    }
+
+    function checkScratchCardEligibility() {
+        const taskCount = completedTaskIds.length;
+        // Trigger scratch card after 2nd and 4th task completion (adjust milestones)
+        const milestones = [2, 4];
+        milestones.forEach(milestone => {
+             // Check if the current task count reached a milestone AND this milestone hasn't triggered a card before
+             if (taskCount === milestone && !triggeredScratchCards.includes(milestone)) {
+                 // Delay slightly to ensure UI updates before showing modal
+                 setTimeout(() => {
+                      // Double-check state in case multiple tasks completed simultaneously
+                      if (completedTaskIds.length >= milestone && !triggeredScratchCards.includes(milestone)) {
+                            showScratchCard();
+                            // Mark this milestone as triggered *only if* card is shown
+                            triggeredScratchCards.push(milestone);
+                            saveUserData(); // Save the state of triggered cards
+                      }
+                 }, 500); // Short delay
+             }
+        });
+    }
+
+
+    function showScratchCard() {
+      // Define possible rewards (can eventually load from Firebase config)
+      const rewards = [50, 80, 100, 120, 150];
+      scratchCardRewardAmount = rewards[Math.floor(Math.random() * rewards.length)];
+      scratchRewardElement.textContent = `+${scratchCardRewardAmount} Coins!`;
+
+      // Reset and prepare canvas
+      const ctx = scratchCanvas.getContext("2d");
+      const parentRect = scratchCanvas.parentElement.getBoundingClientRect();
+      scratchCanvas.width = parentRect.width;
+      scratchCanvas.height = parentRect.height;
+      ctx.fillStyle = "#999"; // Redraw cover
+      ctx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
+      ctx.lineJoin = ctx.lineCap = 'round'; // Restore styles
+
+      scratchRewardElement.style.display = "none"; // Hide reward text initially
+      scratchCloseBtn.classList.remove('active'); // Hide claim button
+      scratchCardContainer.classList.add("active"); // Show container
+      isScratching = true; // Enable scratching
+    }
+
+    function claimScratchReward() {
+      // Prevent claiming before scratching reveals the reward (button is active)
+      if (!scratchCloseBtn.classList.contains('active')) {
+          console.warn("Attempted to claim scratch card before it was ready.");
+          return;
+      }
+
+      // Add reward coins to user balance
+      userCoins += scratchCardRewardAmount;
+      saveUserData(); // Save coins state
+
+      scratchCardContainer.classList.remove("active"); // Hide card
+      isScratching = false; // Disable scratching
+
+      updateUI(); // Update UI with new balance
+      showNotification(`You won ${scratchCardRewardAmount} coins from scratch card!`);
+
+      scratchCardRewardAmount = 0; // Reset reward amount
+    }
+
+    // --- Redeem Functions ---
+
+    function redeemCoins() {
+      if (userCoins >= redeemCost) {
+        userCoins -= redeemCost;
+        saveUserData(); // Save state after deducting coins
+
+        const code = generateCode();
+        redeemCodeText.textContent = code;
+        redeemCodeContainer.style.display = "flex"; // Show the code container
+
+        updateUI(); // Update UI with new balance and redeem button state
+        showNotification(`Reward code generated! ${redeeemCost} coins deducted.`);
+      } else {
+          showNotification(`You need ${redeemCost} coins to redeem a code.`, false);
+      }
+    }
+
+    function generateCode() {
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let code = "";
+      for (let i = 0; i < 12; i++) {
+        if (i > 0 && i % 4 === 0) code += "-";
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return code;
+    }
+
+    function copyCode(targetSelector) {
+      const textToCopyElement = document.querySelector(targetSelector);
+      if (!textToCopyElement || !textToCopyElement.textContent) {
+          console.error("Copy target not found or empty:", targetSelector);
+          showNotification("Nothing to copy.", false);
+          return;
+      }
+      const textToCopy = textToCopyElement.textContent;
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        showNotification("Code copied to clipboard!");
+      }).catch(err => {
+        console.error("Failed to copy text:", err);
+        showNotification("Failed to copy code.", false);
+      });
+    }
+
+    function goBack(page) {
+      switchPage(page);
+    }
+
+    // --- Notification Function ---
+
+    function showNotification(message, isSuccess = true) {
+      notificationText.textContent = message;
+      const icon = notificationElement.querySelector('i');
+      if (isSuccess) {
+          icon.className = 'fas fa-check-circle';
+          icon.style.color = 'var(--success)';
+      } else {
+          icon.className = 'fas fa-exclamation-circle';
+          icon.style.color = 'var(--accent)';
+      }
+
+      notificationElement.classList.add("show");
+      setTimeout(() => {
+        notificationElement.classList.remove("show");
+      }, 3000);
+    }
+
+  </script>
 </body>
 </html>
