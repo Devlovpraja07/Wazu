@@ -1,1527 +1,787 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Coin Rewards Mobile App</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary: #4361ee;
-      --secondary: #3f37c9;
-      --success: #28a745; /* Changed success color slightly */
-      --accent: #f72585;
-      --dark: #1d3557;
-      --light: #f8f9fa;
-      --gray: #6c757d;
-      --border: #dee2e6;
-      --shadow: 0 4px 12px rgba(0,0,0,0.08);
-      --app-bg: #f0f2f5;
-      --card-bg: #ffffff;
-      --reward-bg: gold; /* Scratch card background */
-      --reward-text: var(--dark); /* Scratch card text color */
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    body {
-      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--app-bg);
-      color: #333;
-      line-height: 1.6;
-      min-height: 100vh;
-      overflow-x: hidden;
-      padding-bottom: 60px; /* Add padding for bottom nav */
-    }
-
-    .app-container {
-      max-width: 500px;
-      margin: 0 auto;
-      background: var(--app-bg);
-      min-height: calc(100vh - 60px); /* Adjust height considering bottom nav */
-      position: relative;
-      box-shadow: 0 0 30px rgba(0,0,0,0.1);
-    }
-
-    .app-header {
-      background: linear-gradient(to right, var(--primary), var(--secondary));
-      color: white;
-      padding: 15px;
-      position: sticky; /* Keep header sticky */
-      top: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-
-    .header-content {
-      flex: 1;
-    }
-
-    .app-title {
-      font-size: 22px;
-      font-weight: 700;
-    }
-
-    .app-subtitle {
-      font-size: 14px;
-      opacity: 0.9;
-      margin-top: 3px;
-    }
-
-    .balance-display {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-weight: 600;
-      font-size: 18px;
-      background: rgba(255,255,255,0.2);
-      padding: 5px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .balance-display:hover {
-      background: rgba(255,255,255,0.3);
-    }
-
-    .app-body {
-      padding: 15px;
-      padding-bottom: 80px; /* More padding at bottom to avoid content hiding behind nav */
-    }
-
-    .section-title {
-      font-size: 18px;
-      font-weight: 600;
-      margin: 15px 0 10px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid var(--border);
-      color: var(--dark);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-title i {
-      color: var(--primary);
-    }
-
-    .tasks-grid, .apk-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-      gap: 12px;
-      margin-top: 10px;
-    }
-
-    .task-card, .apk-card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 15px;
-      text-align: center;
-      box-shadow: var(--shadow);
-      transition: all 0.3s ease;
-      border: 1px solid rgba(0,0,0,0.05);
-      display: flex; /* Use flex for better alignment */
-      flex-direction: column;
-      justify-content: space-between; /* Distribute space */
-    }
-
-    .task-card:hover:not(.completed):not(.started), .apk-card:hover:not(.completed) {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-    }
-
-    .task-card.completed {
-      background: rgba(40, 167, 69, 0.1); /* Match success color */
-      border: 1px solid rgba(40, 167, 69, 0.3);
-    }
-
-     .task-card.started {
-        background: rgba(108, 117, 125, 0.1); /* Indicate processing state */
-        border: 1px solid rgba(108, 117, 125, 0.3);
-     }
-
-
-    .task-icon, .apk-icon {
-      width: 50px;
-      height: 50px;
-      background: rgba(67, 97, 238, 0.1);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 10px;
-      font-size: 22px;
-      color: var(--primary);
-      flex-shrink: 0; /* Prevent shrinking */
-    }
-
-    .task-name, .apk-name {
-      font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 5px;
-      min-height: 34px; /* Ensure consistent height */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-grow: 1; /* Allow growing */
-    }
-
-    .task-reward, .apk-reward {
-      color: var(--primary);
-      font-weight: 700;
-      font-size: 13px;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 3px;
-      flex-shrink: 0;
-    }
-
-    .task-btn, .apk-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 8px;
-      width: 100%;
-      font-weight: 600;
-      font-size: 13px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 5px;
-      text-decoration: none; /* For APK link */
-      flex-shrink: 0;
-    }
-
-    .task-btn.completed, .apk-btn.completed {
-      background: var(--success); /* Use success color */
-      cursor: default; /* Indicate not clickable */
-    }
-
-     .task-btn.started {
-        background: var(--gray); /* Indicate processing state */
-        cursor: wait;
-    }
-
-
-    .task-btn:disabled, .apk-btn:disabled {
-      background: var(--gray);
-      cursor: not-allowed;
-      opacity: 0.7;
-    }
-
-    .task-btn:not(:disabled):not(.started):hover, .apk-btn:not(:disabled):hover {
-      background: var(--secondary);
-    }
-
-    .wallet-section {
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 20px;
-      margin-top: 20px;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(0,0,0,0.05);
-    }
-
-    .wallet-card {
-      background: linear-gradient(135deg, #1d2b64 0%, #1d3557 100%);
-      color: white;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      margin-top: 15px;
-    }
-
-    .balance-title {
-      font-size: 16px;
-      margin-bottom: 10px;
-      opacity: 0.9;
-    }
-
-    .balance-amount {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
-    .balance-amount i {
-      color: gold;
-    }
-
-    .wallet-buttons {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .wallet-btn {
-      background: rgba(255,255,255,0.15);
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      text-decoration: none; /* For potential button links */
-    }
-
-    .wallet-btn:hover:not(:disabled) {
-      background: rgba(255,255,255,0.25);
-    }
-
-     .wallet-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-     }
-
-    .redeem-section {
-      margin-top: 20px;
-    }
-
-    .code-container {
-      background: white;
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: var(--shadow); /* Added shadow */
-    }
-
-    .code-text {
-      font-weight: 700;
-      font-size: 16px;
-      letter-spacing: 1px;
-      color: var(--dark);
-      flex-grow: 1;
-      word-break: break-all; /* Prevent overflow */
-      margin-right: 10px;
-    }
-
-    .copy-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 14px;
-      flex-shrink: 0; /* Prevent shrinking */
-    }
-
-    .copy-btn:hover {
-      background: var(--secondary);
-    }
-
-    .back-btn {
-      background: transparent;
-      color: var(--gray);
-      border: none;
-      padding: 8px 15px;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      margin-top: 15px;
-      font-size: 14px;
-      text-decoration: none; /* Ensure it looks like a button */
-      display: inline-flex; /* Make it inline-flex to fit content */
-    }
-
-    .back-btn:hover {
-      background: rgba(0,0,0,0.05);
-    }
-
-    .ad-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .ad-container.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .ad-content {
-      background: white;
-      border-radius: 12px;
-      overflow: hidden;
-      width: 95%;
-      max-width: 400px;
-      position: relative;
-      display: flex; /* Use flex to stack header and iframe */
-      flex-direction: column;
-    }
-
-    .ad-header {
-      background: var(--primary);
-      color: white;
-      padding: 12px;
-      text-align: center;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .ad-timer {
-      background: rgba(255,255,255,0.2);
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-size: 14px;
-    }
-
-    #adPlaceholder {
-      width: 100%;
-      height: 250px; /* Ensure placeholder has height */
-      background: #ccc; /* Placeholder background */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #555;
-      font-size: 16px;
-      /* Adsterrra ad might replace this content */
-    }
-
-    .ad-close-btn {
-      position: static; /* Position inside ad-content flex */
-      margin: 15px auto; /* Center the button */
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 10px 25px;
-      border-radius: 30px;
-      font-weight: 600;
-      cursor: pointer;
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      pointer-events: none; /* Disable clicks until active */
-    }
-
-    .ad-close-btn.active {
-      opacity: 1;
-      pointer-events: auto; /* Enable clicks when active */
-    }
-
-    .notification {
-      position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      padding: 12px 20px;
-      border-radius: 30px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      z-index: 1001; /* Higher z-index than ad/scratchcard */
-      opacity: 0;
-      visibility: hidden; /* Use visibility for better control */
-      transition: opacity 0.3s ease, visibility 0.3s ease;
-    }
-
-    .notification.show {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .notification i {
-      font-size: 18px;
-      color: var(--success);
-    }
-
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background: white;
-      display: flex;
-      justify-content: space-around;
-      padding: 10px 0;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-      border-top: 1px solid var(--border);
-      z-index: 99; /* Ensure it's above body content but below modals */
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-size: 12px;
-      color: var(--gray);
-      text-decoration: none;
-      transition: color 0.3s ease;
-      flex: 1; /* Equal width nav items */
-    }
-
-    .nav-item.active {
-      color: var(--primary);
-    }
-
-    .nav-item i {
-      font-size: 20px;
-      margin-bottom: 3px;
-    }
-
-    .scratch-card-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-    }
-
-    .scratch-card-container.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .scratch-card {
-      width: 280px;
-      height: 180px;
-      background: var(--reward-bg); /* Using variable */
-      border-radius: 12px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-
-    .scratch-canvas {
-      width: 100%;
-      height: 100%;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-
-    .scratch-reward {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--reward-text); /* Using variable */
-      text-align: center;
-      display: none;
-      pointer-events: none; /* Allow scratching underneath */
-    }
-
-    .scratch-close-btn {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 8px 20px;
-      border-radius: 20px;
-      cursor: pointer;
-      opacity: 0; /* Hide initially */
-      pointer-events: none; /* Disable clicks until revealed */
-      transition: opacity 0.3s ease;
-    }
-
-    .scratch-close-btn.active {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .profile-section {
-      text-align: center;
-      padding: 20px;
-    }
-
-    .profile-pic {
-      width: 100px;
-      height: 100px;
-      border-radius: 50%;
-      background: var(--primary);
-      margin: 0 auto 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 40px;
-      color: white;
-    }
-
-    .earn-section {
-      padding: 20px 0; /* Adjust padding */
-    }
-
-    .empty-state {
-        text-align: center;
-        color: var(--gray);
-        margin-top: 20px;
-    }
-
-     .loading-spinner {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100px;
-     }
-     .loading-spinner i {
-        font-size: 30px;
-        color: var(--primary);
-     }
-
-
-    @media (max-width: 480px) {
-      .app-title {
-        font-size: 20px;
-      }
-
-      .balance-display {
-        font-size: 16px;
-        padding: 4px 10px;
-      }
-
-      .tasks-grid, .apk-grid {
-        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      }
-
-      .task-card, .apk-card {
-        padding: 12px;
-      }
-
-      .code-text {
-        font-size: 14px;
-      }
-
-      .copy-btn {
-        font-size: 12px;
-        padding: 6px 10px;
-      }
-    }
-
-    @media (max-width: 380px) {
-      .tasks-grid, .apk-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UC Earn App - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2ecc71;
+            --accent: #e74c3c;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --warning: #f39c12;
+            --card-bg: #34495e; /* Slightly lighter dark */
+            --header-bg: #2c3e50;
+            --input-bg: rgba(236, 240, 241, 0.1);
+            --border-color: rgba(236, 240, 241, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2c3e50, #1a2a6c); /* Simpler dark gradient */
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 10px;
+        }
+
+        header {
+            background: var(--header-bg);
+            color: var(--light);
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+         header h1 i {
+             color: var(--warning);
+         }
+
+        section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(236, 240, 241, 0.1);
+            font-size: 22px;
+        }
+         h2 i {
+             color: var(--secondary);
+         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid rgba(236, 240, 241, 0.1);
+        }
+
+        th {
+            background-color: rgba(236, 240, 241, 0.1);
+            font-weight: bold;
+            color: var(--light);
+            white-space: nowrap; /* Prevent wrapping in headers */
+        }
+
+        td {
+             color: rgba(236, 240, 241, 0.8);
+             word-break: break-word; /* Allow text breaking in cells */
+        }
+        td small {
+             display: block;
+             color: rgba(236, 240, 241, 0.5);
+             font-size: 0.9em;
+        }
+
+         tbody tr:hover {
+             background-color: rgba(236, 240, 241, 0.05);
+         }
+
+        .status-pending { color: var(--warning); font-weight: bold; }
+        .status-processed { color: var(--secondary); font-weight: bold; }
+        .status-cancelled { color: var(--accent); font-weight: bold; } /* Changed from rejected to cancelled */
+
+
+        .actions-cell {
+            white-space: nowrap; /* Prevent buttons from wrapping */
+        }
+        .actions-cell button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.2s ease;
+        }
+        .actions-cell .btn-success { background-color: var(--secondary); color: white; }
+        .actions-cell .btn-cancel { background-color: var(--accent); color: white; }
+
+        .actions-cell button:hover {
+            opacity: 0.8;
+        }
+
+
+        /* Responsive Table (simple version) */
+        @media (max-width: 600px) {
+            table, thead, tbody, th, td, tr {
+                display: block;
+            }
+
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tr { border: 1px solid rgba(236, 240, 241, 0.1); margin-bottom: 15px; border-radius: 8px; }
+
+            td {
+                border: none;
+                border-bottom: 1px solid rgba(236, 240, 241, 0.05);
+                position: relative;
+                padding-left: 50%; /* Make space for pseudo-element label */
+                text-align: right; /* Align value to the right */
+            }
+
+            td:before {
+                position: absolute;
+                top: 12px;
+                left: 12px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                content: attr(data-label); /* Use data-label attribute for pseudo-element content */
+                font-weight: bold;
+                color: rgba(236, 240, 241, 0.7);
+                text-align: left; /* Align label to the left */
+            }
+
+             /* Specific data-labels for each column */
+             #userTableBody td:nth-of-type(1):before { content: "User ID"; }
+             #userTableBody td:nth-of-type(2):before { content: "Coins"; }
+             #userTableBody td:nth-of-type(3):before { content: "Wins"; }
+             #userTableBody td:nth-of-type(4):before { content: "Last Claim"; }
+             #userTableBody td:nth-of-type(5):before { content: "Transactions"; }
+
+             #withdrawalTableBody td:nth-of-type(1):before { content: "User ID"; }
+             #withdrawalTableBody td:nth-of-type(2):before { content: "UPI ID"; }
+             #withdrawalTableBody td:nth-of-type(3):before { content: "Amount"; }
+             #withdrawalTableBody td:nth-of-type(4):before { content: "Timestamp"; }
+             #withdrawalTableBody td:nth-of-type(5):before { content: "Status"; }
+             #withdrawalTableBody td:nth-of-type(6):before { content: "Actions"; }
+
+
+             #ucPurchaseTableBody td:nth-of-type(1):before { content: "User ID"; }
+             #ucPurchaseTableBody td:nth-of-type(2):before { content: "Game ID"; }
+             #ucPurchaseTableBody td:nth-of-type(3):before { content: "UC Amount"; }
+             #ucPurchaseTableBody td:nth-of-type(4):before { content: "Coin Cost"; }
+             #ucPurchaseTableBody td:nth-of-type(5):before { content: "Timestamp"; }
+             #ucPurchaseTableBody td:nth-of-type(6):before { content: "Status"; }
+             #ucPurchaseTableBody td:nth-of-type(7):before { content: "Actions"; }
+
+             /* Adjust action buttons for small screens */
+             .actions-cell {
+                 text-align: right; /* Align buttons right */
+             }
+              .actions-cell button {
+                 margin-left: 5px;
+                 margin-top: 5px; /* Stack buttons if needed */
+              }
+        }
+
+        .admin-form {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(236, 240, 241, 0.05);
+            border-radius: 10px;
+        }
+        .admin-form h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--light);
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(236, 240, 241, 0.1);
+        }
+         .admin-form .form-group {
+             margin-bottom: 15px;
+         }
+         .admin-form .form-group:last-child {
+             margin-bottom: 0;
+         }
+
+         .admin-form input[type="text"],
+         .admin-form input[type="number"] {
+             width: calc(100% - 24px); /* Adjust for padding */
+             padding: 10px 12px;
+             border-radius: 5px;
+             border: 1px solid var(--border-color);
+             background: var(--input-bg);
+             color: var(--light);
+             font-size: 1rem;
+         }
+         .admin-form button {
+             padding: 10px 20px;
+             border: none;
+             border-radius: 5px;
+             background: var(--primary);
+             color: white;
+             cursor: pointer;
+             font-size: 1rem;
+         }
+         .admin-form button:hover {
+             opacity: 0.9;
+         }
+
+
+         footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px 10px;
+            color: rgba(236, 240, 241, 0.7);
+            font-size: 14px;
+            border-top: 1px solid rgba(236, 240, 241, 0.1);
+         }
+
+         #loading {
+             position: fixed;
+             top: 0;
+             left: 0;
+             width: 100%;
+             height: 100%;
+             background: rgba(0, 0, 0, 0.9);
+             color: white;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             font-size: 20px;
+             z-index: 1001;
+             transition: opacity 0.3s ease;
+             opacity: 1;
+             pointer-events: all;
+         }
+         #loading.hidden {
+             opacity: 0;
+             pointer-events: none;
+         }
+         #loading i {
+             margin-right: 10px;
+             animation: spin 1s infinite linear;
+         }
+         @keyframes spin {
+             0% { transform: rotate(0deg); }
+             100% { transform: rotate(360deg); }
+         }
+    </style>
 </head>
 <body>
-  <div class="app-container">
-    <div class="app-header">
-      <div class="header-content">
-        <div class="app-title">Coin Rewards</div>
-        <div class="app-subtitle">Earn coins, get rewards</div>
-      </div>
-      <div class="balance-display" id="balanceDisplay">
-        <i class="fas fa-coins"></i>
-        <span id="coinCount">...</span> <!-- Show loading state -->
-      </div>
+     <div id="loading">
+        <i class="fas fa-spinner fa-spin"></i> Loading Admin Data...
     </div>
 
-    <div class="app-body">
-       <!-- Loading Indicator -->
-       <div id="loadingSpinner" class="loading-spinner">
-           <i class="fas fa-spinner fa-spin"></i>
-       </div>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-user-shield"></i> UC Earn App Admin Panel</h1>
+            <p style="color: var(--accent); font-weight: bold; margin-top: 10px;">WARNING: This demo has minimal security. Do not use for real administrative tasks in production.</p>
+             <p style="color: var(--warning); font-size: 0.9em;">Ensure Firebase Database Rules allow '.write': true for '/users' and '/requests' for admin functions to work.</p>
+        </header>
 
-      <div id="homePage" class="page-content" style="display:none;">
-        <h2 class="section-title"><i class="fas fa-tasks"></i> Daily Tasks</h2>
-        <div class="tasks-grid" id="taskList"></div>
+        <section id="userManagementSection">
+             <h2><i class="fas fa-users-cog"></i> User Management</h2>
+             <div class="admin-form">
+                 <h3>Add Coins to User</h3>
+                 <div class="form-group">
+                     <label for="addCoinsUserId">User ID:</label>
+                     <input type="text" id="addCoinsUserId" placeholder="Enter User ID">
+                 </div>
+                  <div class="form-group">
+                     <label for="addCoinsAmount">Amount:</label>
+                     <input type="number" id="addCoinsAmount" placeholder="Enter coins to add" value="10">
+                 </div>
+                 <button id="addCoinsBtn" class="btn-primary"><i class="fas fa-plus"></i> Add Coins</button>
+             </div>
 
-        <div class="wallet-section" id="walletSection">
-          <h2 class="section-title"><i class="fas fa-wallet"></i> My Wallet</h2>
-          <div class="wallet-card">
-            <div class="balance-title">Your Coin Balance</div>
-            <div class="balance-amount">
-              <i class="fas fa-coins"></i>
-              <span id="walletCoinCount">...</span> <!-- Show loading state -->
+             <div id="userList">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Coins</th>
+                            <th>Wins</th>
+                            <th>Last Daily Claim</th>
+                             <th>Total Transactions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <!-- User data will be loaded here -->
+                        <tr><td colspan="5" style="text-align: center;">Loading users...</td></tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="wallet-buttons">
-              <button id="walletBtn" class="wallet-btn">
-                <i class="fas fa-gift"></i> Redeem Rewards
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+        </section>
 
-      <div id="walletPage" class="page-content" style="display:none;">
-        <div class="redeem-section">
-          <h3 class="section-title"><i class="fas fa-ticket-alt"></i> Get Reward Code</h3>
-          <p>Redeem your coins for special discount codes (<span id="redeemCostText">...</span> coins per code)</p>
-          <button id="redeemBtn" class="wallet-btn" style="margin-top: 15px;">
-            <i class="fas fa-ticket-alt"></i> Generate Code
-          </button>
-          <div id="redeemCode" class="code-container" style="display:none;">
-            <div class="code-text"></div>
-            <button class="copy-btn" data-copy-target="#redeemCode .code-text">
-              <i class="fas fa-copy"></i> Copy
-            </button>
-          </div>
-          <a href="#" class="back-btn" data-page="home">
-            <i class="fas fa-arrow-left"></i> Back
-          </a>
-        </div>
-      </div>
+        <section id="withdrawalsSection">
+            <h2><i class="fas fa-hand-holding-usd"></i> Withdrawal Requests</h2>
+             <div id="withdrawalList">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>UPI ID</th>
+                            <th>Amount</th>
+                            <th>Timestamp</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="withdrawalTableBody">
+                        <!-- Withdrawal requests will be loaded here -->
+                         <tr><td colspan="6" style="text-align: center;">Loading requests...</td></tr>
+                    </tbody>
+                </table>
+             </div>
+        </section>
 
-      <div id="earnPage" class="page-content" style="display:none;">
-        <div class="earn-section">
-          <h2 class="section-title"><i class="fas fa-coins"></i> Earn More Coins</h2>
-          <div class="apk-grid" id="apkList"></div>
-        </div>
-      </div>
+         <section id="ucPurchasesSection">
+            <h2><i class="fas fa-shopping-bag"></i> UC Purchase Requests</h2>
+              <div id="ucPurchaseList">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Game ID</th>
+                            <th>UC Amount</th>
+                            <th>Coin Cost</th>
+                            <th>Timestamp</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ucPurchaseTableBody">
+                        <!-- UC purchase requests will be loaded here -->
+                        <tr><td colspan="7" style="text-align: center;">Loading requests...</td></tr>
+                    </tbody>
+                </table>
+              </div>
+        </section>
 
-      <div id="rewardsPage" class="page-content" style="display:none;">
-        <div class="redeem-section">
-          <h2 class="section-title"><i class="fas fa-gift"></i> Your Rewards</h2>
-          <p>Complete tasks to unlock scratch cards!</p>
-           <!-- You could list unlocked/claimed rewards here -->
-           <p class="empty-state" id="rewardsEmptyState">Complete tasks to unlock rewards.</p>
-        </div>
-      </div>
-
-      <div id="profilePage" class="page-content" style="display:none;">
-        <div class="profile-section">
-          <h2 class="section-title"><i class="fas fa-user"></i> Profile</h2>
-          <div class="profile-pic">👤</div>
-          <p>User ID: <span id="userId">Loading...</span></p>
-          <p>Total Coins Earned: <span id="totalCoinsEarned">...</span></p>
-          <p>Tasks Completed: <span id="tasksCompleted">...</span></p>
-        </div>
-      </div>
+        <footer>
+            <p>© 2023 UC Earn App Admin. Demo Panel.</p>
+        </footer>
     </div>
 
-    <div class="bottom-nav">
-      <a href="#" class="nav-item" data-page="home">
-        <i class="fas fa-home"></i>
-        <span>Home</span>
-      </a>
-      <a href="#" class="nav-item" data-page="earn">
-        <i class="fas fa-coins"></i>
-        <span>Earn</span>
-      </a>
-      <a href="#" class="nav-item" data-page="rewards">
-        <i class="fas fa-gift"></i>
-        <span>Rewards</span>
-      </a>
-      <a href="#" class="nav-item" data-page="profile">
-        <i class="fas fa-user"></i>
-        <span>Profile</span>
-      </a>
-    </div>
-  </div>
-
-  <div class="ad-container" id="adContainer">
-    <div class="ad-content">
-      <div class="ad-header">
-        <span>Ad - Earn Coins</span>
-        <div class="ad-timer" id="adTimer">Ad closes in <span id="adTimerSeconds">5</span>s</div>
-      </div>
-      <div id="adPlaceholder">
-         <!-- Adsterrra ad script will be loaded here -->
-         Loading Ad...
-      </div>
-      <button class="ad-close-btn" id="adCloseBtn">Close Ad</button>
-    </div>
-  </div>
-
-  <div class="scratch-card-container" id="scratchCardContainer">
-    <div class="scratch-card">
-      <canvas id="scratchCanvas" class="scratch-canvas"></canvas>
-      <div class="scratch-reward" id="scratchReward"></div>
-      <button class="scratch-close-btn" id="scratchCloseBtn">Claim Reward</button>
-    </div>
-  </div>
-
-  <div class="notification" id="notification">
-    <i class="fas fa-check-circle"></i>
-    <span id="notificationText">Task completed! +50 coins</span>
-  </div>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-  <script>
-    // Replace with your Firebase Web App config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAY3hXmpCXJUVrBtOaosPY_tsse3sx-O5o", // Use your ACTUAL Web API Key
-      authDomain: "nima-d4d7d.firebaseapp.com",
-      databaseURL: "https://nima-d4d7d-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "nima-d4d7d",
-      storageBucket: "nima-d4d7d.firebasestorage.app",
-      appId: "1:919311840182:web:YOUR_WEB_APP_ID", // Replace with your Web App ID
-      // measurementId: "G-XXXXXXXXXX" // Optional: if you use analytics
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const database = firebase.database();
-
-    // --- App State Variables ---
-    let userId = null;
-    let userCoins = 0;
-    let completedTaskIds = [];
-    let triggeredScratchCards = [];
-    let allTasks = []; // Will be loaded from Firebase
-    let allApks = [];  // Will be loaded from Firebase
-    let redeemCost = 200; // Default, can be set in admin later if needed
-
-    let currentAdTaskId = null;
-    let adTimerInterval;
-    let adDuration = 5; // seconds for ad to show
-    let isScratching = false;
-    let scratchCardRewardAmount = 0;
-
-    // --- DOM Elements ---
-    const taskList = document.getElementById("taskList");
-    const apkList = document.getElementById("apkList");
-    const coinCountElements = document.querySelectorAll("#coinCount, #walletCoinCount");
-    const redeemBtn = document.getElementById("redeemBtn");
-    const redeemCostTextElement = document.getElementById("redeemCostText");
-    const redeemCodeContainer = document.getElementById("redeemCode");
-    const redeemCodeText = redeemCodeContainer.querySelector(".code-text");
-    const adContainer = document.getElementById("adContainer");
-    const adTimerElement = document.getElementById("adTimer");
-    const adTimerSecondsElement = document.getElementById("adTimerSeconds");
-    const adCloseBtn = document.getElementById("adCloseBtn");
-    const adPlaceholder = document.getElementById("adPlaceholder");
-    const scratchCardContainer = document.getElementById("scratchCardContainer");
-    const scratchCanvas = document.getElementById("scratchCanvas");
-    const scratchRewardElement = document.getElementById("scratchReward");
-    const scratchCloseBtn = document.getElementById("scratchCloseBtn");
-    const notificationElement = document.getElementById("notification");
-    const notificationText = document.getElementById("notificationText");
-    const pages = document.querySelectorAll(".page-content");
-    const navItems = document.querySelectorAll(".bottom-nav .nav-item");
-    const loadingSpinner = document.getElementById("loadingSpinner");
-    const userIdElement = document.getElementById("userId");
-    const totalCoinsEarnedElement = document.getElementById("totalCoinsEarned");
-    const tasksCompletedElement = document.getElementById("tasksCompleted");
-
-
-    // --- Firebase References ---
-    let userRef = null; // Set after user is authenticated
-    const configRef = database.ref('config');
-    const tasksRef = configRef.child('tasks');
-    const apksRef = configRef.child('apks');
-
-
-    // --- Initialization ---
-    auth.onAuthStateChanged(async (user) => {
-      if (user) {
-        userId = user.uid;
-        userRef = database.ref('users/' + userId);
-        userIdElement.textContent = userId; // Display user ID in profile
-
-        await loadAppData(); // Load user data, tasks, and apks from Firebase
-        setupEventListeners(); // Set up listeners after data is loaded
-        updateUI(); // Update UI based on loaded state
-        switchPage("home"); // Start on the home page
-
-        // Hide loading spinner and show app body
-        loadingSpinner.style.display = 'none';
-        document.querySelector('.app-body').style.display = 'block';
-
-
-      } else {
-        // User is signed out or not signed in - sign in anonymously
-        console.log("No user signed in, signing in anonymously...");
-        auth.signInAnonymously().catch((error) => {
-          console.error("Anonymous Auth failed:", error);
-          showNotification("Failed to initialize app.", false);
-          // Handle error - maybe show a message to the user
-           loadingSpinner.innerHTML = '<p style="color:red;">Error loading app. Please try again.</p>';
-        });
-      }
-    });
-
-
-    async function loadAppData() {
-        try {
-            // Load user data
-            const userSnapshot = await userRef.once('value');
-            const userData = userSnapshot.val() || {};
-            userCoins = userData.coins || 0;
-            completedTaskIds = userData.completedTaskIds || [];
-            triggeredScratchCards = userData.triggeredScratchCards || [];
-             // If you track total earned (e.g., for profile), load that too
-             // let totalEarned = userData.totalEarned || 0; // Need to add this to DB if needed
-
-            // Load config data (tasks, apks, maybe redeem cost)
-            const configSnapshot = await configRef.once('value');
-            const configData = configSnapshot.val() || {};
-
-            // Convert Firebase object format to array
-            allTasks = Object.values(configData.tasks || {}).filter(item => item && item.id); // Filter out null/undefined and ensure id exists
-            allApks = Object.values(configData.apks || {}).filter(item => item && item.id); // Filter out null/undefined and ensure id exists
-            redeemCost = configData.settings?.redeemCost || 200; // Load redeem cost from settings or use default
-
-
-            console.log("Data loaded:", {userCoins, completedTaskIds, triggeredScratchCards, allTasks, allApks, redeemCost});
-
-        } catch (error) {
-            console.error("Error loading app data from Firebase:", error);
-            showNotification("Failed to load data. Please refresh.", false);
-             // Maybe disable functionality or show an error state
-        }
-    }
-
-
-    function saveUserData() {
-      if (userRef) {
-        userRef.update({ // Use update to avoid overwriting other potential user data
-          coins: userCoins,
-          completedTaskIds: completedTaskIds,
-          triggeredScratchCards: triggeredScratchCards,
-           // Save totalEarned if you track it
-           // totalEarned: totalEarned
-        }).catch(error => {
-          console.error("Error saving user data:", error);
-          showNotification("Failed to save progress.", false);
-        });
-      }
-    }
-
-
-    function setupEventListeners() {
-      // Avoid setting up listeners multiple times if auth state changes
-      if (setupEventListeners.hasRun) return;
-      setupEventListeners.hasRun = true;
-
-      // Bottom Navigation
-      navItems.forEach(item => {
-        item.addEventListener("click", (e) => {
-          e.preventDefault();
-          const page = item.getAttribute("data-page");
-          switchPage(page);
-        });
-      });
-
-      // Balance Display (Header)
-      document.getElementById("balanceDisplay").addEventListener("click", () => switchPage("wallet"));
-
-      // Wallet Redeem Button (Home Page)
-      document.getElementById("walletBtn").addEventListener("click", () => switchPage("wallet"));
-
-      // Generate Code Button (Wallet Page)
-      redeemBtn.addEventListener("click", redeemCoins);
-
-      // Copy Code Button (Wallet Page)
-      document.querySelector('.copy-btn').addEventListener('click', function() {
-          const targetSelector = this.getAttribute('data-copy-target');
-          copyCode(targetSelector);
-      });
-
-      // Back Button (Wallet Page)
-      document.querySelector('.back-btn[data-page="home"]').addEventListener('click', (e) => {
-          e.preventDefault();
-          goBack('home');
-      });
-
-      // Task Grid Event Delegation
-      taskList.addEventListener('click', handleTaskClick);
-
-      // APK Grid Event Delegation
-      apkList.addEventListener('click', handleAPKClick);
-
-      // Ad Close Button
-      adCloseBtn.addEventListener("click", closeAd);
-
-      // Scratch Card Close/Claim Button
-      scratchCloseBtn.addEventListener("click", claimScratchReward);
-
-      // Setup Scratch Card Canvas listeners once
-      setupScratchCardCanvasListeners();
-    }
-
-    function switchPage(page) {
-      // Hide all pages
-      pages.forEach(p => p.style.display = "none");
-
-      // Show the requested page
-      const targetPageElement = document.getElementById(`${page}Page`);
-      if (targetPageElement) {
-          targetPageElement.style.display = "block";
-      } else {
-          console.error("Page not found:", page);
-          // Fallback to home
-          document.getElementById("homePage").style.display = "block";
-          page = "home";
-      }
-
-      // Update active nav item
-      navItems.forEach(item => item.classList.remove("active"));
-      const activeNavItem = document.querySelector(`.nav-item[data-page="${page}"]`);
-      if (activeNavItem) {
-          activeNavItem.classList.add("active");
-      }
-
-      // Update content specific to the page
-      if (page === "earn") {
-        updateAPKList();
-      } else if (page === "profile") {
-        updateProfile();
-      } else if (page === "wallet") {
-        // Ensure wallet coin count and redeem cost are updated
-        updateUI();
-        // Hide code section when switching to wallet page
-        redeemCodeContainer.style.display = "none";
-      } else if (page === "home") {
-        updateTaskList(); // Ensure tasks are rendered on home
-      }
-    }
-
-    function updateUI() {
-      // Update coin counts everywhere
-      coinCountElements.forEach(el => el.textContent = userCoins);
-
-      // Update task list on Home page
-      updateTaskList();
-
-      // Update APK list if on Earn page
-       if (document.getElementById("earnPage").style.display !== "none") {
-            updateAPKList();
-       }
-
-      // Update profile page if on Profile page
-      if (document.getElementById("profilePage").style.display !== "none") {
-            updateProfile();
-      }
-
-
-      // Update redeem button state and cost text
-      if (redeemBtn && redeemCostTextElement) {
-          redeemCostTextElement.textContent = redeemCost;
-          if (userCoins >= redeemCost) {
-              redeemBtn.disabled = false;
-              redeemBtn.style.opacity = "1";
-          } else {
-              redeemBtn.disabled = true;
-              redeemBtn.style.opacity = "0.6";
-          }
-          redeemBtn.innerHTML = `<i class="fas fa-ticket-alt"></i> Generate Code`;
-      }
-
-      // Check for scratch card eligibility *after* UI update and data load
-      checkScratchCardEligibility();
-    }
-
-    function updateTaskList() {
-      taskList.innerHTML = ""; // Clear current list
-      if (allTasks.length === 0) {
-           taskList.innerHTML = '<p class="empty-state">No tasks available right now. Check back later!</p>';
-           return;
-      }
-      allTasks.forEach(task => {
-        const isCompleted = completedTaskIds.includes(task.id);
-        const taskCard = document.createElement("div");
-        taskCard.className = `task-card ${isCompleted ? 'completed' : ''}`;
-        taskCard.innerHTML = `
-          <div class="task-icon">
-            <i class="${task.icon}"></i>
-          </div>
-          <div class="task-name">${task.name}</div>
-          <div class="task-reward">
-            <i class="fas fa-coins"></i>
-            <span>${task.coins} coins</span>
-          </div>
-          <button class="task-btn ${isCompleted ? 'completed' : ''}"
-                  data-id="${task.id}"
-                  data-coins="${task.coins}"
-                  data-type="${task.type}"
-                  ${isCompleted ? 'disabled' : ''}>
-            ${isCompleted ? '<i class="fas fa-check"></i> Completed' :
-                            `<i class="fas fa-play"></i> Start`}
-          </button>
-        `;
-        taskList.appendChild(taskCard);
-      });
-    }
-
-
-    function updateAPKList() {
-      apkList.innerHTML = ""; // Clear current list
-       if (allApks.length === 0) {
-            apkList.innerHTML = '<p class="empty-state">No apps available to download right now.</p>';
-            return;
-        }
-      allApks.forEach(apk => {
-        const isCompleted = completedTaskIds.includes(apk.id);
-        const apkCard = document.createElement("div");
-        apkCard.className = `apk-card ${isCompleted ? 'completed' : ''}`;
-        // Use a link for download tasks, styled as a button
-        apkCard.innerHTML = `
-          <div class="apk-icon">
-            <i class="${apk.icon}"></i>
-          </div>
-          <div class="apk-name">${apk.name}</div>
-          <div class="apk-reward">
-            <i class="fas fa-coins"></i>
-            <span>${apk.coins} coins</span>
-          </div>
-          <a href="${isCompleted ? '#' : apk.url}" class="apk-btn ${isCompleted ? 'completed' : ''}"
-             data-id="${apk.id}"
-             data-coins="${apk.coins}"
-             data-type="${apk.type}"
-             ${isCompleted ? 'disabled' : ''}
-             ${isCompleted ? '' : 'target="_blank" rel="noopener noreferrer"'}> <!-- Open link in new tab -->
-            ${isCompleted ? '<i class="fas fa-check"></i> Completed' :
-                            '<i class="fas fa-download"></i> Download'}
-          </a>
-        `;
-        apkList.appendChild(apkCard);
-      });
-
-       // Disable the link pointer events if the card is completed
-       apkList.querySelectorAll('.apk-btn[disabled]').forEach(link => {
-            link.style.pointerEvents = 'none'; // Prevent click
-       });
-    }
-
-    function updateProfile() {
-      totalCoinsEarnedElement.textContent = userCoins; // Assuming current balance is total earned for simplicity
-      tasksCompletedElement.textContent = completedTaskIds.length;
-      userIdElement.textContent = userId || 'Loading...';
-    }
-
-    // --- Task & APK Handlers using Delegation ---
-
-    function handleTaskClick(event) {
-        const button = event.target.closest('.task-btn');
-        if (!button || button.disabled || button.classList.contains('started')) return;
-
-        const taskId = parseInt(button.getAttribute('data-id'));
-        const coins = parseInt(button.getAttribute('data-coins'));
-        const taskType = button.getAttribute('data-type');
-
-        // Mark task as started (visually and logically)
-        button.classList.add('started');
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading...';
-
-        if (taskType === "ad") {
-            currentAdTaskId = taskId;
-            // Pass coins to showAd so it knows how much to reward on closure
-            showAd(coins);
-        } else if (taskType === "manual") {
-             showNotification(`Starting task: ${allTasks.find(t => t.id === taskId)?.name || 'Manual Task'}...`);
-             // Simulate completion after a delay
-            setTimeout(() => {
-                completeTask(taskId, coins);
-                 // Re-render list to update button state
-                updateTaskList();
-            }, 2000); // Simulate task duration
-        } else {
-            console.error("Unknown task type:", taskType);
-            // Reset button state if task type is unknown
-            button.classList.remove('started');
-            button.disabled = false;
-            button.innerHTML = `<i class="fas fa-play"></i> Start`;
-            showNotification("Unknown task type.", false);
-        }
-    }
-
-     function handleAPKClick(event) {
-        const link = event.target.closest('.apk-btn');
-        if (!link || link.disabled) return;
-
-        const taskId = parseInt(link.getAttribute('data-id'));
-        const coins = parseInt(link.getAttribute('data-coins'));
-        const taskType = link.getAttribute('data-type');
-
-         if (taskType !== "apk") return; // Should only trigger for apk types
-
-        // Simulate APK completion after a delay after the link is clicked.
-        // In a real app, this would require detecting app install/first open.
-        showNotification(`Starting download task: ${allApks.find(a => a.id === taskId)?.name || 'APK Download'}...`);
-
-        // The actual download opens in a new tab due to target="_blank"
-        // This timeout grants the reward client-side after a delay,
-        // regardless of actual install success, for demo purposes.
-        setTimeout(() => {
-            completeTask(taskId, coins);
-            // Re-render APK list to show completed state
-            updateAPKList();
-        }, 3000); // Simulate time for download/initiation
-    }
-
-
-    function completeTask(taskId, coins) {
-      // Check if task ID is valid and not already completed
-      if (taskId && !completedTaskIds.includes(taskId)) {
-        completedTaskIds.push(taskId);
-        userCoins += coins;
-
-        saveUserData(); // Save state after completion
-
-        updateUI(); // Update UI
-        showNotification(`Task completed! You earned ${coins} coins.`);
-
-        // Check scratch card eligibility *after* completing a task
-        checkScratchCardEligibility();
-      } else if (completedTaskIds.includes(taskId)) {
-         console.log(`Task ${taskId} already completed.`);
-          showNotification("Task already completed.", false);
-           // Ensure UI is updated correctly even if re-attempted
-           updateTaskList();
-           updateAPKList(); // Might be an APK task
-      } else {
-          console.error("Attempted to complete invalid task ID:", taskId);
-           showNotification("Error completing task.", false);
-            updateTaskList(); // Try to refresh buttons
-            updateAPKList();
-      }
-    }
-
-    // --- Ad Functions (Adsterrra Integration) ---
-
-    function showAd(rewardCoins) {
-      // Clear previous ad content
-      adPlaceholder.innerHTML = '';
-
-      // Adsterrra Ad Script (Replace 'YOUR_ADSTERRRA_ZONE_ID' with your actual ID)
-      // This script injects the ad into the adPlaceholder div.
-      // The script tag needs to be dynamically created and appended.
-      const adScript = document.createElement('script');
-      adScript.type = 'text/javascript';
-      adScript.innerHTML = `
-        var atOptions = {
-          'key' : 'c558060fad53436f1c7888fd9c82ba16', // REPLACE WITH YOUR ADSTERRRA ZONE ID KEY
-          'format' : 'iframe', // Or other formats like 'banner', 'native' depending on zone
-          'height' : 250, // Match the container height
-          'width' : 300,  // Match the container width or set dynamically
-          'params' : {}
+    <script>
+        // Firebase Configuration - UPDATED WITH YOUR DETAILS
+        const firebaseConfig = {
+          apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
+          authDomain: "rn-gfx-tool.firebaseapp.com", // Derived from Project ID
+          databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app", // YOUR database URL
+          projectId: "rn-gfx-tool",
+          storageBucket: "rn-gfx-tool.firebasestorage.app",
+          messagingSenderId: "163149358541", // Optional but good practice
+          appId: "1:163149358541:android:2ef6d22fcd23e77ee09084" // Optional but good practice
         };
-        var adContainerDiv = document.createElement('div');
-        adContainerDiv.id = 'container-' + atOptions.key;
-        document.getElementById('adPlaceholder').appendChild(adContainerDiv); // Append to placeholder
-        // Load Adsterrra invoke script
-        var invokeScript = document.createElement('script');
-        invokeScript.type = 'text/javascript';
-        invokeScript.src = '//www.highperformanceformat.com/c558060fad53436f1c7888fd9c82ba16/invoke.js'; // Use your invoke.js URL
-        document.getElementById('adPlaceholder').appendChild(invokeScript); // Append after the container div
-      `;
 
-      // Append the script to the adPlaceholder to load the ad
-      adPlaceholder.appendChild(adScript);
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        // Note: Admin panel does NOT sign in a user in this demo,
+        // it relies on open read/write rules for simplicity (insecure).
 
+        const loadingOverlay = document.getElementById('loading');
+        const userTableBody = document.getElementById('userTableBody');
+        const withdrawalTableBody = document.getElementById('withdrawalTableBody');
+        const ucPurchaseTableBody = document.getElementById('ucPurchaseTableBody');
 
-      adCloseBtn.classList.remove('active'); // Hide/Disable close button initially
-      adContainer.classList.add('active');
-      startAdTimer(rewardCoins); // Pass rewardCoins to timer function
-    }
-
-    function startAdTimer(rewardCoins) {
-      let seconds = adDuration;
-      adTimerSecondsElement.textContent = seconds;
-      adTimerElement.style.display = 'block'; // Ensure timer is visible
+        // Admin Form Elements
+        const addCoinsUserIdInput = document.getElementById('addCoinsUserId');
+        const addCoinsAmountInput = document.getElementById('addCoinsAmount');
+        const addCoinsBtn = document.getElementById('addCoinsBtn');
 
 
-      adTimerInterval = setInterval(() => {
-        seconds--;
-        adTimerSecondsElement.textContent = seconds;
+        // --- Firebase Data Loading & Rendering ---
 
-        if (seconds <= 0) {
-          clearInterval(adTimerInterval);
-          adTimerElement.textContent = `Ad ready to close`;
-          adCloseBtn.classList.add('active'); // Activate close button
-          // Optional: Add a brief sound or visual cue that it's ready
-        }
-      }, 1000);
-    }
-
-    function closeAd() {
-      // Only proceed if the close button is active (timer finished)
-      if (!adCloseBtn.classList.contains('active')) {
-          showNotification("Ad not finished yet!", false); // Show error notification
-          return;
-      }
-
-      adContainer.classList.remove('active');
-      adCloseBtn.classList.remove('active');
-      clearInterval(adTimerInterval); // Clear timer
-
-      // Find the task details by currentAdTaskId to get the correct coins
-      const task = allTasks.find(t => t.id === currentAdTaskId);
-      if (task && task.type === "ad") {
-           completeTask(currentAdTaskId, task.coins);
-      } else {
-          console.error("Could not find ad task details or type mismatch for completion.");
-           showNotification("Error completing Ad task.", false);
-      }
-
-      currentAdTaskId = null; // Reset current task
-      adPlaceholder.innerHTML = ''; // Clear ad content
-      adTimerElement.style.display = 'none'; // Hide timer until next ad
-    }
-
-    // --- Scratch Card Functions ---
-
-    function setupScratchCardCanvasListeners() {
-      const ctx = scratchCanvas.getContext("2d");
-      // Set canvas size based on its container size (do this potentially when showing card)
-      // const rect = scratchCanvas.parentElement.getBoundingClientRect();
-      // scratchCanvas.width = rect.width;
-      // scratchCanvas.height = rect.height;
-
-      ctx.lineJoin = ctx.lineCap = 'round'; // For smooth drawing
-
-      let isDrawing = false;
-
-      function getCanvasPos(e) {
-        const rect = scratchCanvas.getBoundingClientRect();
-        if (e.touches) { // Handle touch events
-             return {
-                x: e.touches[0].clientX - rect.left,
-                y: e.touches[0].clientY - rect.top
-             };
-        } else { // Handle mouse events
-            return {
-                x: e.clientX - rect.left,
-                y: e.clientY - rect.top
-            };
-        }
-      }
-
-      function startScratch(e) {
-        if (!isScratching) return;
-        isDrawing = true;
-        const pos = getCanvasPos(e);
-        ctx.beginPath();
-        ctx.moveTo(pos.x + 1, pos.y + 1);
-      }
-
-       function scratch(e) {
-            if (!isDrawing || !isScratching) return;
-
-            const pos = getCanvasPos(e);
-
-            ctx.globalCompositeOperation = "destination-out"; // Use destination-out to erase
-            ctx.lineWidth = 40; // Width of the "eraser"
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-
-            // Check for completion periodically if needed, but ending is simpler for demo
+        // Listen for User Data
+        function listenForUsers() {
+            const usersRef = database.ref('users');
+            usersRef.on('value', (snapshot) => {
+                const usersData = snapshot.val();
+                renderUserTable(usersData);
+                loadingOverlay.classList.add('hidden'); // Hide loading overlay once initial data is here
+            }, (error) => {
+                console.error("Error fetching users:", error);
+                userTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--accent);">Error loading users: ' + error.message + '</td></tr>';
+                 loadingOverlay.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Failed to load user data. Check console.`;
+            });
         }
 
-      function endScratch() {
-        if (!isDrawing || !isScratching) return;
-        isDrawing = false;
+        // Render User Data Table
+        function renderUserTable(usersData) {
+            userTableBody.innerHTML = ''; // Clear current table
 
-        // Check transparency when drawing ends
-        const totalPixels = scratchCanvas.width * scratchCanvas.height;
-        const imageData = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height);
-        const pixels = imageData.data;
-        let transparentCount = 0;
+            if (!usersData) {
+                userTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No users found.</td></tr>';
+                return;
+            }
 
-        for (let i = 3; i < pixels.length; i += 4) {
-          if (pixels[i] === 0) transparentCount++;
+            const userIds = Object.keys(usersData);
+            userIds.forEach(userId => {
+                const user = usersData[userId];
+                const transactionsCount = user.transactions ? Object.keys(user.transactions).length : 0;
+
+                const row = `
+                    <tr>
+                        <td data-label="User ID">${userId}</td>
+                        <td data-label="Coins">${user.coins || 0}</td>
+                        <td data-label="Wins">${user.wins || 0}</td>
+                        <td data-label="Last Claim">${user.lastDailyClaim || 'Never'}</td>
+                         <td data-label="Transactions">${transactionsCount}</td>
+                    </tr>
+                `;
+                userTableBody.innerHTML += row;
+            });
         }
 
-        if (transparentCount / totalPixels > 0.5) { // If more than 50% is scratched
-          scratchRewardElement.style.display = "block";
-          scratchCloseBtn.classList.add('active'); // Activate claim button
-          isScratching = false; // Stop further scratching
-           // Disable canvas interaction? Optional
+        // Listen for Withdrawal Requests
+        function listenForWithdrawalRequests() {
+            const requestsRef = database.ref('requests/withdrawals');
+             // Order by timestamp to see newest first
+             requestsRef.orderByChild('timestamp').on('value', (snapshot) => {
+                const requestsData = snapshot.val();
+                renderWithdrawalTable(requestsData);
+            }, (error) => {
+                console.error("Error fetching withdrawal requests:", error);
+                withdrawalTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--accent);">Error loading requests: ' + error.message + '</td></tr>';
+            });
         }
-      }
 
-      // Add listeners only once
-      scratchCanvas.addEventListener("mousedown", startScratch);
-      scratchCanvas.addEventListener("mousemove", scratch);
-      scratchCanvas.addEventListener("mouseup", endScratch);
-      scratchCanvas.addEventListener("mouseleave", endScratch);
+        // Render Withdrawal Requests Table
+        function renderWithdrawalTable(requestsData) {
+            withdrawalTableBody.innerHTML = ''; // Clear current table
 
-      scratchCanvas.addEventListener("touchstart", startScratch, { passive: true });
-      scratchCanvas.addEventListener("touchmove", scratch, { passive: true });
-      scratchCanvas.addEventListener("touchend", endScratch);
-      scratchCanvas.addEventListener("touchcancel", endScratch);
-    }
-
-    function checkScratchCardEligibility() {
-        const taskCount = completedTaskIds.length;
-        // Trigger scratch card after 2nd and 4th task completion (adjust milestones)
-        const milestones = [2, 4];
-        milestones.forEach(milestone => {
-             // Check if the current task count reached a milestone AND this milestone hasn't triggered a card before
-             if (taskCount === milestone && !triggeredScratchCards.includes(milestone)) {
-                 // Delay slightly to ensure UI updates before showing modal
-                 setTimeout(() => {
-                      // Double-check state in case multiple tasks completed simultaneously
-                      if (completedTaskIds.length >= milestone && !triggeredScratchCards.includes(milestone)) {
-                            showScratchCard();
-                            // Mark this milestone as triggered *only if* card is shown
-                            triggeredScratchCards.push(milestone);
-                            saveUserData(); // Save the state of triggered cards
-                      }
-                 }, 500); // Short delay
+             if (!requestsData) {
+                 withdrawalTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No withdrawal requests found.</td></tr>';
+                 return;
              }
+
+             // Convert object to array and reverse to show newest first (since orderedByChild is ascending by default)
+            const requestIds = Object.keys(requestsData).reverse();
+
+            requestIds.forEach(requestId => {
+                const request = requestsData[requestId];
+                 const date = new Date(request.timestamp);
+                 const dateString = date.toLocaleString();
+                 const statusClass = `status-${request.status || 'pending'}`;
+
+                 // Only show buttons if status is 'pending'
+                 const actionsHtml = request.status === 'pending' ?
+                     `<button class="btn-success process-withdrawal" data-id="${requestId}" data-user="${request.userId}" data-amount="${request.amount}"><i class="fas fa-check"></i> Success</button>
+                      <button class="btn-cancel cancel-withdrawal" data-id="${requestId}" data-user="${request.userId}" data-amount="${request.amount}"><i class="fas fa-times"></i> Cancel</button>` :
+                     '';
+
+
+                const row = `
+                    <tr>
+                        <td data-label="User ID">${request.userId}</td>
+                        <td data-label="UPI ID">${request.upiId || 'N/A'}</td>
+                        <td data-label="Amount">${request.amount || 0} Coins</td>
+                        <td data-label="Timestamp">${dateString}</td>
+                        <td data-label="Status" class="${statusClass}">${request.status || 'pending'}</td>
+                        <td class="actions-cell" data-label="Actions">${actionsHtml}</td>
+                    </tr>
+                `;
+                withdrawalTableBody.innerHTML += row;
+            });
+        }
+
+         // Listen for UC Purchase Requests
+         function listenForUcPurchaseRequests() {
+             const requestsRef = database.ref('requests/ucPurchases');
+              // Order by timestamp to see newest first
+              requestsRef.orderByChild('timestamp').on('value', (snapshot) => {
+                 const requestsData = snapshot.val();
+                 renderUcPurchaseTable(requestsData);
+             }, (error) => {
+                 console.error("Error fetching UC purchase requests:", error);
+                 ucPurchaseTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--accent);">Error loading requests: ' + error.message + '</td></tr>';
+             });
+         }
+
+         // Render UC Purchase Requests Table
+         function renderUcPurchaseTable(requestsData) {
+             ucPurchaseTableBody.innerHTML = ''; // Clear current table
+
+              if (!requestsData) {
+                  ucPurchaseTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No UC purchase requests found.</td></tr>';
+                  return;
+              }
+
+              // Convert object to array and reverse to show newest first
+             const requestIds = Object.keys(requestsData).reverse();
+
+             requestIds.forEach(requestId => {
+                 const request = requestsData[requestId];
+                  const date = new Date(request.timestamp);
+                  const dateString = date.toLocaleString();
+                  const statusClass = `status-${request.status || 'pending'}`;
+
+                  // Only show buttons if status is 'pending'
+                  const actionsHtml = request.status === 'pending' ?
+                      `<button class="btn-success process-uc" data-id="${requestId}" data-user="${request.userId}" data-cost="${request.coinCost}"><i class="fas fa-check"></i> Success</button>
+                       <button class="btn-cancel cancel-uc" data-id="${requestId}" data-user="${request.userId}" data-cost="${request.coinCost}"><i class="fas fa-times"></i> Cancel</button>` :
+                      '';
+
+
+                 const row = `
+                     <tr>
+                         <td data-label="User ID">${request.userId}</td>
+                         <td data-label="Game ID">${request.gameId || 'N/A'}</td>
+                         <td data-label="UC Amount">${request.ucAmount || 0} UC</td>
+                         <td data-label="Coin Cost">${request.coinCost || 0} Coins</td>
+                         <td data-label="Timestamp">${dateString}</td>
+                         <td data-label="Status" class="${statusClass}">${request.status || 'pending'}</td>
+                         <td class="actions-cell" data-label="Actions">${actionsHtml}</td>
+                     </tr>
+                 `;
+                 ucPurchaseTableBody.innerHTML += row;
+             });
+         }
+
+         // --- Admin Actions ---
+
+         // Function to add transaction to a specific user
+         function addTransactionToUser(userId, description, amount, type) {
+             if (!userId) {
+                 console.warn("Cannot add transaction: User ID is missing.");
+                 return;
+             }
+             const transactionRef = database.ref('users/' + userId + '/transactions').push(); // Use push for unique keys
+              const transaction = {
+                  id: transactionRef.key, // Use the unique key generated by push
+                  description: description,
+                  amount: amount,
+                  type: type, // Store transaction type (e.g., 'admin_add', 'admin_process', 'admin_cancel')
+                  timestamp: firebase.database.ServerValue.TIMESTAMP // Use server timestamp
+              };
+
+              transactionRef.set(transaction)
+                  .then(() => {
+                      console.log(`Transaction added to user ${userId}:`, transaction);
+                  })
+                  .catch((error) => {
+                      console.error(`Error adding transaction to user ${userId}:`, error);
+                  });
+         }
+
+
+         // Handle Add Coins button click
+         addCoinsBtn.addEventListener('click', () => {
+             const userId = addCoinsUserIdInput.value.trim();
+             const amount = parseInt(addCoinsAmountInput.value);
+
+             if (!userId) {
+                 alert('Please enter a User ID.');
+                 return;
+             }
+             if (isNaN(amount) || amount <= 0) {
+                 alert('Please enter a valid positive amount of coins.');
+                 return;
+             }
+
+             const userCoinsRef = database.ref('users/' + userId + '/coins');
+
+             // Use a transaction to safely update coins
+             userCoinsRef.transaction((currentCoins) => {
+                 // If the user doesn't exist or has no coins yet, start from 0
+                 return (currentCoins || 0) + amount;
+             })
+             .then((result) => {
+                 if (result.committed) {
+                     console.log(`Successfully added ${amount} coins to user ${userId}. New balance: ${result.snapshot.val()}`);
+                     alert(`Successfully added ${amount} coins to user ${userId}.`);
+                     // Add a transaction record for this action
+                     addTransactionToUser(userId, `Admin Added Coins (+${amount})`, amount, 'admin_add');
+                     // Clear form fields
+                     addCoinsUserIdInput.value = '';
+                     addCoinsAmountInput.value = '10'; // Reset to default
+                 } else {
+                     console.log('Transaction not committed (maybe user node doesn\'t exist or concurrent update).');
+                     alert('Failed to add coins (user might not exist).');
+                 }
+             })
+             .catch((error) => {
+                 console.error("Error adding coins:", error);
+                 alert('Error adding coins: ' + error.message);
+             });
+         });
+
+
+         // Handle Request Action buttons (using event delegation)
+
+         // Withdrawal requests table listener
+         withdrawalTableBody.addEventListener('click', (event) => {
+             const target = event.target;
+             const requestId = target.dataset.id;
+             const userId = target.dataset.user;
+             const amount = parseInt(target.dataset.amount); // Get original amount
+
+             if (!requestId || !userId || isNaN(amount)) return; // Basic validation
+
+             // Handle "Success" button
+             if (target.classList.contains('process-withdrawal')) {
+                 if (confirm(`Mark withdrawal request ${requestId} for user ${userId} as successful?`)) {
+                     database.ref('requests/withdrawals/' + requestId).update({ status: 'processed' })
+                         .then(() => {
+                             console.log(`Withdrawal request ${requestId} marked as processed.`);
+                              addTransactionToUser(userId, `Withdrawal Processed (Request ID: ${requestId})`, 0, 'admin_process_withdraw'); // Amount 0 as deduction already happened
+                             alert(`Withdrawal request ${requestId} marked as processed.`);
+                         })
+                         .catch(error => {
+                             console.error("Error marking withdrawal as processed:", error);
+                             alert('Error marking withdrawal as processed: ' + error.message);
+                         });
+                 }
+             }
+
+             // Handle "Cancel" button
+             if (target.classList.contains('cancel-withdrawal')) {
+                 if (confirm(`Cancel withdrawal request ${requestId} for user ${userId} and refund ${amount} coins?`)) {
+                     // Update request status
+                     database.ref('requests/withdrawals/' + requestId).update({ status: 'cancelled' })
+                         .then(() => {
+                             console.log(`Withdrawal request ${requestId} marked as cancelled.`);
+
+                             // Refund coins using a transaction
+                             const userCoinsRef = database.ref('users/' + userId + '/coins');
+                             userCoinsRef.transaction((currentCoins) => {
+                                 return (currentCoins || 0) + amount; // Add the amount back
+                             })
+                             .then((result) => {
+                                 if (result.committed) {
+                                      console.log(`Refunded ${amount} coins to user ${userId}. New balance: ${result.snapshot.val()}`);
+                                       addTransactionToUser(userId, `Withdrawal Cancelled (Refund +${amount}, Request ID: ${requestId})`, amount, 'admin_cancel_withdraw');
+                                      alert(`Withdrawal request ${requestId} cancelled and ${amount} coins refunded to user ${userId}.`);
+                                 } else {
+                                      console.log('Refund transaction not committed.');
+                                       addTransactionToUser(userId, `Withdrawal Cancelled (Refund Attempt Failed, Request ID: ${requestId})`, 0, 'admin_cancel_withdraw_failed');
+                                      alert(`Withdrawal request ${requestId} cancelled, but refund failed (user node missing or concurrent update). Manually check user ${userId} balance.`);
+                                 }
+                             })
+                             .catch(error => {
+                                 console.error("Error refunding coins for withdrawal:", error);
+                                  addTransactionToUser(userId, `Withdrawal Cancelled (Refund Error +${amount}, Request ID: ${requestId})`, 0, 'admin_cancel_withdraw_error'); // Log error
+                                 alert(`Withdrawal request ${requestId} cancelled, but there was an error refunding coins: ${error.message}. Please check user ${userId} balance manually.`);
+                             });
+                         })
+                         .catch(error => {
+                             console.error("Error marking withdrawal as cancelled:", error);
+                             alert('Error marking withdrawal as cancelled: ' + error.message);
+                         });
+                 }
+             }
+         });
+
+         // UC Purchase requests table listener
+          ucPurchaseTableBody.addEventListener('click', (event) => {
+             const target = event.target;
+             const requestId = target.dataset.id;
+             const userId = target.dataset.user;
+             const coinCost = parseInt(target.dataset.cost); // Get original coin cost
+
+             if (!requestId || !userId || isNaN(coinCost)) return; // Basic validation
+
+             // Handle "Success" button
+             if (target.classList.contains('process-uc')) {
+                 if (confirm(`Mark UC purchase request ${requestId} for user ${userId} as successful?`)) {
+                      database.ref('requests/ucPurchases/' + requestId).update({ status: 'processed' })
+                          .then(() => {
+                              console.log(`UC purchase request ${requestId} marked as processed.`);
+                               addTransactionToUser(userId, `UC Purchase Processed (Request ID: ${requestId})`, 0, 'admin_process_uc'); // Amount 0 as deduction already happened
+                              alert(`UC purchase request ${requestId} marked as processed.`);
+                              // In a real app, this is where you'd trigger UC delivery to the game ID.
+                          })
+                          .catch(error => {
+                              console.error("Error marking UC purchase as processed:", error);
+                              alert('Error marking UC purchase as processed: ' + error.message);
+                          });
+                 }
+             }
+
+             // Handle "Cancel" button
+             if (target.classList.contains('cancel-uc')) {
+                  if (confirm(`Cancel UC purchase request ${requestId} for user ${userId} and refund ${coinCost} coins?`)) {
+                     // Update request status
+                     database.ref('requests/ucPurchases/' + requestId).update({ status: 'cancelled' })
+                         .then(() => {
+                             console.log(`UC purchase request ${requestId} marked as cancelled.`);
+
+                             // Refund coins using a transaction
+                             const userCoinsRef = database.ref('users/' + userId + '/coins');
+                             userCoinsRef.transaction((currentCoins) => {
+                                 return (currentCoins || 0) + coinCost; // Add the coin cost back
+                             })
+                             .then((result) => {
+                                 if (result.committed) {
+                                      console.log(`Refunded ${coinCost} coins to user ${userId}. New balance: ${result.snapshot.val()}`);
+                                       addTransactionToUser(userId, `UC Purchase Cancelled (Refund +${coinCost}, Request ID: ${requestId})`, coinCost, 'admin_cancel_uc');
+                                      alert(`UC purchase request ${requestId} cancelled and ${coinCost} coins refunded to user ${userId}.`);
+                                 } else {
+                                      console.log('Refund transaction not committed.');
+                                      addTransactionToUser(userId, `UC Purchase Cancelled (Refund Attempt Failed, Request ID: ${requestId})`, 0, 'admin_cancel_uc_failed');
+                                      alert(`UC purchase request ${requestId} cancelled, but refund failed (user node missing or concurrent update). Manually check user ${userId} balance.`);
+                                 }
+                             })
+                             .catch(error => {
+                                 console.error("Error refunding coins for UC purchase:", error);
+                                 addTransactionToUser(userId, `UC Purchase Cancelled (Refund Error +${coinCost}, Request ID: ${requestId})`, 0, 'admin_cancel_uc_error'); // Log error
+                                 alert(`UC purchase request ${requestId} cancelled, but there was an error refunding coins: ${error.message}. Please check user ${userId} balance manually.`);
+                             });
+                         })
+                         .catch(error => {
+                             console.error("Error marking UC purchase as cancelled:", error);
+                             alert('Error marking UC purchase as cancelled: ' + error.message);
+                         });
+                 }
+             }
+          });
+
+
+        // Initialize data listeners on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            // We don't need authentication for this demo admin panel
+            // firebase.auth().signInAnonymously() ... // No auth needed based on demo rules
+
+            listenForUsers();
+            listenForWithdrawalRequests();
+            listenForUcPurchaseRequests();
         });
-    }
 
-
-    function showScratchCard() {
-      // Define possible rewards (can eventually load from Firebase config)
-      const rewards = [50, 80, 100, 120, 150];
-      scratchCardRewardAmount = rewards[Math.floor(Math.random() * rewards.length)];
-      scratchRewardElement.textContent = `+${scratchCardRewardAmount} Coins!`;
-
-      // Reset and prepare canvas
-      const ctx = scratchCanvas.getContext("2d");
-      const parentRect = scratchCanvas.parentElement.getBoundingClientRect();
-      scratchCanvas.width = parentRect.width;
-      scratchCanvas.height = parentRect.height;
-      ctx.fillStyle = "#999"; // Redraw cover
-      ctx.fillRect(0, 0, scratchCanvas.width, scratchCanvas.height);
-      ctx.lineJoin = ctx.lineCap = 'round'; // Restore styles
-
-      scratchRewardElement.style.display = "none"; // Hide reward text initially
-      scratchCloseBtn.classList.remove('active'); // Hide claim button
-      scratchCardContainer.classList.add("active"); // Show container
-      isScratching = true; // Enable scratching
-    }
-
-    function claimScratchReward() {
-      // Prevent claiming before scratching reveals the reward (button is active)
-      if (!scratchCloseBtn.classList.contains('active')) {
-          console.warn("Attempted to claim scratch card before it was ready.");
-          return;
-      }
-
-      // Add reward coins to user balance
-      userCoins += scratchCardRewardAmount;
-      saveUserData(); // Save coins state
-
-      scratchCardContainer.classList.remove("active"); // Hide card
-      isScratching = false; // Disable scratching
-
-      updateUI(); // Update UI with new balance
-      showNotification(`You won ${scratchCardRewardAmount} coins from scratch card!`);
-
-      scratchCardRewardAmount = 0; // Reset reward amount
-    }
-
-    // --- Redeem Functions ---
-
-    function redeemCoins() {
-      if (userCoins >= redeemCost) {
-        userCoins -= redeemCost;
-        saveUserData(); // Save state after deducting coins
-
-        const code = generateCode();
-        redeemCodeText.textContent = code;
-        redeemCodeContainer.style.display = "flex"; // Show the code container
-
-        updateUI(); // Update UI with new balance and redeem button state
-        showNotification(`Reward code generated! ${redeeemCost} coins deducted.`);
-      } else {
-          showNotification(`You need ${redeemCost} coins to redeem a code.`, false);
-      }
-    }
-
-    function generateCode() {
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let code = "";
-      for (let i = 0; i < 12; i++) {
-        if (i > 0 && i % 4 === 0) code += "-";
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return code;
-    }
-
-    function copyCode(targetSelector) {
-      const textToCopyElement = document.querySelector(targetSelector);
-      if (!textToCopyElement || !textToCopyElement.textContent) {
-          console.error("Copy target not found or empty:", targetSelector);
-          showNotification("Nothing to copy.", false);
-          return;
-      }
-      const textToCopy = textToCopyElement.textContent;
-
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        showNotification("Code copied to clipboard!");
-      }).catch(err => {
-        console.error("Failed to copy text:", err);
-        showNotification("Failed to copy code.", false);
-      });
-    }
-
-    function goBack(page) {
-      switchPage(page);
-    }
-
-    // --- Notification Function ---
-
-    function showNotification(message, isSuccess = true) {
-      notificationText.textContent = message;
-      const icon = notificationElement.querySelector('i');
-      if (isSuccess) {
-          icon.className = 'fas fa-check-circle';
-          icon.style.color = 'var(--success)';
-      } else {
-          icon.className = 'fas fa-exclamation-circle';
-          icon.style.color = 'var(--accent)';
-      }
-
-      notificationElement.classList.add("show");
-      setTimeout(() => {
-        notificationElement.classList.remove("show");
-      }, 3000);
-    }
-
-  </script>
+    </script>
 </body>
 </html>
