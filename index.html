@@ -1,787 +1,200 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UC Earn App - Admin Panel</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-    <style>
-        :root {
-            --primary: #3498db;
-            --secondary: #2ecc71;
-            --accent: #e74c3c;
-            --dark: #2c3e50;
-            --light: #ecf0f1;
-            --warning: #f39c12;
-            --card-bg: #34495e; /* Slightly lighter dark */
-            --header-bg: #2c3e50;
-            --input-bg: rgba(236, 240, 241, 0.1);
-            --border-color: rgba(236, 240, 241, 0.2);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #2c3e50, #1a2a6c); /* Simpler dark gradient */
-            min-height: 100vh;
-            padding: 20px;
-            color: var(--light);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 0 10px;
-        }
-
-        header {
-            background: var(--header-bg);
-            color: var(--light);
-            padding: 15px 20px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            text-align: center;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        header h1 {
-            margin: 0;
-            font-size: 28px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-         header h1 i {
-             color: var(--warning);
-         }
-
-        section {
-            background: var(--card-bg);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        h2 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--primary);
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(236, 240, 241, 0.1);
-            font-size: 22px;
-        }
-         h2 i {
-             color: var(--secondary);
-         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid rgba(236, 240, 241, 0.1);
-        }
-
-        th {
-            background-color: rgba(236, 240, 241, 0.1);
-            font-weight: bold;
-            color: var(--light);
-            white-space: nowrap; /* Prevent wrapping in headers */
-        }
-
-        td {
-             color: rgba(236, 240, 241, 0.8);
-             word-break: break-word; /* Allow text breaking in cells */
-        }
-        td small {
-             display: block;
-             color: rgba(236, 240, 241, 0.5);
-             font-size: 0.9em;
-        }
-
-         tbody tr:hover {
-             background-color: rgba(236, 240, 241, 0.05);
-         }
-
-        .status-pending { color: var(--warning); font-weight: bold; }
-        .status-processed { color: var(--secondary); font-weight: bold; }
-        .status-cancelled { color: var(--accent); font-weight: bold; } /* Changed from rejected to cancelled */
-
-
-        .actions-cell {
-            white-space: nowrap; /* Prevent buttons from wrapping */
-        }
-        .actions-cell button {
-            margin-left: 5px;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background-color 0.2s ease;
-        }
-        .actions-cell .btn-success { background-color: var(--secondary); color: white; }
-        .actions-cell .btn-cancel { background-color: var(--accent); color: white; }
-
-        .actions-cell button:hover {
-            opacity: 0.8;
-        }
-
-
-        /* Responsive Table (simple version) */
-        @media (max-width: 600px) {
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
-
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-
-            tr { border: 1px solid rgba(236, 240, 241, 0.1); margin-bottom: 15px; border-radius: 8px; }
-
-            td {
-                border: none;
-                border-bottom: 1px solid rgba(236, 240, 241, 0.05);
-                position: relative;
-                padding-left: 50%; /* Make space for pseudo-element label */
-                text-align: right; /* Align value to the right */
-            }
-
-            td:before {
-                position: absolute;
-                top: 12px;
-                left: 12px;
-                width: 45%;
-                padding-right: 10px;
-                white-space: nowrap;
-                content: attr(data-label); /* Use data-label attribute for pseudo-element content */
-                font-weight: bold;
-                color: rgba(236, 240, 241, 0.7);
-                text-align: left; /* Align label to the left */
-            }
-
-             /* Specific data-labels for each column */
-             #userTableBody td:nth-of-type(1):before { content: "User ID"; }
-             #userTableBody td:nth-of-type(2):before { content: "Coins"; }
-             #userTableBody td:nth-of-type(3):before { content: "Wins"; }
-             #userTableBody td:nth-of-type(4):before { content: "Last Claim"; }
-             #userTableBody td:nth-of-type(5):before { content: "Transactions"; }
-
-             #withdrawalTableBody td:nth-of-type(1):before { content: "User ID"; }
-             #withdrawalTableBody td:nth-of-type(2):before { content: "UPI ID"; }
-             #withdrawalTableBody td:nth-of-type(3):before { content: "Amount"; }
-             #withdrawalTableBody td:nth-of-type(4):before { content: "Timestamp"; }
-             #withdrawalTableBody td:nth-of-type(5):before { content: "Status"; }
-             #withdrawalTableBody td:nth-of-type(6):before { content: "Actions"; }
-
-
-             #ucPurchaseTableBody td:nth-of-type(1):before { content: "User ID"; }
-             #ucPurchaseTableBody td:nth-of-type(2):before { content: "Game ID"; }
-             #ucPurchaseTableBody td:nth-of-type(3):before { content: "UC Amount"; }
-             #ucPurchaseTableBody td:nth-of-type(4):before { content: "Coin Cost"; }
-             #ucPurchaseTableBody td:nth-of-type(5):before { content: "Timestamp"; }
-             #ucPurchaseTableBody td:nth-of-type(6):before { content: "Status"; }
-             #ucPurchaseTableBody td:nth-of-type(7):before { content: "Actions"; }
-
-             /* Adjust action buttons for small screens */
-             .actions-cell {
-                 text-align: right; /* Align buttons right */
-             }
-              .actions-cell button {
-                 margin-left: 5px;
-                 margin-top: 5px; /* Stack buttons if needed */
-              }
-        }
-
-        .admin-form {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(236, 240, 241, 0.05);
-            border-radius: 10px;
-        }
-        .admin-form h3 {
-            margin-top: 0;
-            margin-bottom: 15px;
-            color: var(--light);
-            padding-bottom: 10px;
-            border-bottom: 1px solid rgba(236, 240, 241, 0.1);
-        }
-         .admin-form .form-group {
-             margin-bottom: 15px;
-         }
-         .admin-form .form-group:last-child {
-             margin-bottom: 0;
-         }
-
-         .admin-form input[type="text"],
-         .admin-form input[type="number"] {
-             width: calc(100% - 24px); /* Adjust for padding */
-             padding: 10px 12px;
-             border-radius: 5px;
-             border: 1px solid var(--border-color);
-             background: var(--input-bg);
-             color: var(--light);
-             font-size: 1rem;
-         }
-         .admin-form button {
-             padding: 10px 20px;
-             border: none;
-             border-radius: 5px;
-             background: var(--primary);
-             color: white;
-             cursor: pointer;
-             font-size: 1rem;
-         }
-         .admin-form button:hover {
-             opacity: 0.9;
-         }
-
-
-         footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px 10px;
-            color: rgba(236, 240, 241, 0.7);
-            font-size: 14px;
-            border-top: 1px solid rgba(236, 240, 241, 0.1);
-         }
-
-         #loading {
-             position: fixed;
-             top: 0;
-             left: 0;
-             width: 100%;
-             height: 100%;
-             background: rgba(0, 0, 0, 0.9);
-             color: white;
-             display: flex;
-             justify-content: center;
-             align-items: center;
-             font-size: 20px;
-             z-index: 1001;
-             transition: opacity 0.3s ease;
-             opacity: 1;
-             pointer-events: all;
-         }
-         #loading.hidden {
-             opacity: 0;
-             pointer-events: none;
-         }
-         #loading i {
-             margin-right: 10px;
-             animation: spin 1s infinite linear;
-         }
-         @keyframes spin {
-             0% { transform: rotate(0deg); }
-             100% { transform: rotate(360deg); }
-         }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact Viewer</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f9fafb;
+      color: #111827;
+    }
+    header {
+      background: #4f46e5;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .container {
+      padding: 1rem;
+      max-width: 800px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      border-radius: 1rem;
+      padding: 1rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      margin-bottom: 1rem;
+    }
+    .card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.2rem;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .card p {
+      margin: 0.25rem 0;
+      color: #4b5563;
+      font-size: 0.95rem;
+    }
+    .toggle-btn {
+      background: #e0e7ff;
+      color: #3730a3;
+      border: none;
+      padding: 0.5rem 1rem;
+      margin: 0.5rem 0;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      width: 100%;
+      transition: background 0.2s;
+    }
+    .toggle-btn:hover {
+      background: #c7d2fe;
+    }
+    .section-content {
+      display: none;
+      margin-top: 0.75rem;
+      background: #f3f4f6;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-family: monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    @media (max-width: 480px) {
+      .card {
+        padding: 0.75rem;
+      }
+      .card h3 {
+        font-size: 1rem;
+      }
+      .card p {
+        font-size: 0.85rem;
+      }
+      .toggle-btn {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.8rem;
+      }
+      .container {
+        padding: 0.75rem;
+      }
+    }
+    @media (max-width: 360px) {
+      header {
+        font-size: 1.2rem;
+      }
+      .card h3 {
+        font-size: 0.9rem;
+      }
+      .card p {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
 </head>
 <body>
-     <div id="loading">
-        <i class="fas fa-spinner fa-spin"></i> Loading Admin Data...
-    </div>
+  <header><i class="fas fa-address-book me-2"></i>Contact Viewer</header>
+  <div class="container" id="contactContainer"></div>
 
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-user-shield"></i> UC Earn App Admin Panel</h1>
-            <p style="color: var(--accent); font-weight: bold; margin-top: 10px;">WARNING: This demo has minimal security. Do not use for real administrative tasks in production.</p>
-             <p style="color: var(--warning); font-size: 0.9em;">Ensure Firebase Database Rules allow '.write': true for '/users' and '/requests' for admin functions to work.</p>
-        </header>
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDM4GcdbxyWXheAY1hOi-zJ_KIEe15eJiI",
+      authDomain: "logintyp.firebaseapp.com",
+      databaseURL: "https://logintyp-default-rtdb.firebaseio.com",
+      projectId: "logintyp",
+      storageBucket: "logintyp.firebasestorage.app",
+      messagingSenderId: "974615084842",
+      appId: "1:974615084842:web:dd4c08b27b53d64881a853"
+    };
 
-        <section id="userManagementSection">
-             <h2><i class="fas fa-users-cog"></i> User Management</h2>
-             <div class="admin-form">
-                 <h3>Add Coins to User</h3>
-                 <div class="form-group">
-                     <label for="addCoinsUserId">User ID:</label>
-                     <input type="text" id="addCoinsUserId" placeholder="Enter User ID">
-                 </div>
-                  <div class="form-group">
-                     <label for="addCoinsAmount">Amount:</label>
-                     <input type="number" id="addCoinsAmount" placeholder="Enter coins to add" value="10">
-                 </div>
-                 <button id="addCoinsBtn" class="btn-primary"><i class="fas fa-plus"></i> Add Coins</button>
-             </div>
+    // Initialize Firebase and handle errors
+    let db;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+    } catch (error) {
+      console.error('Firebase initialization error:', error);
+      document.getElementById('contactContainer').innerHTML = 
+        '<div class="card"><p class="text-center">Error initializing Firebase: ' + error.message + '</p></div>';
+    }
 
-             <div id="userList">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User ID</th>
-                            <th>Coins</th>
-                            <th>Wins</th>
-                            <th>Last Daily Claim</th>
-                             <th>Total Transactions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="userTableBody">
-                        <!-- User data will be loaded here -->
-                        <tr><td colspan="5" style="text-align: center;">Loading users...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+    const contactContainer = document.getElementById("contactContainer");
 
-        <section id="withdrawalsSection">
-            <h2><i class="fas fa-hand-holding-usd"></i> Withdrawal Requests</h2>
-             <div id="withdrawalList">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User ID</th>
-                            <th>UPI ID</th>
-                            <th>Amount</th>
-                            <th>Timestamp</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="withdrawalTableBody">
-                        <!-- Withdrawal requests will be loaded here -->
-                         <tr><td colspan="6" style="text-align: center;">Loading requests...</td></tr>
-                    </tbody>
-                </table>
-             </div>
-        </section>
+    // Fetch and display contacts
+    function loadContacts() {
+      if (!db) return; // Exit if database initialization failed
 
-         <section id="ucPurchasesSection">
-            <h2><i class="fas fa-shopping-bag"></i> UC Purchase Requests</h2>
-              <div id="ucPurchaseList">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User ID</th>
-                            <th>Game ID</th>
-                            <th>UC Amount</th>
-                            <th>Coin Cost</th>
-                            <th>Timestamp</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ucPurchaseTableBody">
-                        <!-- UC purchase requests will be loaded here -->
-                        <tr><td colspan="7" style="text-align: center;">Loading requests...</td></tr>
-                    </tbody>
-                </table>
-              </div>
-        </section>
+      contactContainer.innerHTML = '<div class="card"><p class="text-center">Loading...</p></div>';
 
-        <footer>
-            <p>© 2023 UC Earn App Admin. Demo Panel.</p>
-        </footer>
-    </div>
+      try {
+        db.ref('contacts').on('value', (snapshot) => {
+          const data = snapshot.val();
+          contactContainer.innerHTML = '';
 
-    <script>
-        // Firebase Configuration - UPDATED WITH YOUR DETAILS
-        const firebaseConfig = {
-          apiKey: "AIzaSyD6EXA7D77rQDQEohB52BvTYimFeTEaAho",
-          authDomain: "rn-gfx-tool.firebaseapp.com", // Derived from Project ID
-          databaseURL: "https://rn-gfx-tool-default-rtdb.asia-southeast1.firebasedatabase.app", // YOUR database URL
-          projectId: "rn-gfx-tool",
-          storageBucket: "rn-gfx-tool.firebasestorage.app",
-          messagingSenderId: "163149358541", // Optional but good practice
-          appId: "1:163149358541:android:2ef6d22fcd23e77ee09084" // Optional but good practice
-        };
+          if (data) {
+            Object.entries(data).forEach(([id, contact]) => {
+              const contactJson = JSON.stringify(contact, null, 2);
+              const card = document.createElement('div');
+              card.className = 'card';
+              card.innerHTML = `
+                <h3><i class="fas fa-user me-2"></i>${contact.name || 'N/A'}</h3>
+                <p><strong>Email:</strong> ${contact.email || 'N/A'}</p>
+                <p><strong>Phone:</strong> ${contact.phone || 'N/A'}</p>
+                <p><strong>Created:</strong> ${contact.createdAt ? new Date(contact.createdAt).toLocaleString() : 'N/A'}</p>
+                <button class="toggle-btn"><i class="fas fa-code me-2"></i>Show JSON Data</button>
+                <div class="section-content">${contactJson}</div>
+              `;
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        // Note: Admin panel does NOT sign in a user in this demo,
-        // it relies on open read/write rules for simplicity (insecure).
+              const toggleBtn = card.querySelector('.toggle-btn');
+              const sectionContent = card.querySelector('.section-content');
+              toggleBtn.addEventListener('click', () => {
+                const show = sectionContent.style.display === 'block';
+                sectionContent.style.display = show ? 'none' : 'block';
+                toggleBtn.innerHTML = show 
+                  ? '<i class="fas fa-code me-2"></i>Show JSON Data' 
+                  : '<i class="fas fa-eye-slash me-2"></i>Hide JSON Data';
+              });
 
-        const loadingOverlay = document.getElementById('loading');
-        const userTableBody = document.getElementById('userTableBody');
-        const withdrawalTableBody = document.getElementById('withdrawalTableBody');
-        const ucPurchaseTableBody = document.getElementById('ucPurchaseTableBody');
-
-        // Admin Form Elements
-        const addCoinsUserIdInput = document.getElementById('addCoinsUserId');
-        const addCoinsAmountInput = document.getElementById('addCoinsAmount');
-        const addCoinsBtn = document.getElementById('addCoinsBtn');
-
-
-        // --- Firebase Data Loading & Rendering ---
-
-        // Listen for User Data
-        function listenForUsers() {
-            const usersRef = database.ref('users');
-            usersRef.on('value', (snapshot) => {
-                const usersData = snapshot.val();
-                renderUserTable(usersData);
-                loadingOverlay.classList.add('hidden'); // Hide loading overlay once initial data is here
-            }, (error) => {
-                console.error("Error fetching users:", error);
-                userTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--accent);">Error loading users: ' + error.message + '</td></tr>';
-                 loadingOverlay.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Failed to load user data. Check console.`;
+              contactContainer.appendChild(card);
             });
-        }
-
-        // Render User Data Table
-        function renderUserTable(usersData) {
-            userTableBody.innerHTML = ''; // Clear current table
-
-            if (!usersData) {
-                userTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No users found.</td></tr>';
-                return;
-            }
-
-            const userIds = Object.keys(usersData);
-            userIds.forEach(userId => {
-                const user = usersData[userId];
-                const transactionsCount = user.transactions ? Object.keys(user.transactions).length : 0;
-
-                const row = `
-                    <tr>
-                        <td data-label="User ID">${userId}</td>
-                        <td data-label="Coins">${user.coins || 0}</td>
-                        <td data-label="Wins">${user.wins || 0}</td>
-                        <td data-label="Last Claim">${user.lastDailyClaim || 'Never'}</td>
-                         <td data-label="Transactions">${transactionsCount}</td>
-                    </tr>
-                `;
-                userTableBody.innerHTML += row;
-            });
-        }
-
-        // Listen for Withdrawal Requests
-        function listenForWithdrawalRequests() {
-            const requestsRef = database.ref('requests/withdrawals');
-             // Order by timestamp to see newest first
-             requestsRef.orderByChild('timestamp').on('value', (snapshot) => {
-                const requestsData = snapshot.val();
-                renderWithdrawalTable(requestsData);
-            }, (error) => {
-                console.error("Error fetching withdrawal requests:", error);
-                withdrawalTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--accent);">Error loading requests: ' + error.message + '</td></tr>';
-            });
-        }
-
-        // Render Withdrawal Requests Table
-        function renderWithdrawalTable(requestsData) {
-            withdrawalTableBody.innerHTML = ''; // Clear current table
-
-             if (!requestsData) {
-                 withdrawalTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No withdrawal requests found.</td></tr>';
-                 return;
-             }
-
-             // Convert object to array and reverse to show newest first (since orderedByChild is ascending by default)
-            const requestIds = Object.keys(requestsData).reverse();
-
-            requestIds.forEach(requestId => {
-                const request = requestsData[requestId];
-                 const date = new Date(request.timestamp);
-                 const dateString = date.toLocaleString();
-                 const statusClass = `status-${request.status || 'pending'}`;
-
-                 // Only show buttons if status is 'pending'
-                 const actionsHtml = request.status === 'pending' ?
-                     `<button class="btn-success process-withdrawal" data-id="${requestId}" data-user="${request.userId}" data-amount="${request.amount}"><i class="fas fa-check"></i> Success</button>
-                      <button class="btn-cancel cancel-withdrawal" data-id="${requestId}" data-user="${request.userId}" data-amount="${request.amount}"><i class="fas fa-times"></i> Cancel</button>` :
-                     '';
-
-
-                const row = `
-                    <tr>
-                        <td data-label="User ID">${request.userId}</td>
-                        <td data-label="UPI ID">${request.upiId || 'N/A'}</td>
-                        <td data-label="Amount">${request.amount || 0} Coins</td>
-                        <td data-label="Timestamp">${dateString}</td>
-                        <td data-label="Status" class="${statusClass}">${request.status || 'pending'}</td>
-                        <td class="actions-cell" data-label="Actions">${actionsHtml}</td>
-                    </tr>
-                `;
-                withdrawalTableBody.innerHTML += row;
-            });
-        }
-
-         // Listen for UC Purchase Requests
-         function listenForUcPurchaseRequests() {
-             const requestsRef = database.ref('requests/ucPurchases');
-              // Order by timestamp to see newest first
-              requestsRef.orderByChild('timestamp').on('value', (snapshot) => {
-                 const requestsData = snapshot.val();
-                 renderUcPurchaseTable(requestsData);
-             }, (error) => {
-                 console.error("Error fetching UC purchase requests:", error);
-                 ucPurchaseTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--accent);">Error loading requests: ' + error.message + '</td></tr>';
-             });
-         }
-
-         // Render UC Purchase Requests Table
-         function renderUcPurchaseTable(requestsData) {
-             ucPurchaseTableBody.innerHTML = ''; // Clear current table
-
-              if (!requestsData) {
-                  ucPurchaseTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No UC purchase requests found.</td></tr>';
-                  return;
-              }
-
-              // Convert object to array and reverse to show newest first
-             const requestIds = Object.keys(requestsData).reverse();
-
-             requestIds.forEach(requestId => {
-                 const request = requestsData[requestId];
-                  const date = new Date(request.timestamp);
-                  const dateString = date.toLocaleString();
-                  const statusClass = `status-${request.status || 'pending'}`;
-
-                  // Only show buttons if status is 'pending'
-                  const actionsHtml = request.status === 'pending' ?
-                      `<button class="btn-success process-uc" data-id="${requestId}" data-user="${request.userId}" data-cost="${request.coinCost}"><i class="fas fa-check"></i> Success</button>
-                       <button class="btn-cancel cancel-uc" data-id="${requestId}" data-user="${request.userId}" data-cost="${request.coinCost}"><i class="fas fa-times"></i> Cancel</button>` :
-                      '';
-
-
-                 const row = `
-                     <tr>
-                         <td data-label="User ID">${request.userId}</td>
-                         <td data-label="Game ID">${request.gameId || 'N/A'}</td>
-                         <td data-label="UC Amount">${request.ucAmount || 0} UC</td>
-                         <td data-label="Coin Cost">${request.coinCost || 0} Coins</td>
-                         <td data-label="Timestamp">${dateString}</td>
-                         <td data-label="Status" class="${statusClass}">${request.status || 'pending'}</td>
-                         <td class="actions-cell" data-label="Actions">${actionsHtml}</td>
-                     </tr>
-                 `;
-                 ucPurchaseTableBody.innerHTML += row;
-             });
-         }
-
-         // --- Admin Actions ---
-
-         // Function to add transaction to a specific user
-         function addTransactionToUser(userId, description, amount, type) {
-             if (!userId) {
-                 console.warn("Cannot add transaction: User ID is missing.");
-                 return;
-             }
-             const transactionRef = database.ref('users/' + userId + '/transactions').push(); // Use push for unique keys
-              const transaction = {
-                  id: transactionRef.key, // Use the unique key generated by push
-                  description: description,
-                  amount: amount,
-                  type: type, // Store transaction type (e.g., 'admin_add', 'admin_process', 'admin_cancel')
-                  timestamp: firebase.database.ServerValue.TIMESTAMP // Use server timestamp
-              };
-
-              transactionRef.set(transaction)
-                  .then(() => {
-                      console.log(`Transaction added to user ${userId}:`, transaction);
-                  })
-                  .catch((error) => {
-                      console.error(`Error adding transaction to user ${userId}:`, error);
-                  });
-         }
-
-
-         // Handle Add Coins button click
-         addCoinsBtn.addEventListener('click', () => {
-             const userId = addCoinsUserIdInput.value.trim();
-             const amount = parseInt(addCoinsAmountInput.value);
-
-             if (!userId) {
-                 alert('Please enter a User ID.');
-                 return;
-             }
-             if (isNaN(amount) || amount <= 0) {
-                 alert('Please enter a valid positive amount of coins.');
-                 return;
-             }
-
-             const userCoinsRef = database.ref('users/' + userId + '/coins');
-
-             // Use a transaction to safely update coins
-             userCoinsRef.transaction((currentCoins) => {
-                 // If the user doesn't exist or has no coins yet, start from 0
-                 return (currentCoins || 0) + amount;
-             })
-             .then((result) => {
-                 if (result.committed) {
-                     console.log(`Successfully added ${amount} coins to user ${userId}. New balance: ${result.snapshot.val()}`);
-                     alert(`Successfully added ${amount} coins to user ${userId}.`);
-                     // Add a transaction record for this action
-                     addTransactionToUser(userId, `Admin Added Coins (+${amount})`, amount, 'admin_add');
-                     // Clear form fields
-                     addCoinsUserIdInput.value = '';
-                     addCoinsAmountInput.value = '10'; // Reset to default
-                 } else {
-                     console.log('Transaction not committed (maybe user node doesn\'t exist or concurrent update).');
-                     alert('Failed to add coins (user might not exist).');
-                 }
-             })
-             .catch((error) => {
-                 console.error("Error adding coins:", error);
-                 alert('Error adding coins: ' + error.message);
-             });
-         });
-
-
-         // Handle Request Action buttons (using event delegation)
-
-         // Withdrawal requests table listener
-         withdrawalTableBody.addEventListener('click', (event) => {
-             const target = event.target;
-             const requestId = target.dataset.id;
-             const userId = target.dataset.user;
-             const amount = parseInt(target.dataset.amount); // Get original amount
-
-             if (!requestId || !userId || isNaN(amount)) return; // Basic validation
-
-             // Handle "Success" button
-             if (target.classList.contains('process-withdrawal')) {
-                 if (confirm(`Mark withdrawal request ${requestId} for user ${userId} as successful?`)) {
-                     database.ref('requests/withdrawals/' + requestId).update({ status: 'processed' })
-                         .then(() => {
-                             console.log(`Withdrawal request ${requestId} marked as processed.`);
-                              addTransactionToUser(userId, `Withdrawal Processed (Request ID: ${requestId})`, 0, 'admin_process_withdraw'); // Amount 0 as deduction already happened
-                             alert(`Withdrawal request ${requestId} marked as processed.`);
-                         })
-                         .catch(error => {
-                             console.error("Error marking withdrawal as processed:", error);
-                             alert('Error marking withdrawal as processed: ' + error.message);
-                         });
-                 }
-             }
-
-             // Handle "Cancel" button
-             if (target.classList.contains('cancel-withdrawal')) {
-                 if (confirm(`Cancel withdrawal request ${requestId} for user ${userId} and refund ${amount} coins?`)) {
-                     // Update request status
-                     database.ref('requests/withdrawals/' + requestId).update({ status: 'cancelled' })
-                         .then(() => {
-                             console.log(`Withdrawal request ${requestId} marked as cancelled.`);
-
-                             // Refund coins using a transaction
-                             const userCoinsRef = database.ref('users/' + userId + '/coins');
-                             userCoinsRef.transaction((currentCoins) => {
-                                 return (currentCoins || 0) + amount; // Add the amount back
-                             })
-                             .then((result) => {
-                                 if (result.committed) {
-                                      console.log(`Refunded ${amount} coins to user ${userId}. New balance: ${result.snapshot.val()}`);
-                                       addTransactionToUser(userId, `Withdrawal Cancelled (Refund +${amount}, Request ID: ${requestId})`, amount, 'admin_cancel_withdraw');
-                                      alert(`Withdrawal request ${requestId} cancelled and ${amount} coins refunded to user ${userId}.`);
-                                 } else {
-                                      console.log('Refund transaction not committed.');
-                                       addTransactionToUser(userId, `Withdrawal Cancelled (Refund Attempt Failed, Request ID: ${requestId})`, 0, 'admin_cancel_withdraw_failed');
-                                      alert(`Withdrawal request ${requestId} cancelled, but refund failed (user node missing or concurrent update). Manually check user ${userId} balance.`);
-                                 }
-                             })
-                             .catch(error => {
-                                 console.error("Error refunding coins for withdrawal:", error);
-                                  addTransactionToUser(userId, `Withdrawal Cancelled (Refund Error +${amount}, Request ID: ${requestId})`, 0, 'admin_cancel_withdraw_error'); // Log error
-                                 alert(`Withdrawal request ${requestId} cancelled, but there was an error refunding coins: ${error.message}. Please check user ${userId} balance manually.`);
-                             });
-                         })
-                         .catch(error => {
-                             console.error("Error marking withdrawal as cancelled:", error);
-                             alert('Error marking withdrawal as cancelled: ' + error.message);
-                         });
-                 }
-             }
-         });
-
-         // UC Purchase requests table listener
-          ucPurchaseTableBody.addEventListener('click', (event) => {
-             const target = event.target;
-             const requestId = target.dataset.id;
-             const userId = target.dataset.user;
-             const coinCost = parseInt(target.dataset.cost); // Get original coin cost
-
-             if (!requestId || !userId || isNaN(coinCost)) return; // Basic validation
-
-             // Handle "Success" button
-             if (target.classList.contains('process-uc')) {
-                 if (confirm(`Mark UC purchase request ${requestId} for user ${userId} as successful?`)) {
-                      database.ref('requests/ucPurchases/' + requestId).update({ status: 'processed' })
-                          .then(() => {
-                              console.log(`UC purchase request ${requestId} marked as processed.`);
-                               addTransactionToUser(userId, `UC Purchase Processed (Request ID: ${requestId})`, 0, 'admin_process_uc'); // Amount 0 as deduction already happened
-                              alert(`UC purchase request ${requestId} marked as processed.`);
-                              // In a real app, this is where you'd trigger UC delivery to the game ID.
-                          })
-                          .catch(error => {
-                              console.error("Error marking UC purchase as processed:", error);
-                              alert('Error marking UC purchase as processed: ' + error.message);
-                          });
-                 }
-             }
-
-             // Handle "Cancel" button
-             if (target.classList.contains('cancel-uc')) {
-                  if (confirm(`Cancel UC purchase request ${requestId} for user ${userId} and refund ${coinCost} coins?`)) {
-                     // Update request status
-                     database.ref('requests/ucPurchases/' + requestId).update({ status: 'cancelled' })
-                         .then(() => {
-                             console.log(`UC purchase request ${requestId} marked as cancelled.`);
-
-                             // Refund coins using a transaction
-                             const userCoinsRef = database.ref('users/' + userId + '/coins');
-                             userCoinsRef.transaction((currentCoins) => {
-                                 return (currentCoins || 0) + coinCost; // Add the coin cost back
-                             })
-                             .then((result) => {
-                                 if (result.committed) {
-                                      console.log(`Refunded ${coinCost} coins to user ${userId}. New balance: ${result.snapshot.val()}`);
-                                       addTransactionToUser(userId, `UC Purchase Cancelled (Refund +${coinCost}, Request ID: ${requestId})`, coinCost, 'admin_cancel_uc');
-                                      alert(`UC purchase request ${requestId} cancelled and ${coinCost} coins refunded to user ${userId}.`);
-                                 } else {
-                                      console.log('Refund transaction not committed.');
-                                      addTransactionToUser(userId, `UC Purchase Cancelled (Refund Attempt Failed, Request ID: ${requestId})`, 0, 'admin_cancel_uc_failed');
-                                      alert(`UC purchase request ${requestId} cancelled, but refund failed (user node missing or concurrent update). Manually check user ${userId} balance.`);
-                                 }
-                             })
-                             .catch(error => {
-                                 console.error("Error refunding coins for UC purchase:", error);
-                                 addTransactionToUser(userId, `UC Purchase Cancelled (Refund Error +${coinCost}, Request ID: ${requestId})`, 0, 'admin_cancel_uc_error'); // Log error
-                                 alert(`UC purchase request ${requestId} cancelled, but there was an error refunding coins: ${error.message}. Please check user ${userId} balance manually.`);
-                             });
-                         })
-                         .catch(error => {
-                             console.error("Error marking UC purchase as cancelled:", error);
-                             alert('Error marking UC purchase as cancelled: ' + error.message);
-                         });
-                 }
-             }
-          });
-
-
-        // Initialize data listeners on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            // We don't need authentication for this demo admin panel
-            // firebase.auth().signInAnonymously() ... // No auth needed based on demo rules
-
-            listenForUsers();
-            listenForWithdrawalRequests();
-            listenForUcPurchaseRequests();
+          } else {
+            contactContainer.innerHTML = '<div class="card"><p class="text-center">No contacts found</p></div>';
+          }
+        }, (error) => {
+          console.error('Error fetching contacts:', error);
+          contactContainer.innerHTML = 
+            '<div class="card"><p class="text-center">Error fetching contacts: ' + error.message + '</p></div>';
         });
+      } catch (error) {
+        console.error('Error setting up database listener:', error);
+        contactContainer.innerHTML = 
+          '<div class="card"><p class="text-center">Error: ' + error.message + '</p></div>';
+      }
+    }
 
-    </script>
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadContacts();
+    });
+  </script>
 </body>
 </html>
