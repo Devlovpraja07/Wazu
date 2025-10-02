@@ -1,8 +1,47 @@
-{
-  "cid": 1,
-  "category_name": "Dua (Islamic)",
-  "judul": "Dua Sehri Ke Baad",
-  "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Dua.jpg/640px-Dua.jpg",
-  "bahan": "- Allahumma inni laka sumtu<br/>- wa bika aamantu<br/>- wa 'alayka tawakkaltu<br/>- wa 'ala rizqika-aftartu<br/>",
-  "langkah": "1. Sehri ke waqt niyyat karein ki main Allah ke liye roza rakhta hoon.<br/><br/>2. Sehri khane ke baad yeh dua padhein:<br/><br/><b>نَوَيْتُ صَوْمَ غَدٍ عَنْ أَدَاءِ فَرْضِ شَهْرِ رَمَضَانَ هَذِهِ السَّنَةِ لِلّٰهِ تَعَالَى</b><br/><br/>3. Iska tarjuma: 'Main niyyat karta hoon kal ka roza rakhnay ki Ramadhan ke is saal ke farz ke ada karne ke liye Allah Ta'ala ke liye.'<br/><br/>4. Roza ki shuruaat Fajr ke waqt hoti hai, aur iftar Maghrib ke waqt kiya jata hai."
-}
+[
+  {
+    "id": 101,
+    "cid": 1,
+    "category_name": "Dua (Islamic)",
+    "judul": "Dua Sehri Ke Baad",
+    "image": "https://i.ibb.co/khbWJ9j/sehri-dua.jpg",
+    "bahan": "- Allahumma inni laka sumtu<br/>- wa bika aamantu<br/>- wa 'alayka tawakkaltu<br/>- wa 'ala rizqika-aftartu<br/>",
+    "langkah": "1. Sehri ke waqt niyyat karein ki main Allah ke liye roza rakhta hoon.<br/><br/>2. Sehri khane ke baad yeh dua padhein:<br/><b>نَوَيْتُ صَوْمَ غَدٍ عَنْ أَدَاءِ فَرْضِ شَهْرِ رَمَضَانَ هَذِهِ السَّنَةِ لِلّٰهِ تَعَالَى</b><br/><br/>3. Tarjuma: Main niyyat karta hoon kal ka roza rakhnay ki Ramadhan ke is saal ke farz ke ada karne ke liye Allah Ta'ala ke liye.<br/><br/>4. Roza ki shuruaat Fajr se hoti hai aur iftar Maghrib ke waqt."
+  },
+  {
+    "id": 102,
+    "cid": 1,
+    "category_name": "Dua (Islamic)",
+    "judul": "Dua Iftar Ke Waqt",
+    "image": "https://i.ibb.co/tL9N0hM/iftar-dua.jpg",
+    "bahan": "- Allahumma inni laka sumtu<br/>- wa bika aamantu<br/>- wa 'alayka tawakkaltu<br/>- wa 'ala rizqika-aftartu<br/>",
+    "langkah": "1. Iftar ke waqt sabse pehle dua padhein:<br/><b>اللَّهُمَّ إِنِّي لَكَ صُمْتُ وَبِكَ آمَنْتُ، وَعَلَيْكَ تَوَكَّلْتُ، وَعَلَى رِزْقِكَ أَفْطَرْتُ</b><br/><br/>2. Tarjuma: 'Ya Allah! Maine tere liye roza rakha, Tujh par imaan laya, Tujh par bharosa kiya aur Tere hi rizq se iftar kiya.'<br/><br/>3. Dua ke baad khajoor ya paani se roza kholen."
+  },
+  {
+    "id": 103,
+    "cid": 2,
+    "category_name": "Hadith",
+    "judul": "Hadith Roza Ke Fazilat",
+    "image": "https://i.ibb.co/SxFL9Nv/hadith.jpg",
+    "bahan": "Rasulullah ﷺ ne farmaya:<br/><b>'Roza ek dhaal hai jo insaan ko jahannum se bachaata hai.'</b>",
+    "langkah": "1. Roza sirf bhookh aur pyaas ka naam nahi hai.<br/><br/>2. Roze me zubaan, aankh, kaan, dil ko bhi gunaahon se bachaana hota hai.<br/><br/>3. Ye amal insaan ko Allah ke qareeb le aata hai aur taqwa peda karta hai."
+  },
+  {
+    "id": 104,
+    "cid": 3,
+    "category_name": "Namaz",
+    "judul": "Fajr Namaz Ka Tarika",
+    "image": "https://i.ibb.co/5Ms6B1f/fajr.jpg",
+    "bahan": "- 2 Rakaat Sunnat Muakkadah<br/>- 2 Rakaat Farz",
+    "langkah": "1. Fajr ka waqt Subh-e-Sadiq se shuru hota hai aur suraj nikalne tak rehta hai.<br/><br/>2. Pehle 2 rakaat Sunnat padhi jati hai.<br/><br/>3. Uske baad 2 rakaat Farz Namaz.<br/><br/>4. Namaz me Qiraat buland awaaz me ki jati hai (mardon ke liye)."
+  },
+  {
+    "id": 105,
+    "cid": 4,
+    "category_name": "Zikr & Tasbeeh",
+    "judul": "SubhanAllah, Alhamdulillah, Allahu Akbar",
+    "image": "https://i.ibb.co/j8QmPSV/zikr.jpg",
+    "bahan": "- SubhanAllah (33 martaba)<br/>- Alhamdulillah (33 martaba)<br/>- Allahu Akbar (34 martaba)",
+    "langkah": "1. Namaz ke baad yeh tasbeeh padhi jati hai.<br/><br/>2. Pehle 33 martaba 'SubhanAllah' padhein.<br/><br/>3. Phir 33 martaba 'Alhamdulillah'.<br/><br/>4. Aakhir me 34 martaba 'Allahu Akbar'.<br/><br/>5. Ye zikr dil ko sukoon aur rooh ko roshan karta hai."
+  }
+]
