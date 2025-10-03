@@ -3,10 +3,23 @@
     "id": 101,
     "cid": 1,
     "category_name": "Dua (Islamic)",
-    "judul": "Dua Sehri Ke Baad",
+    "judul": "Dua Sehri Ke Baad (Niyyat for Fasting)",
     "image": "https://i.ibb.co/khbWJ9j/sehri-dua.jpg",
-    "bahan": "- Allahumma inni laka sumtu<br/>- wa bika aamantu<br/>- wa 'alayka tawakkaltu<br/>- wa 'ala rizqika-aftartu<br/>",
-    "langkah": "1. Sehri ke waqt niyyat karein ki main Allah ke liye roza rakhta hoon.<br/><br/>2. Sehri khane ke baad yeh dua padhein:<br/><b>نَوَيْتُ صَوْمَ غَدٍ عَنْ أَدَاءِ فَرْضِ شَهْرِ رَمَضَانَ هَذِهِ السَّنَةِ لِلّٰهِ تَعَالَى</b><br/><br/>3. Tarjuma: Main niyyat karta hoon kal ka roza rakhnay ki Ramadhan ke is saal ke farz ke ada karne ke liye Allah Ta'ala ke liye.<br/><br/>4. Roza ki shuruaat Fajr se hoti hai aur iftar Maghrib ke waqt."
+    "audio": "https://example.com/audio/sehri_dua.mp3",
+    "description": "Sehri khatam karne ke baad padhne ki dua aur roze ki niyyat.",
+    "translation": "Main ne niyyat ki kal ka roza rakhnay ki, Ramadhan ke is saal ke farz roze ada karne ke liye, Allah Ta'ala ke liye.",
+    "reference": "Sunan Abi Dawud",
+    "bahan": [
+      "Niyyat (Intention) dil mein",
+      "Dua padhna"
+    ],
+    "langkah": [
+      "Sehri khatam karne ke qareeb waqt par, dil mein pak niyyat karein ke main kal ka roza Allah ke liye rakhunga.",
+      "Yeh Arabic dua padhein: 'نَوَيْتُ صَوْمَ غَدٍ عَنْ أَدَاءِ فَرْضِ شَهْرِ رَمَضَانَ هَذِهِ السَّنَةِ لِلّٰهِ تَعَالَى'",
+      "Dua ka tarjuma yaad rakhein ya samjhein.",
+      "Fajr ki azaan ke saath roza shuru ho jata hai."
+    ],
+    "benefits": "Yeh niyyat roze ki qabooliyat ke liye asal shart hai. Yeh amal ko sirf Allah ki khushnudi ke liye khas karta hai."
   },
   {
     "id": 102,
@@ -14,34 +27,275 @@
     "category_name": "Dua (Islamic)",
     "judul": "Dua Iftar Ke Waqt",
     "image": "https://i.ibb.co/tL9N0hM/iftar-dua.jpg",
-    "bahan": "- Allahumma inni laka sumtu<br/>- wa bika aamantu<br/>- wa 'alayka tawakkaltu<br/>- wa 'ala rizqika-aftartu<br/>",
-    "langkah": "1. Iftar ke waqt sabse pehle dua padhein:<br/><b>اللَّهُمَّ إِنِّي لَكَ صُمْتُ وَبِكَ آمَنْتُ، وَعَلَيْكَ تَوَكَّلْتُ، وَعَلَى رِزْقِكَ أَفْطَرْتُ</b><br/><br/>2. Tarjuma: 'Ya Allah! Maine tere liye roza rakha, Tujh par imaan laya, Tujh par bharosa kiya aur Tere hi rizq se iftar kiya.'<br/><br/>3. Dua ke baad khajoor ya paani se roza kholen."
+    "audio": "https://example.com/audio/iftar_dua.mp3",
+    "description": "Maghrib ke waqt roza kholne se pehle padhi jane wali masnoon dua.",
+    "translation": "'Aye Allah! Maine tere liye roza rakha, Tujh par imaan laya, Tujh par bharosa kiya aur Tere hi diye hue rizq se iftar kiya.'",
+    "reference": "Sunan Abi Dawud",
+    "bahan": [
+      "Khajoor ya Paani"
+    ],
+    "langkah": [
+      "Maghrib ka waqt hone ka intezar karein.",
+      "Roza kholne se pehle yeh dua zaroor padhein: 'اللَّهُمَّ إِنِّي لَكَ صُمْتُ، وَبِكَ آمَنْتُ، وَعَلَيْكَ تَوَكَّلْتُ، وَعَلَى رِزْقِكَ أَفْطَرْتُ'",
+      "Dua ke baad khajoor ya saaf paani se iftar karein.",
+      "Iske baad Maghrib ki namaz ada karein."
+    ],
+    "benefits": "Iftar ki dua qubooliyat-e-rozgari aur gunahon ki muaafi ka zariya hai. Yeh ek Ibadat ka mukammal anjaam hai."
   },
   {
     "id": 103,
-    "cid": 2,
-    "category_name": "Hadith",
-    "judul": "Hadith Roza Ke Fazilat",
-    "image": "https://i.ibb.co/SxFL9Nv/hadith.jpg",
-    "bahan": "Rasulullah ﷺ ne farmaya:<br/><b>'Roza ek dhaal hai jo insaan ko jahannum se bachaata hai.'</b>",
-    "langkah": "1. Roza sirf bhookh aur pyaas ka naam nahi hai.<br/><br/>2. Roze me zubaan, aankh, kaan, dil ko bhi gunaahon se bachaana hota hai.<br/><br/>3. Ye amal insaan ko Allah ke qareeb le aata hai aur taqwa peda karta hai."
+    "cid": 1,
+    "category_name": "Dua (Islamic)",
+    "judul": "Ghar Mein Dakhil Hone Ki Dua",
+    "image": "https://i.ibb.co/0Q1Lz0c/home-dua.jpg",
+    "audio": "https://example.com/audio/enter_home_dua.mp3",
+    "description": "Ghar mein dakhil hotay waqt padhi jane wali dua.",
+    "translation": "Aye Allah! Main tere paas aane ka sawali hoon, aur tere paas hi jaane wala hoon, tere paas hi jee uthay ga. Tere hi paas uthna baythna hai. Tujh hi se rizq maangta hoon aur tujh hi se panaah maangta hoon.",
+    "reference": "Sahih Muslim",
+    "bahan": [],
+    "langkah": [
+      "Ghar ka darwaza kholte waqt 'Bismillah' padhein.",
+      "Daayein paon se ghar mein dakhil hon.",
+      "Yeh dua padhein: 'اللّٰهُمَّ إِنِّي أَسْأَلُكَ خَيْرَ الْمَوْلِجِ وَخَيْرَ الْمَخْرَجِ بِسْمِ اللَّهِ وَلَجْنَا وَبِسْمِ اللَّهِ خَرَجْنَا وَعَلَى اللَّهِ رَبِّنَا تَوَكَّلْنَا'"
+    ],
+    "benefits": "Yeh dua ghar mein barkat, aman aur shaytan se hifazat ka zariya banati hai."
   },
   {
     "id": 104,
-    "cid": 3,
-    "category_name": "Namaz",
-    "judul": "Fajr Namaz Ka Tarika",
-    "image": "https://i.ibb.co/5Ms6B1f/fajr.jpg",
-    "bahan": "- 2 Rakaat Sunnat Muakkadah<br/>- 2 Rakaat Farz",
-    "langkah": "1. Fajr ka waqt Subh-e-Sadiq se shuru hota hai aur suraj nikalne tak rehta hai.<br/><br/>2. Pehle 2 rakaat Sunnat padhi jati hai.<br/><br/>3. Uske baad 2 rakaat Farz Namaz.<br/><br/>4. Namaz me Qiraat buland awaaz me ki jati hai (mardon ke liye)."
+    "cid": 2,
+    "category_name": "Hadith",
+    "judul": "Roza Ke Fazilat",
+    "image": "https://i.ibb.co/SxFL9Nv/hadith.jpg",
+    "audio": "https://example.com/audio/hadith_fasting.mp3",
+    "description": "Roza rakhne ki barkat aur uske ajar ke mutalliq Paighambar ﷺ ka farman.",
+    "translation": "Har Nabi ke liye ek dua mustajab hoti hai, main ne apni dua Qayamat ke din shafa'at ke liye mehfooz kar li hai, InshaAllah meri ummat ke woh log issey faiz yab hongey jo begunah maray hain.",
+    "reference": "Sahih al-Bukhari",
+    "bahan": [
+      "Imaan aur Ihtisab (Sawab ki niyyat)"
+    ],
+    "langkah": [
+      "Roza sirf bhookh pyaas hi nahi, balke har qisam ke gunahon se bachne ka zariya hai.",
+      "Zubaan, aankh, kaan, haath, paon aur dusre a'zaa ko bhi haram cheezon se bachana farz hai.",
+      "Roza insaan ko 'Taqwa' (Khuda tarsi) sikhta hai.",
+      "Roza dar-e-Jannat ki kunji hai aur jahannum se bachane ka dhaal."
+    ],
+    "benefits": "Roza dar-e-Jannat ki kunji 'Ar-Rayyan' hai. Rozedar ke liye do khushiyan hain: ek iftar ke waqt aur dusri apne Rubb se milne ke waqt."
   },
   {
     "id": 105,
+    "cid": 2,
+    "category_name": "Hadith",
+    "judul": "Ilm Hasil Karne Ki Fazeelat",
+    "image": "https://i.ibb.co/6nx0F2C/knowledge-hadith.jpg",
+    "audio": "https://example.com/audio/hadith_knowledge.mp3",
+    "description": "Ilm taleem hasil karne ki ahmiyat aur sawab.",
+    "translation": "Jo shaks deen ki samajh hasil karne ke liye kisi raaste par chalta hai, Allah uske liye jannat ke raaste aasan kar deta hai.",
+    "reference": "Sahih Muslim",
+    "bahan": [
+      "Niyyat (Khulus ke saath)",
+      "Mehnat"
+    ],
+    "langkah": [
+      "Ilm hasil karne ki niyyat sirf Allah ki raza ke liye ho.",
+      "Ilm haasil karne ke liye masjid, madarsa ya kisi aalim ke paas jaaye.",
+      "Ilm ko amal mein lana zaroori hai.",
+      "Ilm dusron tak pahunchana bhi sawab ka kaam hai."
+    ],
+    "benefits": "Aalim ki ibadat mujahid se bhi afzal hai. Qayamat ke din aalim ke liye azaab-e-dozakh se rihayi ki dua ki jayegi."
+  },
+  {
+    "id": 106,
+    "cid": 3,
+    "category_name": "Namaz",
+    "judul": "Fajr Namaz Ka Mukammal Tarika",
+    "image": "https://i.ibb.co/5Ms6B1f/fajr.jpg",
+    "audio": "https://example.com/audio/fajr_azaan.mp3",
+    "description": "Fajr ki 2 rakaat Sunnat aur 2 rakaat Farz namaz ka sahih tareeka.",
+    "translation": "",
+    "reference": "",
+    "time": "Subh Sadiq (True Dawn) se le kar Suraj nikalne tak.",
+    "bahan": [
+      "Wuzu (Ablution)",
+      "Pakkizah Kapde",
+      "Safai Jagah"
+    ],
+    "langkah": [
+      "Wuzu kar ke qibla rukh khade hon.",
+      "2 Rakaat Sunnat Muakkadah padhein. Har rakaat mein Surah Fatiha ke baad koi dusri surah milayein.",
+      "Sunnat ke baad kuch der baith kar 2 Rakaat Farz padhein.",
+      "Farz namaz mein pehli rakaat ke baad 'Sana' aur doono rakaat mein Qiraat (Surah Fatiha + koi surah) buland aawaz mein padhein (mardon ke liye).",
+      "Namaz ko aaraam se aur khushu khuzau ke saath ada karein."
+    ],
+    "benefits": "Fajr ki namaz poore din ki hifazat ka zariya hai. Is waqt ki ibadat farishton ke sazgaar hoti hai."
+  },
+  {
+    "id": 107,
+    "cid": 3,
+    "category_name": "Namaz",
+    "judul": "Tahajjud Namaz Ka Tareeka",
+    "image": "https://i.ibb.co/0j4L2yC/tahajjud.jpg",
+    "audio": "https://example.com/audio/tahajjud_dua.mp3",
+    "description": "Raat ke aakhri peher mein ada ki jane wali nafl namaz.",
+    "translation": "",
+    "reference": "Surah Al-Muzzammil",
+    "time": "Isha ke baad, so kar uthna behtar hai, khaas tor par sehri se qareeb waqt.",
+    "bahan": [
+      "Wuzu",
+      "Ikhlas"
+    ],
+    "langkah": [
+      "Gehri neend se uth kar wuzu karein.",
+      "Kam az kam 2 rakaat se 8 rakaat tak padh sakte hain. 2-2 rakaat kar ke padhein.",
+      "Har rakaat mein taweel qiraat (lambi suraten) padhna behtar hai.",
+      "Sajde mein bohat dua maangein.",
+      "Namaz ke baad apne liye aur poari ummat ke liye dua karein."
+    ],
+    "benefits": "Tahajjud gunahon ka kaffara hai, jism ko beemariyon se bachata hai, aur dua ki qubooliyat ka khaas waqt hai. Yeh muttaqi logon ki sifat hai."
+  },
+  {
+    "id": 108,
     "cid": 4,
     "category_name": "Zikr & Tasbeeh",
     "judul": "SubhanAllah, Alhamdulillah, Allahu Akbar",
     "image": "https://i.ibb.co/j8QmPSV/zikr.jpg",
-    "bahan": "- SubhanAllah (33 martaba)<br/>- Alhamdulillah (33 martaba)<br/>- Allahu Akbar (34 martaba)",
-    "langkah": "1. Namaz ke baad yeh tasbeeh padhi jati hai.<br/><br/>2. Pehle 33 martaba 'SubhanAllah' padhein.<br/><br/>3. Phir 33 martaba 'Alhamdulillah'.<br/><br/>4. Aakhir me 34 martaba 'Allahu Akbar'.<br/><br/>5. Ye zikr dil ko sukoon aur rooh ko roshan karta hai."
+    "audio": "https://example.com/audio/tasbih_zikr.mp3",
+    "description": "Namaz ke baad padhi jane wali tasbeeh, jo poore maamlaat mein Allah ki tasbeeh, uski tareef aur uski bariyai bayan karti hai.",
+    "translation": "Allah Paak hai, Tamam tareefen Allah ke liye hain, Allah sab se bada hai.",
+    "reference": "Sahih Muslim",
+    "bahan": [
+      "Ungliyan ya Tasbeeh"
+    ],
+    "langkah": [
+      "Namaz ke Farz ke baad salam pherne ke baad.",
+      "Pehle 33 martaba 'SubhanAllah' (Allah Paak hai) padhein.",
+      "Phir 33 martaba 'Alhamdulillah' (Tamam tareefen Allah ke liye hain) padhein.",
+      "Aakhir mein 34 martaba 'Allahu Akbar' (Allah sab se bada hai) padhein.",
+      "Kul mila kar 100 martaba zikr ho jata hai."
+    ],
+    "benefits": "Yeh zikr din bhar ki choti moti galtiyon ka kaffara hai. Yeh dil ko sukoon aur roohani taaqat deta hai."
+  },
+  {
+    "id": 109,
+    "cid": 4,
+    "category_name": "Zikr & Tasbeeh",
+    "judul": "Ayatul Kursi Ka Zikr",
+    "image": "https://i.ibb.co/6Y4b3qL/ayatul-kursi.jpg",
+    "audio": "https://example.com/audio/ayatul_kursi.mp3",
+    "description": "Quran Majeed ki sab se azeem aur barkati aayat, jo Allah ki qudrat aur uski wahdaniyat bayan karti hai.",
+    "translation": "Allah ke siwa koi maabood nahi, woh hamesha zinda rahne wala, sab ki hifazat karne wala...",
+    "reference": "Surah Al-Baqarah, Ayat 255",
+    "bahan": [],
+    "langkah": [
+      "Har namaz ke baad padhna mustahib hai.",
+      "Sone se pehle padhein to poari raat Allah ki hifazat mein guzregi.",
+      "Ghar mein dakhil hone se pehle padhein to ghar se shaytan nikal jata hai.",
+      "Isay dil se samajh kar padhna zyada behtar hai."
+    ],
+    "benefits": "Ayatul Kursi padhne wale par aur uske ghar par shaytan daakhil nahi ho sakta. Yeh Allah ki hifazat ka zariya hai."
+  },
+  {
+    "id": 110,
+    "cid": 5,
+    "category_name": "Quran",
+    "judul": "Surah Al-Fatiha",
+    "image": "https://i.ibb.co/0Qq7y0C/al-fatiha.jpg",
+    "audio": "https://example.com/audio/surah_fatiha.mp3",
+    "description": "Quran Pak ki pehli aur sab se aham surah, jise 'Ummul Kitab' (Kitab ki maan) kaha jata hai.",
+    "translation": "Bismillah... Tamam tareefen Allah hi ke liye hain jo saare jahan ka parwardigar hai...",
+    "reference": "Surah Al-Fatiha",
+    "bahan": [],
+    "langkah": [
+      "Har rakaat namaz mein padhna farz hai.",
+      "Pehle 'Auzu Billahi' phir 'Bismillah' padh kar surah shuru karein.",
+      "Isay 'Sana' ke baad padha jata hai.",
+      "Har aayat ke baad kuch der ruk kar uske matlab par gaur karein."
+    ],
+    "benefits": "Yeh Quran ka khulasa hai. Iske beghair namaz mukammal nahi hoti. Yeh dua ka behtareen tareeka hai jo Allah ne sikhaya hai."
+  },
+  {
+    "id": 111,
+    "cid": 5,
+    "category_name": "Quran",
+    "judul": "Surah Al-Ikhlas",
+    "image": "https://i.ibb.co/6rv1C2C/al-ikhlas.jpg",
+    "audio": "https://example.com/audio/surah_ikhlas.mp3",
+    "description": "Yeh surah Allah ki wahdaniyat aur uski zaat-e-baari taala bayan karti hai. Isay Quran ka teesra hissa kaha gaya hai.",
+    "translation": "Kehdo ke woh Allah ek hai. Allah be-niyaz hai. Na uski koi aulad hai aur na woh kisi ki aulad hai. Aur koi uska humsar nahi hai.",
+    "reference": "Surah Al-Ikhlas",
+    "bahan": [],
+    "langkah": [
+      "Namaz ki pehli do rakaat mein Surah Fatiha ke baad padhi ja sakti hai.",
+      "Isay 3 martaba padhna poore Quran ke barabar sawab ka haamil hai.",
+      "Sone se pehle 3 martaba padhne se poari raat ki hifazat hoti hai."
+    ],
+    "benefits": "Jo shaks is surah ko pasand karta hai, Allah use pasand karta hai. Yeh jannat mein dakhil hone ka bais banti hai."
+  },
+  {
+    "id": 112,
+    "cid": 6,
+    "category_name": "Ramadan Kareem",
+    "judul": "Lailatul Qadr Ki Dua",
+    "image": "https://i.ibb.co/0Qq7y0C/al-fatiha.jpg",
+    "audio": "https://example.com/audio/lailatul_qadr_dua.mp3",
+    "description": "Shab-e-Qadr mein padhi jane wali masnoon dua jo Hazrat Ayesha (R.A.) ne Rasoolullah ﷺ se seekhi thi.",
+    "translation": "Aye Allah! Beshak Tu bakhshne wala hai, bakhshna pasand karta hai, mujhe bakhsh de.",
+    "reference": "Jami` at-Tirmidhi",
+    "bahan": [
+      "Ikhlas",
+      "Ramadan ke aakhri ashra ki raatein (taaq, bees, ekis, chobees, pandrah wisvin ki raat)"
+    ],
+    "langkah": [
+      "Ramadan ke aakhri 10 dinon ki vish taaq raaton mein zyada se zyada ibadat karein.",
+      "Is dua ko baar baar padhein: 'اللَّهُمَّ إِنَّكَ عَفُوٌّ تُحِبُّ الْعَفْوَ فَاعْفُ عَنِّي'",
+      "Quran padhein, nawafil padhein, zikr o tasbeeh karein.",
+      "Dua maangein, aakhirat ki behtari aur gunahon se muaafi maangein."
+    ],
+    "benefits": "Lailatul Qadr ki ibadat hazaar mahinon (83 saal) se bhi zyada behtar hai. Is raat ki dua qubool hoti hai aur saal bhar ki muqaddar ki jaati hai."
+  },
+  {
+    "id": 113,
+    "cid": 7,
+    "category_name": "Sunnah",
+    "judul": "Khana Khane Ki Sunnatein",
+    "image": "https://i.ibb.co/0j4L2yC/tahajjud.jpg",
+    "audio": "",
+    "description": "Khana khane se pehle, dauran aur baad ki masnoon adaab.",
+    "translation": "",
+    "reference": "Various Hadiths",
+    "bahan": [
+      "Halal Rizq",
+      "Wuzu (agar maujood ho to behtar)"
+    ],
+    "langkah": [
+      "Khana shuru karne se pehle 'Bismillah' padhein.",
+      "Daayein haath se khana khayein.",
+      "Apne saamne rakhe hue khane se khayein.",
+      "Chammach/ungliyan chat kar saaf karein.",
+      "Khana khatam karne ke baad 'Alhamdulillah' padhein."
+    ],
+    "benefits": "Sunnat ke mutabiq khana khane se khane mein barkat hoti hai. Yeh sehat mand rehne ka tareeka hai aur shaytan khane se door rehta hai."
+  },
+  {
+    "id": 114,
+    "cid": 7,
+    "category_name": "Sunnah",
+    "judul": "Sone Ki Dua aur Adaab",
+    "image": "https://i.ibb.co/6Y4b3qL/ayatul-kursi.jpg",
+    "audio": "https://example.com/audio/sleep_dua.mp3",
+    "description": "Sone se pehle ki jane wali duaen aur sunnati tareeqa.",
+    "translation": "Aye Allah! Tere naam se main maut ki tarah soota hoon aur tere naam se hi uthunga.",
+    "reference": "Sahih al-Bukhari",
+    "bahan": [
+      "Pakkizah Kapde",
+      "Wuzu"
+    ],
+    "langkah": [
+      "Bistar par jaane se pehle dastar-khat (bichhone) ko jhatka dein.",
+      "Daayein karwat soyein.",
+      "Hath ko gaal ke niche rakh kar soyein.",
+      "Sone se pehle yeh dua padhein: 'اللَّهُمَّ بِاسْمِكَ أَمُوتُ وَأَحْيَا'",
+      "Subah uth kar bhi shukr ki dua padhein."
+    ],
+    "benefits": "Sunnat ke mutabiq sone se insaan hifazat mein rehta hai. Raat ki ibadat ke liye taaqat bani rehti hai aur bekar khawab kam aate hain."
   }
 ]
